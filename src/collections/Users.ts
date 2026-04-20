@@ -15,13 +15,12 @@ export const Users: CollectionConfig = {
         if (!Array.isArray(roles) || !roles.includes('super-admin')) {
           return data
         }
-        if (!userHasAllTenantAccess(req.user)) {
-          data.roles = roles.filter((r: string) => r !== 'super-admin')
-          if (!data.roles.length) {
-            data.roles = ['user']
-          }
+        if (userHasAllTenantAccess(req.user)) {
+          return data
         }
-        return data
+        const withoutSuperAdmin = roles.filter((r: string) => r !== 'super-admin')
+        const nextRoles = withoutSuperAdmin.length > 0 ? withoutSuperAdmin : ['user']
+        return { ...data, roles: nextRoles }
       },
     ],
   },

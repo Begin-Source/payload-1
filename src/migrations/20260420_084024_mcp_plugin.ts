@@ -1,6 +1,6 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-d1-sqlite'
 
-export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
+export async function up({ db, payload: _payload, req: _req }: MigrateUpArgs): Promise<void> {
   await db.run(sql`CREATE TABLE \`payload_mcp_api_keys\` (
   	\`id\` integer PRIMARY KEY NOT NULL,
   	\`user_id\` integer NOT NULL,
@@ -35,7 +35,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.run(sql`CREATE INDEX \`payload_preferences_rels_payload_mcp_api_keys_id_idx\` ON \`payload_preferences_rels\` (\`payload_mcp_api_keys_id\`);`)
 }
 
-export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
+export async function down({ db, payload: _payload, req: _req }: MigrateDownArgs): Promise<void> {
   await db.run(sql`DROP TABLE \`payload_mcp_api_keys\`;`)
   await db.run(sql`DROP TABLE \`payload_kv\`;`)
   await db.run(sql`PRAGMA foreign_keys=OFF;`)
