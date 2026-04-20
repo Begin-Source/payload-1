@@ -47,11 +47,14 @@ isProject: false
 | slug | 说明 |
 |------|------|
 | `tenants` | [src/collections/Tenants.ts](src/collections/Tenants.ts)；`name`、`slug`、`domain` |
+| `site-blueprints` | [src/collections/SiteBlueprints.ts](src/collections/SiteBlueprints.ts)；蓝图 JSON；**仅超管**侧栏与 CRUD |
+| `sites` | [src/collections/Sites.ts](src/collections/Sites.ts)；站群站点（域名、状态、可选 blueprint / operators）；多租户 |
 | `users` | [src/collections/Users.ts](src/collections/Users.ts)；`auth`，`roles`: `user` / `super-admin` |
-| `media` | [src/collections/Media.ts](src/collections/Media.ts)；上传至 R2；类型中带 `tenant`（多租户） |
+| `media` | [src/collections/Media.ts](src/collections/Media.ts)；上传至 R2；`useTenantAccess: false` |
+| `site-quotas` | [src/collections/SiteQuotas.ts](src/collections/SiteQuotas.ts)；按站点配额；**仅超管**侧栏与 CRUD |
 | `payload-mcp-api-keys` | 由 `@payloadcms/plugin-mcp` 注入；权限在 [src/payload.config.ts](src/payload.config.ts) 的 `mcpPlugin` 中配置 |
 
-**注册顺序（现状）**：[src/payload.config.ts](src/payload.config.ts) — `Tenants` → `Users` → `Media`。
+**注册顺序（现状）**：[src/payload.config.ts](src/payload.config.ts) — `Tenants` → `SiteBlueprints` → `Sites` → `Users` → `Media` → `SiteQuotas`。
 
 **内置集合**（Payload 系统用，一般不改侧栏分组）：如 `payload-migrations`、`payload-preferences` 等，见 [src/payload-types.ts](src/payload-types.ts)。
 
@@ -68,18 +71,26 @@ isProject: false
 - **`media`**：在 `multiTenantPlugin.collections` 中声明，文档带租户维度。
 - **超管**：`userHasAllTenantAccess` — `super-admin` 角色和/或 `PAYLOAD_SUPER_ADMIN_EMAILS`（见 [src/utilities/superAdmin.ts](src/utilities/superAdmin.ts)）。
 - **`users.roles`**：非超管无法在 Admin 中把他人设为 `super-admin`（`beforeChange` 于 [src/collections/Users.ts](src/collections/Users.ts)）。
-- **阶段 A（部分已落地）**：`tenants` / `users` / `media` 的侧栏分组与文案见 [src/constants/adminGroups.ts](src/constants/adminGroups.ts)；**待办**：扩展 `multiTenantPlugin.collections`（随 §五 B–D 新建集合后）、按需收紧 `users` 的 `access`。
+- **阶段 A**：`tenants` / `users` / `media` 侧栏分组见 [src/constants/adminGroups.ts](src/constants/adminGroups.ts)。
+- **阶段 B（已落地）**：`sites`、`site-quotas`、`site-blueprints` 已注册；`multiTenantPlugin.collections` 含 `sites`、`site-quotas`、`site-blueprints`（`media` 仍为 `useTenantAccess: false`）；MCP 已暴露 `sites`；迁移 [src/migrations/20260420_151119.ts](src/migrations/20260420_151119.ts)。
+- **待办**：随 §五 C–D 继续扩展 `multiTenantPlugin` / MCP。
 
 ```mermaid
 flowchart LR
   subgraph plugin [multiTenantPlugin]
     Media[media + tenant]
+    Sites[sites + tenant]
+    Quotas[site-quotas + tenant]
+    Blueprints[site-blueprints + tenant]
   end
   Tenants[tenants collection]
   Users[users collection]
   Tenants --- Users
   Users -. tenants field .-> Tenants
   Media --> Tenants
+  Sites --> Tenants
+  Quotas --> Tenants
+  Blueprints --> Tenants
 ```
 
 ---

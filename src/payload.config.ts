@@ -14,12 +14,15 @@ import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Tenants } from './collections/Tenants'
+import { Sites } from './collections/Sites'
+import { SiteQuotas } from './collections/SiteQuotas'
+import { SiteBlueprints } from './collections/SiteBlueprints'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
 import { userHasAllTenantAccess } from './utilities/superAdmin'
 
 /** Collections exposed via MCP (camelCase keys on API key docs must match these slugs). */
-const mcpCollectionSlugs = ['tenants', 'users', 'media'] as const
+const mcpCollectionSlugs = ['tenants', 'users', 'media', 'sites'] as const
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -86,7 +89,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Tenants, Users, Media],
+  collections: [Tenants, SiteBlueprints, Sites, Users, Media, SiteQuotas],
   editor: lexicalEditor(),
   secret: payloadSecret,
   typescript: {
@@ -103,6 +106,9 @@ export default buildConfig({
        */
       useTenantsCollectionAccess: false,
       collections: {
+        sites: {},
+        'site-quotas': {},
+        'site-blueprints': {},
         /**
          * When tenant access wrapping is on, users with no `tenants[]` assignment cannot `read`
          * media — sidebar entry disappears. Disable wrapping so Media uses collection `access` only.
@@ -130,6 +136,11 @@ export default buildConfig({
         media: {
           enabled: true,
           description: 'Uploads in R2 (alt text and file metadata).',
+        },
+        sites: {
+          enabled: true,
+          description:
+            'Affiliate / rank-and-rent sites (domain, status, blueprint). Super-admin API keys receive full MCP CRUD.',
         },
       },
       overrideAuth: async (_req, getDefaultMcpAccessSettings) => {

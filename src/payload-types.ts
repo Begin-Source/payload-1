@@ -69,8 +69,11 @@ export interface Config {
   blocks: {};
   collections: {
     tenants: Tenant;
+    'site-blueprints': SiteBlueprint;
+    sites: Site;
     users: User;
     media: Media;
+    'site-quotas': SiteQuota;
     'payload-mcp-api-keys': PayloadMcpApiKey;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -80,8 +83,11 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     tenants: TenantsSelect<false> | TenantsSelect<true>;
+    'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
+    sites: SitesSelect<false> | SitesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'site-quotas': SiteQuotasSelect<false> | SiteQuotasSelect<true>;
     'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -154,6 +160,57 @@ export interface Tenant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-blueprints".
+ */
+export interface SiteBlueprint {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug: string;
+  description?: string | null;
+  /**
+   * Arbitrary JSON for themes, sections, or generator defaults.
+   */
+  templateConfig?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sites".
+ */
+export interface Site {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  /**
+   * URL-safe key; pair with tenant for uniqueness in your workflows.
+   */
+  slug: string;
+  primaryDomain: string;
+  status: 'draft' | 'active' | 'archived';
+  /**
+   * Optional layout/template blueprint for this site.
+   */
+  blueprint?: (number | null) | SiteBlueprint;
+  /**
+   * Users who operate this site (optional; tenant scoping still applies).
+   */
+  operators?: (number | User)[] | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -204,6 +261,27 @@ export interface Media {
   filesize?: number | null;
   width?: number | null;
   height?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-quotas".
+ */
+export interface SiteQuota {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  site: number | Site;
+  /**
+   * Cap on published pages for this site (0 = unlimited).
+   */
+  maxPublishedPages?: number | null;
+  /**
+   * Cap on automated/AI job runs per month (0 = unlimited).
+   */
+  maxMonthlyAiRuns?: number | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * API keys control which collections, resources, tools, and prompts MCP clients can access
@@ -279,6 +357,24 @@ export interface PayloadMcpApiKey {
      */
     delete?: boolean | null;
   };
+  sites?: {
+    /**
+     * Allow clients to find sites.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create sites.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update sites.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete sites.
+     */
+    delete?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
   enableAPIKey?: boolean | null;
@@ -315,12 +411,24 @@ export interface PayloadLockedDocument {
         value: number | Tenant;
       } | null)
     | ({
+        relationTo: 'site-blueprints';
+        value: number | SiteBlueprint;
+      } | null)
+    | ({
+        relationTo: 'sites';
+        value: number | Site;
+      } | null)
+    | ({
         relationTo: 'users';
         value: number | User;
       } | null)
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'site-quotas';
+        value: number | SiteQuota;
       } | null)
     | ({
         relationTo: 'payload-mcp-api-keys';
@@ -391,6 +499,35 @@ export interface TenantsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-blueprints_select".
+ */
+export interface SiteBlueprintsSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  description?: T;
+  templateConfig?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sites_select".
+ */
+export interface SitesSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  primaryDomain?: T;
+  status?: T;
+  blueprint?: T;
+  operators?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -437,6 +574,20 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-quotas_select".
+ */
+export interface SiteQuotasSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  site?: T;
+  maxPublishedPages?: T;
+  maxMonthlyAiRuns?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-mcp-api-keys_select".
  */
 export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
@@ -460,6 +611,14 @@ export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
         delete?: T;
       };
   media?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  sites?:
     | T
     | {
         find?: T;
