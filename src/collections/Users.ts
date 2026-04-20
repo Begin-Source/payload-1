@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -11,6 +12,17 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
   },
   auth: true,
+  access: {
+    admin: ({ req: { user } }) => Boolean(user),
+    create: ({ req: { user } }) => {
+      if (userHasAllTenantAccess(user)) return true
+      return !user
+    },
+    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
+    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
+    delete: superAdminPasses(() => false),
+    unlock: superAdminPasses(() => false),
+  },
   hooks: {
     beforeChange: [
       ({ data, req }) => {

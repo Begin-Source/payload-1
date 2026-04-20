@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Tenants: CollectionConfig = {
   slug: 'tenants',
@@ -12,10 +12,10 @@ export const Tenants: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'domain'],
   },
   access: {
-    read: ({ req: { user } }) => Boolean(user),
-    create: ({ req: { user } }) => userHasAllTenantAccess(user),
-    update: ({ req: { user } }) => userHasAllTenantAccess(user),
-    delete: ({ req: { user } }) => userHasAllTenantAccess(user),
+    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
+    create: superAdminPasses(() => false),
+    update: superAdminPasses(() => false),
+    delete: superAdminPasses(() => false),
   },
   fields: [
     {

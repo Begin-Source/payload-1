@@ -96,8 +96,18 @@ export default buildConfig({
   logger: isProduction ? cloudflareLogger : undefined,
   plugins: [
     multiTenantPlugin<Config>({
+      /**
+       * When true (default), plugin wraps tenants `read` so users with zero assigned
+       * tenants get no access — Admin hides Tenants + tenant-scoped collections from nav.
+       * We keep collection-level rules in Tenants.ts (read: any logged-in user; writes: super-admin).
+       */
+      useTenantsCollectionAccess: false,
       collections: {
-        media: {},
+        /**
+         * When tenant access wrapping is on, users with no `tenants[]` assignment cannot `read`
+         * media — sidebar entry disappears. Disable wrapping so Media uses collection `access` only.
+         */
+        media: { useTenantAccess: false },
       },
       userHasAccessToAllTenants: (user) => userHasAllTenantAccess(user),
     }),

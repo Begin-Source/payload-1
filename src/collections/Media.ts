@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
+import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -10,6 +11,9 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
+    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
+    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
   },
   fields: [
     {
