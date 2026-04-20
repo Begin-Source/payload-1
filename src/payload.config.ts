@@ -18,6 +18,10 @@ const realpath = (value: string) => (fs.existsSync(value) ? fs.realpathSync(valu
 
 const isCLI = process.argv.some((value) => realpath(value).endsWith(path.join('payload', 'bin.js')))
 const isProduction = process.env.NODE_ENV === 'production'
+/** Do not require Worker secrets during Next.js production build. */
+const isNextBuild =
+  process.env.npm_lifecycle_event === 'build' ||
+  process.env.NEXT_PHASE === 'phase-production-build'
 
 const createLog =
   (level: string, fn: typeof console.log) => (objOrMsg: object | string, msg?: string) => {
@@ -39,12 +43,34 @@ const cloudflareLogger = {
   silent: () => {},
 } as any // Use PayloadLogger type when it's exported
 
+/** During `next build`, use local Miniflare bindings (same pattern as Payload Cloudflare template + OpenNext). */
 const cloudflare =
-  isCLI || !isProduction
+  isCLI || !isProduction || isNextBuild
     ? await getCloudflareContextFromWrangler()
     : await getCloudflareContext({ async: true })
 
+const payloadSecretFromBinding = (cloudflare.env as Cloudflare.Env).PAYLOAD_SECRET
+const payloadSecret =
+  process.env.PAYLOAD_SECRET?.trim() ||
+  (typeof payloadSecretFromBinding === 'string' ? payloadSecretFromBinding.trim() : '') ||
+  ''
+
+if (isProduction && !isNextBuild && !isCLI && !payloadSecret) {
+  throw new Error(
+    'PAYLOAD_SECRET is required in production. Set a Worker secret (e.g. wrangler secret put PAYLOAD_SECRET) or Variables in the Cloudflare dashboard. The value used only for CI migrate is not available to the deployed Worker.',
+  )
+}
+
+const serverURLFromEnv = (cloudflare.env as Cloudflare.Env).PAYLOAD_PUBLIC_SERVER_URL
+const serverURL =
+  isProduction && !isNextBuild
+    ? (process.env.PAYLOAD_PUBLIC_SERVER_URL?.trim() ||
+        (typeof serverURLFromEnv === 'string' ? serverURLFromEnv.trim() : '') ||
+        '')
+    : ''
+
 export default buildConfig({
+  serverURL,
   admin: {
     user: Users.slug,
     importMap: {
@@ -53,7 +79,7 @@ export default buildConfig({
   },
   collections: [Users, Media],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: payloadSecret,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
@@ -85,7 +111,7 @@ function getCloudflareContextFromWrangler(): Promise<CloudflareContext> {
     ({ getPlatformProxy }) =>
       getPlatformProxy({
         environment: process.env.CLOUDFLARE_ENV,
-        remoteBindings: isProduction,
+        remoteBindings: isProduction && !isNextBuild,
       } satisfies GetPlatformProxyOptions),
   )
 }
