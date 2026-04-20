@@ -4,6 +4,7 @@
   "description": "A blank template to get started with Payload 3.0",
   "license": "MIT",
   "type": "module",
+  "packageManager": "pnpm@10.11.1",
   "scripts": {
     "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
     "deploy": "pnpm run deploy:database && pnpm run deploy:app",
@@ -70,8 +71,8 @@
       "unrs-resolver"
     ],
     "patchedDependencies": {
-      "mcp-handler@1.1.0": "patches/mcp-handler@1.1.0.patch",
-      "@payloadcms/plugin-mcp@3.82.1": "patches/@payloadcms__plugin-mcp@3.82.1.patch"
+      "@payloadcms/plugin-mcp@3.82.1": "patches/@payloadcms__plugin-mcp@3.82.1.patch",
+      "mcp-handler@1.1.0": "patches/mcp-handler@1.1.0.patch"
     }
   },
   "cloudflare": {
