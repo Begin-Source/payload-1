@@ -5,6 +5,7 @@ import * as migration_20260420_093949 from './20260420_093949';
 import * as migration_20260420_103719 from './20260420_103719';
 import * as migration_20260420_151119 from './20260420_151119';
 import * as migration_20260420_213352_phase_c_affiliate_globals from './20260420_213352_phase_c_affiliate_globals';
+import * as migration_20260420_214651_phase_d_content_automation from './20260420_214651_phase_d_content_automation';
 
 export const migrations = [
   {
@@ -41,5 +42,10 @@ export const migrations = [
     up: migration_20260420_213352_phase_c_affiliate_globals.up,
     down: migration_20260420_213352_phase_c_affiliate_globals.down,
     name: '20260420_213352_phase_c_affiliate_globals',
+  },
+  {
+    up: migration_20260420_214651_phase_d_content_automation.up,
+    down: migration_20260420_214651_phase_d_content_automation.down,
+    name: '20260420_214651_phase_d_content_automation',
   },
 ];

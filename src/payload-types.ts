@@ -72,7 +72,11 @@ export interface Config {
     'site-blueprints': SiteBlueprint;
     sites: Site;
     users: User;
+    categories: Category;
     media: Media;
+    posts: Post;
+    keywords: Keyword;
+    'workflow-jobs': WorkflowJob;
     'site-quotas': SiteQuota;
     'affiliate-networks': AffiliateNetwork;
     offers: Offer;
@@ -90,7 +94,11 @@ export interface Config {
     'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
+    keywords: KeywordsSelect<false> | KeywordsSelect<true>;
+    'workflow-jobs': WorkflowJobsSelect<false> | WorkflowJobsSelect<true>;
     'site-quotas': SiteQuotasSelect<false> | SiteQuotasSelect<true>;
     'affiliate-networks': AffiliateNetworksSelect<false> | AffiliateNetworksSelect<true>;
     offers: OffersSelect<false> | OffersSelect<true>;
@@ -109,10 +117,16 @@ export interface Config {
   globals: {
     'commission-rules': CommissionRule;
     'quota-rules': QuotaRule;
+    'admin-branding': AdminBranding;
+    'llm-prompts': LlmPrompt;
+    'prompt-library': PromptLibrary;
   };
   globalsSelect: {
     'commission-rules': CommissionRulesSelect<false> | CommissionRulesSelect<true>;
     'quota-rules': QuotaRulesSelect<false> | QuotaRulesSelect<true>;
+    'admin-branding': AdminBrandingSelect<false> | AdminBrandingSelect<true>;
+    'llm-prompts': LlmPromptsSelect<false> | LlmPromptsSelect<true>;
+    'prompt-library': PromptLibrarySelect<false> | PromptLibrarySelect<true>;
   };
   locale: null;
   widgets: {
@@ -260,6 +274,19 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug: string;
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
@@ -275,6 +302,103 @@ export interface Media {
   filesize?: number | null;
   width?: number | null;
   height?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  slug?: string | null;
+  /**
+   * Use Page for static landers; Article for blog-style content.
+   */
+  postType: 'article' | 'page';
+  /**
+   * Owning site (optional while migrating legacy content).
+   */
+  site?: (number | null) | Site;
+  categories?: (number | Category)[] | null;
+  featuredImage?: (number | null) | Media;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  status: 'draft' | 'published' | 'archived';
+  publishedAt?: string | null;
+  excerpt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "keywords".
+ */
+export interface Keyword {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  term: string;
+  slug?: string | null;
+  /**
+   * Optional: scope this keyword to one site.
+   */
+  site?: (number | null) | Site;
+  status: 'draft' | 'active' | 'archived';
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workflow-jobs".
+ */
+export interface WorkflowJob {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  label: string;
+  jobType: 'publish' | 'sync' | 'ai_generate' | 'custom';
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  site?: (number | null) | Site;
+  /**
+   * Optional target post for publish/AI jobs.
+   */
+  post?: (number | null) | Post;
+  input?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  output?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  errorMessage?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -505,6 +629,78 @@ export interface PayloadMcpApiKey {
      */
     delete?: boolean | null;
   };
+  categories?: {
+    /**
+     * Allow clients to find categories.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create categories.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update categories.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete categories.
+     */
+    delete?: boolean | null;
+  };
+  posts?: {
+    /**
+     * Allow clients to find posts.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create posts.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update posts.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete posts.
+     */
+    delete?: boolean | null;
+  };
+  keywords?: {
+    /**
+     * Allow clients to find keywords.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create keywords.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update keywords.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete keywords.
+     */
+    delete?: boolean | null;
+  };
+  workflowJobs?: {
+    /**
+     * Allow clients to find workflow-jobs.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create workflow-jobs.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update workflow-jobs.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete workflow-jobs.
+     */
+    delete?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
   enableAPIKey?: boolean | null;
@@ -553,8 +749,24 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'posts';
+        value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'keywords';
+        value: number | Keyword;
+      } | null)
+    | ({
+        relationTo: 'workflow-jobs';
+        value: number | WorkflowJob;
       } | null)
     | ({
         relationTo: 'site-quotas';
@@ -703,6 +915,18 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -717,6 +941,58 @@ export interface MediaSelect<T extends boolean = true> {
   filesize?: T;
   width?: T;
   height?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  postType?: T;
+  site?: T;
+  categories?: T;
+  featuredImage?: T;
+  body?: T;
+  status?: T;
+  publishedAt?: T;
+  excerpt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "keywords_select".
+ */
+export interface KeywordsSelect<T extends boolean = true> {
+  tenant?: T;
+  term?: T;
+  slug?: T;
+  site?: T;
+  status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workflow-jobs_select".
+ */
+export interface WorkflowJobsSelect<T extends boolean = true> {
+  tenant?: T;
+  label?: T;
+  jobType?: T;
+  status?: T;
+  site?: T;
+  post?: T;
+  input?: T;
+  output?: T;
+  startedAt?: T;
+  completedAt?: T;
+  errorMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -853,6 +1129,38 @@ export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
         update?: T;
         delete?: T;
       };
+  categories?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  posts?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  keywords?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  workflowJobs?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   enableAPIKey?: T;
@@ -945,6 +1253,55 @@ export interface QuotaRule {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-branding".
+ */
+export interface AdminBranding {
+  id: number;
+  brandName?: string | null;
+  logo?: (number | null) | Media;
+  /**
+   * e.g. #0f172a
+   */
+  primaryColor?: string | null;
+  supportEmail?: string | null;
+  notes?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "llm-prompts".
+ */
+export interface LlmPrompt {
+  id: number;
+  /**
+   * Provider model id (e.g. gpt-4o-mini).
+   */
+  defaultModel?: string | null;
+  temperature?: number | null;
+  globalSystemPrompt?: string | null;
+  apiNotes?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prompt-library".
+ */
+export interface PromptLibrary {
+  id: number;
+  entries?:
+    | {
+        name: string;
+        body: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "commission-rules_select".
  */
 export interface CommissionRulesSelect<T extends boolean = true> {
@@ -961,6 +1318,49 @@ export interface CommissionRulesSelect<T extends boolean = true> {
 export interface QuotaRulesSelect<T extends boolean = true> {
   rules?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-branding_select".
+ */
+export interface AdminBrandingSelect<T extends boolean = true> {
+  brandName?: T;
+  logo?: T;
+  primaryColor?: T;
+  supportEmail?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "llm-prompts_select".
+ */
+export interface LlmPromptsSelect<T extends boolean = true> {
+  defaultModel?: T;
+  temperature?: T;
+  globalSystemPrompt?: T;
+  apiNotes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prompt-library_select".
+ */
+export interface PromptLibrarySelect<T extends boolean = true> {
+  entries?:
+    | T
+    | {
+        name?: T;
+        body?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

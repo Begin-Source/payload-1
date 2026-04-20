@@ -24,13 +24,13 @@ isProject: false
 早期版本若按「完整站群后台」描述侧栏与集合，会与**当前克隆**不一致。以下以仓库内代码为准；**§四 起**为 **[规划中]** 的目标信息架构，供 affiliate 站群分阶段落地。
 
 - **配置唯一事实来源**：[src/payload.config.ts](src/payload.config.ts)（`buildConfig` 内 `collections`、`globals`、`plugins`）。
-- **已注册业务 collections**：见 **§一**（含阶段 B/C：`sites`、`affiliate-networks`、`offers` 等）。
-- **多租户**：[src/payload.config.ts](src/payload.config.ts) 内 `multiTenantPlugin.collections` 含 `sites`、`site-quotas`、`site-blueprints`、`affiliate-networks`、`offers`、`click-events`、`commissions` 及 `media`（`useTenantAccess: false`）；超管绕过见 [src/utilities/superAdmin.ts](src/utilities/superAdmin.ts)。类型上 `User` 含 **`tenants`** 等由插件注入的字段；**尚无** `teamLead`、团队管理员角色或 Users 侧栏 `hidden` 规则。
-- **MCP**：在 **`mcpPlugin({ ... })`** 中配置（**无**独立 `src/payload-mcp-plugin.ts`）。暴露集合 **`tenants`、`users`、`media`、`sites`、`affiliate-networks`、`offers`**（与 `mcpCollectionSlugs`、[src/utilities/mcpSuperAdminAccess.ts](src/utilities/mcpSuperAdminAccess.ts) 一致）；侧栏另有插件注入的 **`payload-mcp-api-keys`**。
+- **已注册业务 collections**：见 **§一**（阶段 B/C/D：`sites`、联盟与内容域等）。
+- **多租户**：[src/payload.config.ts](src/payload.config.ts) 内 `multiTenantPlugin.collections` 含 `sites`、`site-quotas`、`site-blueprints`、`categories`、`posts`、`keywords`、`workflow-jobs`、`affiliate-networks`、`offers`、`click-events`、`commissions` 及 `media`（`useTenantAccess: false`）；超管绕过见 [src/utilities/superAdmin.ts](src/utilities/superAdmin.ts)。类型上 `User` 含 **`tenants`** 等由插件注入的字段；**尚无** `teamLead`、团队管理员角色或 Users 侧栏 `hidden` 规则。
+- **MCP**：在 **`mcpPlugin({ ... })`** 中配置（**无**独立 `src/payload-mcp-plugin.ts`）。暴露集合含 **`tenants`、`users`、`media`、`sites`、`affiliate-networks`、`offers`、`categories`、`posts`、`keywords`、`workflow-jobs`**（与 `mcpCollectionSlugs`、[src/utilities/mcpSuperAdminAccess.ts](src/utilities/mcpSuperAdminAccess.ts) 一致）；侧栏另有插件注入的 **`payload-mcp-api-keys`**。
 - **Tenants 权限**：[src/collections/Tenants.ts](src/collections/Tenants.ts)：**读取** 仍为任意已登录用户；**创建 / 更新 / 删除** 已限制为 **`userHasAllTenantAccess`（超管）**。
 - **Users / Media**：[src/collections/Users.ts](src/collections/Users.ts)、[src/collections/Media.ts](src/collections/Media.ts) 已配置 **`admin.group`（`group`）与根级 `labels`**（与 §4.3 一致）；侧栏 `hidden` 仍为 **[规划中]**。
-- **Globals**：见 **§二**（`commission-rules`、`quota-rules`；**仅超管**侧栏与读写）。
-- **缺失引用**：**无** [docs/batch-site-management-purpose.md](docs/batch-site-management-purpose.md)（可后续新增）。**FinanceDashboard、TeamLeadDashboard、HomeDashboardWithoutCollectionGrid、`beforeNavLinks` 等自定义 Admin 组件** 当前仓库 **不存在**，属 **[规划中] / 阶段 D**。
+- **Globals**：见 **§二**（佣金/配额/白标/LLM：**仅超管**侧栏与读写，以各 global 文件为准）。
+- **缺失引用**：**无** [docs/batch-site-management-purpose.md](docs/batch-site-management-purpose.md)（可后续新增）。**FinanceDashboard、TeamLeadDashboard、聚合首页与 `beforeNavLinks` 等自定义 Admin 组件** 当前仓库 **不存在**，属 **[规划中]**（数据模型阶段 D 已覆盖 posts/categories 等，见 §三）。
 
 ---
 
@@ -56,9 +56,13 @@ isProject: false
 | `offers` | [src/collections/Offers.ts](src/collections/Offers.ts)；Offer（关联 network、sites）；多租户 |
 | `click-events` | [src/collections/ClickEvents.ts](src/collections/ClickEvents.ts)；点击/展示等追踪事件；多租户 |
 | `commissions` | [src/collections/Commissions.ts](src/collections/Commissions.ts)；佣金明细；多租户 |
+| `categories` | [src/collections/Categories.ts](src/collections/Categories.ts)；内容分类；多租户 |
+| `posts` | [src/collections/Posts.ts](src/collections/Posts.ts)；文章 / 页面（`postType`：`article` \| `page`），Lexical `body`；多租户 |
+| `keywords` | [src/collections/Keywords.ts](src/collections/Keywords.ts)；关键词研究；多租户 |
+| `workflow-jobs` | [src/collections/WorkflowJobs.ts](src/collections/WorkflowJobs.ts)；自动化任务与 JSON 载荷；多租户 |
 | `payload-mcp-api-keys` | 由 `@payloadcms/plugin-mcp` 注入；权限在 [src/payload.config.ts](src/payload.config.ts) 的 `mcpPlugin` 中配置 |
 
-**注册顺序（现状）**：[src/payload.config.ts](src/payload.config.ts) — `Tenants` → `SiteBlueprints` → `Sites` → `Users` → `Media` → `SiteQuotas` → `AffiliateNetworks` → `Offers` → `ClickEvents` → `Commissions`。
+**注册顺序（现状）**：[src/payload.config.ts](src/payload.config.ts) — `Tenants` → `SiteBlueprints` → `Sites` → `Users` → `Categories` → `Media` → `Posts` → `Keywords` → `WorkflowJobs` → `SiteQuotas` → `AffiliateNetworks` → `Offers` → `ClickEvents` → `Commissions`。
 
 **内置集合**（Payload 系统用，一般不改侧栏分组）：如 `payload-migrations`、`payload-preferences` 等，见 [src/payload-types.ts](src/payload-types.ts)。
 
@@ -70,20 +74,24 @@ isProject: false
 |------|------|
 | `commission-rules` | [src/globals/CommissionRules.ts](src/globals/CommissionRules.ts)；佣金规则 JSON；**仅超管**侧栏与读写 |
 | `quota-rules` | [src/globals/QuotaRules.ts](src/globals/QuotaRules.ts)；配额规则 JSON；**仅超管**侧栏与读写 |
+| `admin-branding` | [src/globals/AdminBranding.ts](src/globals/AdminBranding.ts)；白标与外观；**仅超管**侧栏与读写 |
+| `llm-prompts` | [src/globals/LlmPrompts.ts](src/globals/LlmPrompts.ts)；默认模型与系统提示等；**仅超管**侧栏与读写 |
+| `prompt-library` | [src/globals/PromptLibrary.ts](src/globals/PromptLibrary.ts)；提示词条目（array）；**仅超管**侧栏与读写 |
 
-后续若增加白标、LLM Globals 等，在 [src/payload.config.ts](src/payload.config.ts) 扩展 `globals` 并在本节与 §四 同步更新。
+后续若再增加其他 Globals，在 [src/payload.config.ts](src/payload.config.ts) 扩展 `globals` 并在本节与 §四 同步更新。
 
 ---
 
 ## 三、现状 — 多租户与权限要点
 
-- **多租户集合**：`sites`、`site-quotas`、`site-blueprints`、`affiliate-networks`、`offers`、`click-events`、`commissions` 与在 `multiTenantPlugin.collections` 中声明的 **`media`**（`useTenantAccess: false`，仍带租户字段）。
+- **多租户集合**：`sites`、`site-quotas`、`site-blueprints`、`categories`、`posts`、`keywords`、`workflow-jobs`、`affiliate-networks`、`offers`、`click-events`、`commissions` 与在 `multiTenantPlugin.collections` 中声明的 **`media`**（`useTenantAccess: false`，仍带租户字段）。
 - **超管**：`userHasAllTenantAccess` — `super-admin` 角色和/或 `PAYLOAD_SUPER_ADMIN_EMAILS`（见 [src/utilities/superAdmin.ts](src/utilities/superAdmin.ts)）。
 - **`users.roles`**：非超管无法在 Admin 中把他人设为 `super-admin`（`beforeChange` 于 [src/collections/Users.ts](src/collections/Users.ts)）。
 - **阶段 A**：`tenants` / `users` / `media` 侧栏分组见 [src/constants/adminGroups.ts](src/constants/adminGroups.ts)。
 - **阶段 B（已落地）**：`sites`、`site-quotas`、`site-blueprints`；迁移 [src/migrations/20260420_151119.ts](src/migrations/20260420_151119.ts)。
 - **阶段 C（已落地）**：`affiliate-networks`、`offers`、`click-events`、`commissions`；Globals `commission-rules`、`quota-rules`；`multiTenantPlugin.collections` 已含上述四 collection；MCP 已暴露 `affiliate-networks`、`offers`；迁移 [src/migrations/20260420_213352_phase_c_affiliate_globals.ts](src/migrations/20260420_213352_phase_c_affiliate_globals.ts)。
-- **待办**：随 §五 D 继续扩展内容与自动化、`multiTenantPlugin` / MCP（按需）。
+- **阶段 D（数据模型已落地）**：`categories`、`posts`（`postType` 含 **page**）、`keywords`、`workflow-jobs`；Globals `admin-branding`、`llm-prompts`、`prompt-library`；`multiTenantPlugin` / MCP 已扩展；迁移 [src/migrations/20260420_214651_phase_d_content_automation.ts](src/migrations/20260420_214651_phase_d_content_automation.ts)。**仍为 [规划中]**：`admin.components` 自定义首页/看板、`Users.teamLead`、`src/access/usersAccess` 等与租户范围一致的权限模块。
+- **待办**：产品与工程上按需接通前台渲染、工作流执行器、LLM 调用；Admin 自定义视图见上。
 
 ```mermaid
 flowchart LR
@@ -96,6 +104,10 @@ flowchart LR
     Offers[offers + tenant]
     Clicks[click-events + tenant]
     Commissions[commissions + tenant]
+    Categories[categories + tenant]
+    PostsP[posts + tenant]
+    Kws[keywords + tenant]
+    Wf[workflow-jobs + tenant]
   end
   Tenants[tenants collection]
   Users[users collection]
@@ -109,13 +121,17 @@ flowchart LR
   Offers --> Tenants
   Clicks --> Tenants
   Commissions --> Tenants
+  Categories --> Tenants
+  PostsP --> Tenants
+  Kws --> Tenants
+  Wf --> Tenants
 ```
 
 ---
 
 ## 四、[规划中] 目标 IA — Collections、Globals 与侧栏分组
 
-实现后建议统一 `admin.group`（下列中文组名为推荐方案，避免「运营管控」等过粗分组）。**阶段 A–C 已落地的 slug** 以 §一、§二与仓库文件为准；**下列表中仍标 [规划中]** 的项待 §五 D 及后续迭代。
+实现后建议统一 `admin.group`（下列中文组名为推荐方案，避免「运营管控」等过粗分组）。**阶段 A–D 已落地的 slug** 以 §一、§二与仓库文件为准；**下列表中仍为未来扩展** 的项（如 `audit-logs`、`rankings`）待后续迭代。
 
 ### 4.1 目标 Collections（slug → admin.group → 标签备注）
 
@@ -185,7 +201,7 @@ flowchart LR
 | **A — Admin 可维护性与安全** | 为现有 `tenants` / `users` / `media` 补 `admin.group`、`labels`（按需）；收紧 `tenants` 等 `access`；扩展 `multiTenantPlugin.collections`；按需扩展 `mcpPlugin.collections` 与 `mcpCollectionSlugs` |
 | **B — 站群核心数据模型** | 新增 `sites` 及站点与租户/用户关系；`site-quotas`、`site-blueprints` 等 |
 | **C — Affiliate 闭环** | `affiliate-networks`、`offers`、追踪（`click-events` 等）、`commissions` 与 Globals 佣金/配额规则 |
-| **D — 内容与自动化** | `posts`、`categories`、`keywords`、`workflow-jobs`、LLM Globals；**页面**（扩展 `postType` 或新建 `pages`）；自定义 Dashboard、`teamLead` / 团队管理视图、`usersAccess`（实现时新建，例如 `src/access/usersAccess.ts`；当前仓库无此目录） |
+| **D — 内容与自动化** | **[数据模型已落地]** `posts`（`postType`：`article` \| `page`）、`categories`、`keywords`、`workflow-jobs`；Globals `admin-branding`、`llm-prompts`、`prompt-library`。**[仍规划中]** 自定义 Dashboard / 首页、`teamLead` / 团队管理视图、`usersAccess`（例如新建 `src/access/usersAccess.ts`） |
 
 **说明**：在对应 collection/global **创建后**再改其 `admin.group` 字符串，与 §4.3 保持一致；侧栏组内排序依赖 Payload 版本，必要时再用自定义导航。
 

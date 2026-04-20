@@ -21,8 +21,15 @@ import { AffiliateNetworks } from './collections/AffiliateNetworks'
 import { Offers } from './collections/Offers'
 import { ClickEvents } from './collections/ClickEvents'
 import { Commissions } from './collections/Commissions'
+import { Categories } from './collections/Categories'
+import { Keywords } from './collections/Keywords'
+import { Posts } from './collections/Posts'
+import { WorkflowJobs } from './collections/WorkflowJobs'
 import { CommissionRules } from './globals/CommissionRules'
 import { QuotaRules } from './globals/QuotaRules'
+import { AdminBranding } from './globals/AdminBranding'
+import { LlmPrompts } from './globals/LlmPrompts'
+import { PromptLibrary } from './globals/PromptLibrary'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
 import { userHasAllTenantAccess } from './utilities/superAdmin'
@@ -35,6 +42,10 @@ const mcpCollectionSlugs = [
   'sites',
   'affiliate-networks',
   'offers',
+  'categories',
+  'posts',
+  'keywords',
+  'workflow-jobs',
 ] as const
 
 const filename = fileURLToPath(import.meta.url)
@@ -107,14 +118,18 @@ export default buildConfig({
     SiteBlueprints,
     Sites,
     Users,
+    Categories,
     Media,
+    Posts,
+    Keywords,
+    WorkflowJobs,
     SiteQuotas,
     AffiliateNetworks,
     Offers,
     ClickEvents,
     Commissions,
   ],
-  globals: [CommissionRules, QuotaRules],
+  globals: [CommissionRules, QuotaRules, AdminBranding, LlmPrompts, PromptLibrary],
   editor: lexicalEditor(),
   secret: payloadSecret,
   typescript: {
@@ -138,6 +153,10 @@ export default buildConfig({
         offers: {},
         'click-events': {},
         commissions: {},
+        categories: {},
+        posts: {},
+        keywords: {},
+        'workflow-jobs': {},
         /**
          * When tenant access wrapping is on, users with no `tenants[]` assignment cannot `read`
          * media — sidebar entry disappears. Disable wrapping so Media uses collection `access` only.
@@ -178,6 +197,22 @@ export default buildConfig({
         offers: {
           enabled: true,
           description: 'Offers linked to networks and optional site allowlists.',
+        },
+        categories: {
+          enabled: true,
+          description: 'Content taxonomy for posts and pages.',
+        },
+        posts: {
+          enabled: true,
+          description: 'Articles and pages (Lexical body, optional site and categories).',
+        },
+        keywords: {
+          enabled: true,
+          description: 'SEO / research keywords optionally scoped to a site.',
+        },
+        'workflow-jobs': {
+          enabled: true,
+          description: 'Automation jobs (publish, sync, AI, custom) with JSON payloads.',
         },
       },
       overrideAuth: async (_req, getDefaultMcpAccessSettings) => {
