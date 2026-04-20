@@ -129,6 +129,11 @@ export default buildConfig({
         }
         return expandMcpAccessForSuperAdmin(settings, mcpCollectionSlugs)
       },
+      mcp: {
+        handlerOptions: {
+          verboseLogs: true,
+        },
+      },
     }),
   ],
 })
