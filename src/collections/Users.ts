@@ -1,10 +1,13 @@
 import type { CollectionConfig } from 'payload'
 
+import { adminGroups } from '@/constants/adminGroups'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 
 export const Users: CollectionConfig = {
   slug: 'users',
+  labels: { singular: '用户', plural: '用户' },
   admin: {
+    group: adminGroups.membersAndPermissions,
     useAsTitle: 'email',
   },
   auth: true,

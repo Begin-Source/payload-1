@@ -1,7 +1,13 @@
 import type { CollectionConfig } from 'payload'
 
+import { adminGroups } from '@/constants/adminGroups'
+
 export const Media: CollectionConfig = {
   slug: 'media',
+  labels: { singular: '媒体', plural: '媒体库' },
+  admin: {
+    group: adminGroups.mediaAssets,
+  },
   access: {
     read: () => true,
   },
