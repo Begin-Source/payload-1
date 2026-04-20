@@ -230,12 +230,36 @@ export interface PayloadMcpApiKey {
      * Allow clients to find tenants.
      */
     find?: boolean | null;
+    /**
+     * Allow clients to create tenants.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update tenants.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete tenants.
+     */
+    delete?: boolean | null;
   };
   users?: {
     /**
      * Allow clients to find users.
      */
     find?: boolean | null;
+    /**
+     * Allow clients to create users.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update users.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete users.
+     */
+    delete?: boolean | null;
   };
   media?: {
     /**
@@ -423,11 +447,17 @@ export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
     | T
     | {
         find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
       };
   users?:
     | T
     | {
         find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
       };
   media?:
     | T

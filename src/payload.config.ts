@@ -15,7 +15,11 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Tenants } from './collections/Tenants'
 import type { Config } from './payload-types'
+import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
 import { userHasAllTenantAccess } from './utilities/superAdmin'
+
+/** Collections exposed via MCP (camelCase keys on API key docs must match these slugs). */
+const mcpCollectionSlugs = ['tenants', 'users', 'media'] as const
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -104,17 +108,26 @@ export default buildConfig({
     mcpPlugin({
       collections: {
         tenants: {
-          enabled: { find: true },
-          description: 'Tenant records (name, slug, domain) for multi-tenancy.',
+          enabled: true,
+          description:
+            'Tenant records (name, slug, domain). Super-admin API keys receive full MCP CRUD; others follow API key checkboxes.',
         },
         users: {
-          enabled: { find: true },
-          description: 'Authenticated admin users (read-only via MCP; tighten per API key in admin).',
+          enabled: true,
+          description:
+            'Admin users (email, roles, tenant assignments). Super-admin keys get full MCP CRUD; redact secrets in responses as needed.',
         },
         media: {
           enabled: true,
-          description: 'Uploads stored in R2 (alt text and file metadata).',
+          description: 'Uploads in R2 (alt text and file metadata).',
         },
+      },
+      overrideAuth: async (_req, getDefaultMcpAccessSettings) => {
+        const settings = await getDefaultMcpAccessSettings()
+        if (!userHasAllTenantAccess(settings.user)) {
+          return settings
+        }
+        return expandMcpAccessForSuperAdmin(settings, mcpCollectionSlugs)
       },
     }),
   ],
