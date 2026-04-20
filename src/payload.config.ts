@@ -8,9 +8,13 @@ import { CloudflareContext, getCloudflareContext } from '@opennextjs/cloudflare'
 import { GetPlatformProxyOptions } from 'wrangler'
 import { r2Storage } from '@payloadcms/storage-r2'
 import { mcpPlugin } from '@payloadcms/plugin-mcp'
+import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Tenants } from './collections/Tenants'
+import type { Config } from './payload-types'
+import { userHasAllTenantAccess } from './utilities/superAdmin'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -77,7 +81,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media],
+  collections: [Tenants, Users, Media],
   editor: lexicalEditor(),
   secret: payloadSecret,
   typescript: {
@@ -86,12 +90,22 @@ export default buildConfig({
   db: sqliteD1Adapter({ binding: cloudflare.env.D1 }),
   logger: isProduction ? cloudflareLogger : undefined,
   plugins: [
+    multiTenantPlugin<Config>({
+      collections: {
+        media: {},
+      },
+      userHasAccessToAllTenants: (user) => userHasAllTenantAccess(user),
+    }),
     r2Storage({
       bucket: cloudflare.env.R2,
       collections: { media: true },
     }),
     mcpPlugin({
       collections: {
+        tenants: {
+          enabled: { find: true },
+          description: 'Tenant records (name, slug, domain) for multi-tenancy.',
+        },
         users: {
           enabled: { find: true },
           description: 'Authenticated admin users (read-only via MCP; tighten per API key in admin).',
