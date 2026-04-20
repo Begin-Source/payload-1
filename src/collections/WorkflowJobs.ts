@@ -7,7 +7,7 @@ export const WorkflowJobs: CollectionConfig = {
   slug: 'workflow-jobs',
   labels: { singular: '工作流任务', plural: '工作流任务' },
   admin: {
-    group: adminGroups.tasksAndAutomation,
+    group: adminGroups.operations,
     useAsTitle: 'label',
     defaultColumns: ['label', 'jobType', 'status', 'site', 'updatedAt'],
   },

@@ -3,11 +3,11 @@ import type { CollectionConfig } from 'payload'
 import { adminGroups } from '@/constants/adminGroups'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
-export const AffiliateNetworks: CollectionConfig = {
-  slug: 'affiliate-networks',
-  labels: { singular: '联盟', plural: '联盟' },
+export const SocialPlatforms: CollectionConfig = {
+  slug: 'social-platforms',
+  labels: { singular: '社交平台', plural: '社交平台' },
   admin: {
-    group: adminGroups.business,
+    group: adminGroups.social,
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'status', 'updatedAt'],
   },
@@ -18,22 +18,8 @@ export const AffiliateNetworks: CollectionConfig = {
     delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
   },
   fields: [
-    {
-      name: 'name',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      index: true,
-    },
-    {
-      name: 'websiteUrl',
-      type: 'text',
-      label: 'Program URL',
-    },
+    { name: 'name', type: 'text', required: true },
+    { name: 'slug', type: 'text', required: true, index: true },
     {
       name: 'status',
       type: 'select',
@@ -44,9 +30,6 @@ export const AffiliateNetworks: CollectionConfig = {
         { label: 'Paused', value: 'paused' },
       ],
     },
-    {
-      name: 'notes',
-      type: 'textarea',
-    },
+    { name: 'notes', type: 'textarea' },
   ],
 }

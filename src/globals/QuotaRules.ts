@@ -8,7 +8,7 @@ export const QuotaRules: GlobalConfig = {
   slug: 'quota-rules',
   label: '配额规则',
   admin: {
-    group: adminGroups.systemSettings,
+    group: adminGroups.system,
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
   },
   access: {

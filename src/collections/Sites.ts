@@ -7,7 +7,7 @@ export const Sites: CollectionConfig = {
   slug: 'sites',
   labels: { singular: '站点', plural: '站点' },
   admin: {
-    group: adminGroups.sites,
+    group: adminGroups.website,
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'status', 'primaryDomain', 'updatedAt'],
   },

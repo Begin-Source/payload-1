@@ -8,7 +8,7 @@ export const SiteBlueprints: CollectionConfig = {
   slug: 'site-blueprints',
   labels: { singular: '站点蓝图', plural: '站点蓝图' },
   admin: {
-    group: adminGroups.platformAndTenants,
+    group: adminGroups.system,
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'updatedAt'],
     hidden: ({ user }) => !isSuperAdminLikeUser(user),

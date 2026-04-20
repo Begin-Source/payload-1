@@ -4,13 +4,13 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { adminGroups } from '@/constants/adminGroups'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
-export const Posts: CollectionConfig = {
-  slug: 'posts',
-  labels: { singular: '文章', plural: '文章' },
+export const KnowledgeBase: CollectionConfig = {
+  slug: 'knowledge-base',
+  labels: { singular: '知识库文档', plural: '知识库文档' },
   admin: {
-    group: adminGroups.website,
+    group: adminGroups.knowledge,
     useAsTitle: 'title',
-    defaultColumns: ['title', 'postType', 'site', 'status', 'updatedAt'],
+    defaultColumns: ['title', 'site', 'status', 'updatedAt'],
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),
@@ -19,48 +19,19 @@ export const Posts: CollectionConfig = {
     delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
   },
   fields: [
-    {
-      name: 'title',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      index: true,
-    },
-    {
-      name: 'postType',
-      type: 'select',
-      required: true,
-      defaultValue: 'article',
-      label: 'Type',
-      options: [
-        { label: 'Article', value: 'article' },
-        { label: 'Page', value: 'page' },
-      ],
-      admin: {
-        description: 'Use Page for static landers; Article for blog-style content.',
-      },
-    },
+    { name: 'title', type: 'text', required: true },
+    { name: 'slug', type: 'text', index: true },
     {
       name: 'site',
       type: 'relationship',
       relationTo: 'sites',
-      admin: {
-        description: 'Owning site (optional while migrating legacy content).',
-      },
+      admin: { description: 'Optional scope to one site.' },
     },
     {
       name: 'categories',
       type: 'relationship',
       relationTo: 'categories',
       hasMany: true,
-    },
-    {
-      name: 'featuredImage',
-      type: 'upload',
-      relationTo: 'media',
     },
     {
       name: 'body',
@@ -78,14 +49,6 @@ export const Posts: CollectionConfig = {
         { label: 'Archived', value: 'archived' },
       ],
     },
-    {
-      name: 'publishedAt',
-      type: 'date',
-      admin: { date: { pickerAppearance: 'dayAndTime' } },
-    },
-    {
-      name: 'excerpt',
-      type: 'textarea',
-    },
+    { name: 'notes', type: 'textarea' },
   ],
 }

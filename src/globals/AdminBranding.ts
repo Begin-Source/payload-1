@@ -8,7 +8,7 @@ export const AdminBranding: GlobalConfig = {
   slug: 'admin-branding',
   label: '白标与外观',
   admin: {
-    group: adminGroups.systemSettings,
+    group: adminGroups.system,
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
   },
   access: {

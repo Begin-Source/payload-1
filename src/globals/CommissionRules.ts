@@ -8,7 +8,7 @@ export const CommissionRules: GlobalConfig = {
   slug: 'commission-rules',
   label: '佣金规则',
   admin: {
-    group: adminGroups.financeAndCommissions,
+    group: adminGroups.finance,
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
   },
   access: {

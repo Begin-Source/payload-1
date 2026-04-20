@@ -8,7 +8,7 @@ export const SiteQuotas: CollectionConfig = {
   slug: 'site-quotas',
   labels: { singular: '站点配额', plural: '站点配额' },
   admin: {
-    group: adminGroups.platformAndTenants,
+    group: adminGroups.operations,
     useAsTitle: 'name',
     defaultColumns: ['name', 'site', 'updatedAt'],
     hidden: ({ user }) => !isSuperAdminLikeUser(user),

@@ -7,7 +7,7 @@ export const ClickEvents: CollectionConfig = {
   slug: 'click-events',
   labels: { singular: '点击事件', plural: '点击事件' },
   admin: {
-    group: adminGroups.dataMonitoring,
+    group: adminGroups.operations,
     useAsTitle: 'id',
     defaultColumns: ['occurredAt', 'eventType', 'site', 'offer', 'updatedAt'],
   },

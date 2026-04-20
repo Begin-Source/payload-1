@@ -7,9 +7,9 @@ export const Commissions: CollectionConfig = {
   slug: 'commissions',
   labels: { singular: '佣金记录', plural: '佣金记录' },
   admin: {
-    group: adminGroups.financeAndCommissions,
+    group: adminGroups.finance,
     useAsTitle: 'id',
-    defaultColumns: ['amount', 'currency', 'status', 'offer', 'updatedAt'],
+    defaultColumns: ['amount', 'currency', 'status', 'recipient', 'offer', 'updatedAt'],
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),
@@ -41,6 +41,14 @@ export const Commissions: CollectionConfig = {
         { label: 'Paid', value: 'paid' },
         { label: 'Rejected', value: 'rejected' },
       ],
+    },
+    {
+      name: 'recipient',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description: 'Commission attributed to this system user (payout / team mapping).',
+      },
     },
     {
       name: 'offer',

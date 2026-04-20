@@ -7,7 +7,7 @@ export const Tenants: CollectionConfig = {
   slug: 'tenants',
   labels: { singular: '租户', plural: '租户' },
   admin: {
-    group: adminGroups.platformAndTenants,
+    group: adminGroups.system,
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'domain'],
   },

@@ -8,7 +8,7 @@ export const PromptLibrary: GlobalConfig = {
   slug: 'prompt-library',
   label: '提示词库',
   admin: {
-    group: adminGroups.systemSettings,
+    group: adminGroups.operations,
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
   },
   access: {

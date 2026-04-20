@@ -25,11 +25,17 @@ import { Categories } from './collections/Categories'
 import { Keywords } from './collections/Keywords'
 import { Posts } from './collections/Posts'
 import { WorkflowJobs } from './collections/WorkflowJobs'
+import { SocialPlatforms } from './collections/SocialPlatforms'
+import { SocialAccounts } from './collections/SocialAccounts'
+import { Rankings } from './collections/Rankings'
+import { AuditLogs } from './collections/AuditLogs'
+import { KnowledgeBase } from './collections/KnowledgeBase'
 import { CommissionRules } from './globals/CommissionRules'
 import { QuotaRules } from './globals/QuotaRules'
 import { AdminBranding } from './globals/AdminBranding'
 import { LlmPrompts } from './globals/LlmPrompts'
 import { PromptLibrary } from './globals/PromptLibrary'
+import { Announcements } from './globals/Announcements'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
 import { userHasAllTenantAccess } from './utilities/superAdmin'
@@ -46,6 +52,8 @@ const mcpCollectionSlugs = [
   'posts',
   'keywords',
   'workflow-jobs',
+  'knowledge-base',
+  'rankings',
 ] as const
 
 const filename = fileURLToPath(import.meta.url)
@@ -112,24 +120,32 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      beforeDashboard: ['./components/BeforeDashboardMilestone#BeforeDashboardMilestone'],
+    },
   },
   collections: [
     Tenants,
     SiteBlueprints,
     Sites,
     Users,
+    SocialPlatforms,
+    SocialAccounts,
     Categories,
     Media,
     Posts,
     Keywords,
+    Rankings,
     WorkflowJobs,
     SiteQuotas,
     AffiliateNetworks,
     Offers,
     ClickEvents,
     Commissions,
+    KnowledgeBase,
+    AuditLogs,
   ],
-  globals: [CommissionRules, QuotaRules, AdminBranding, LlmPrompts, PromptLibrary],
+  globals: [Announcements, CommissionRules, QuotaRules, AdminBranding, LlmPrompts, PromptLibrary],
   editor: lexicalEditor(),
   secret: payloadSecret,
   typescript: {
@@ -157,6 +173,11 @@ export default buildConfig({
         posts: {},
         keywords: {},
         'workflow-jobs': {},
+        'knowledge-base': {},
+        rankings: {},
+        'audit-logs': {},
+        'social-platforms': {},
+        'social-accounts': {},
         /**
          * When tenant access wrapping is on, users with no `tenants[]` assignment cannot `read`
          * media — sidebar entry disappears. Disable wrapping so Media uses collection `access` only.
@@ -213,6 +234,14 @@ export default buildConfig({
         'workflow-jobs': {
           enabled: true,
           description: 'Automation jobs (publish, sync, AI, custom) with JSON payloads.',
+        },
+        'knowledge-base': {
+          enabled: true,
+          description: 'Internal knowledge base entries (Lexical body, optional site scope).',
+        },
+        rankings: {
+          enabled: true,
+          description: 'SERP ranking snapshots linked to keywords and sites.',
         },
       },
       overrideAuth: async (_req, getDefaultMcpAccessSettings) => {

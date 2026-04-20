@@ -7,7 +7,7 @@ export const Categories: CollectionConfig = {
   slug: 'categories',
   labels: { singular: '分类', plural: '分类' },
   admin: {
-    group: adminGroups.mediaAssets,
+    group: adminGroups.website,
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'updatedAt'],
   },

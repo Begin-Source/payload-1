@@ -3,13 +3,13 @@ import type { CollectionConfig } from 'payload'
 import { adminGroups } from '@/constants/adminGroups'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
-export const Keywords: CollectionConfig = {
-  slug: 'keywords',
-  labels: { singular: '关键词', plural: '关键词' },
+export const SocialAccounts: CollectionConfig = {
+  slug: 'social-accounts',
+  labels: { singular: '社交账号', plural: '社交账号' },
   admin: {
-    group: adminGroups.website,
-    useAsTitle: 'term',
-    defaultColumns: ['term', 'site', 'status', 'updatedAt'],
+    group: adminGroups.social,
+    useAsTitle: 'handle',
+    defaultColumns: ['handle', 'platform', 'site', 'status', 'updatedAt'],
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),
@@ -19,38 +19,27 @@ export const Keywords: CollectionConfig = {
   },
   fields: [
     {
-      name: 'term',
-      type: 'text',
+      name: 'platform',
+      type: 'relationship',
+      relationTo: 'social-platforms',
       required: true,
-      label: 'Keyword',
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      index: true,
     },
     {
       name: 'site',
       type: 'relationship',
       relationTo: 'sites',
-      admin: {
-        description: 'Optional: scope this keyword to one site.',
-      },
     },
+    { name: 'handle', type: 'text', required: true },
     {
       name: 'status',
       type: 'select',
       required: true,
-      defaultValue: 'draft',
+      defaultValue: 'active',
       options: [
-        { label: 'Draft', value: 'draft' },
         { label: 'Active', value: 'active' },
-        { label: 'Archived', value: 'archived' },
+        { label: 'Disconnected', value: 'disconnected' },
       ],
     },
-    {
-      name: 'notes',
-      type: 'textarea',
-    },
+    { name: 'notes', type: 'textarea' },
   ],
 }

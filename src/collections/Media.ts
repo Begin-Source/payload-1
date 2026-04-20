@@ -7,7 +7,7 @@ export const Media: CollectionConfig = {
   slug: 'media',
   labels: { singular: '媒体', plural: '媒体库' },
   admin: {
-    group: adminGroups.mediaAssets,
+    group: adminGroups.website,
   },
   access: {
     read: () => true,

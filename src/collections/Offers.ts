@@ -7,7 +7,7 @@ export const Offers: CollectionConfig = {
   slug: 'offers',
   labels: { singular: 'Offer', plural: 'Offer' },
   admin: {
-    group: adminGroups.businessPartnerships,
+    group: adminGroups.business,
     useAsTitle: 'title',
     defaultColumns: ['title', 'network', 'status', 'updatedAt'],
   },

@@ -8,7 +8,7 @@ export const LlmPrompts: GlobalConfig = {
   slug: 'llm-prompts',
   label: 'LLM 配置',
   admin: {
-    group: adminGroups.systemSettings,
+    group: adminGroups.operations,
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
   },
   access: {

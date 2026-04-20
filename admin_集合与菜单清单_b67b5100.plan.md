@@ -30,7 +30,32 @@ isProject: false
 - **Tenants 权限**：[src/collections/Tenants.ts](src/collections/Tenants.ts)：**读取** 仍为任意已登录用户；**创建 / 更新 / 删除** 已限制为 **`userHasAllTenantAccess`（超管）**。
 - **Users / Media**：[src/collections/Users.ts](src/collections/Users.ts)、[src/collections/Media.ts](src/collections/Media.ts) 已配置 **`admin.group`（`group`）与根级 `labels`**（与 §4.3 一致）；侧栏 `hidden` 仍为 **[规划中]**。
 - **Globals**：见 **§二**（佣金/配额/白标/LLM：**仅超管**侧栏与读写，以各 global 文件为准）。
-- **缺失引用**：**无** [docs/batch-site-management-purpose.md](docs/batch-site-management-purpose.md)（可后续新增）。**FinanceDashboard、TeamLeadDashboard、聚合首页与 `beforeNavLinks` 等自定义 Admin 组件** 当前仓库 **不存在**，属 **[规划中]**（数据模型阶段 D 已覆盖 posts/categories 等，见 §三）。
+- **缺失引用**：**无** [docs/batch-site-management-purpose.md](docs/batch-site-management-purpose.md)（可后续新增）。财务/运营看板仍可在 `beforeDashboard` 与独立视图中扩展（见 §产品 IA 定稿）。
+
+---
+
+## 产品 IA 定稿（2026-04 — 实施对齐）
+
+侧栏 **`admin.group`** 与 [`src/constants/adminGroups.ts`](src/constants/adminGroups.ts) 一致：**首页 / 网站 / 运营 / 社媒 / 团队 / 商务 / 财务 / 知识库 / 系统 / MCP**。全员**同一套导航结构**；可见范围由各 collection/global 的 `access` 与 `admin.hidden` 控制。
+
+**产品定案约束**：租户、站点蓝图、配额规则 Global → **系统**；审计日志 → **运营**；知识库 → **独立** collection `knowledge-base`；通知公告 → Global `announcements`；佣金归属 → 系统用户 **`users`**（`commissions.recipient`）；组长关系 → **`users.teamLead`**（relationship → `users`）。
+
+### 分组与 slug 对照
+
+| 产品分组 | `admin.group` 常量 | Collections / Globals（slug） |
+|----------|-------------------|--------------------------------|
+| 首页 | `home` | Global `announcements`；Dashboard 占位见 [`src/components/BeforeDashboardMilestone.tsx`](src/components/BeforeDashboardMilestone.tsx)（`payload.config` `admin.components.beforeDashboard`） |
+| 网站 | `website` | `sites`, `categories`, `media`, `posts`, `keywords` |
+| 运营 | `operations` | `site-quotas`, `click-events`, `workflow-jobs`, `rankings`, `audit-logs`；Global `llm-prompts`, `prompt-library` |
+| 社媒 | `social` | `social-platforms`, `social-accounts` |
+| 团队 | `team` | `users`（含 `teamLead`） |
+| 商务 | `business` | `affiliate-networks`, `offers` |
+| 财务 | `finance` | `commissions`（含 `recipient`）；Global `commission-rules` |
+| 知识库 | `knowledge` | `knowledge-base` |
+| 系统 | `system` | `tenants`, `site-blueprints`；Global `quota-rules`, `admin-branding` |
+| MCP | `mcp` | 插件 `payload-mcp-api-keys` |
+
+**迁移**：扩展模型与字段见 [`src/migrations/20260420_224925_product_ia_extensions.ts`](src/migrations/20260420_224925_product_ia_extensions.ts)。若后续按租户/组长收紧 `users` 的读写，可在 `src/access/` 新增模块并在 [`src/collections/Users.ts`](src/collections/Users.ts) 引用。
 
 ---
 
@@ -60,9 +85,14 @@ isProject: false
 | `posts` | [src/collections/Posts.ts](src/collections/Posts.ts)；文章 / 页面（`postType`：`article` \| `page`），Lexical `body`；多租户 |
 | `keywords` | [src/collections/Keywords.ts](src/collections/Keywords.ts)；关键词研究；多租户 |
 | `workflow-jobs` | [src/collections/WorkflowJobs.ts](src/collections/WorkflowJobs.ts)；自动化任务与 JSON 载荷；多租户 |
+| `social-platforms` | [src/collections/SocialPlatforms.ts](src/collections/SocialPlatforms.ts)；社交平台；多租户 |
+| `social-accounts` | [src/collections/SocialAccounts.ts](src/collections/SocialAccounts.ts)；社交账号；多租户 |
+| `rankings` | [src/collections/Rankings.ts](src/collections/Rankings.ts)；排名快照；多租户 |
+| `audit-logs` | [src/collections/AuditLogs.ts](src/collections/AuditLogs.ts)；审计日志；多租户 |
+| `knowledge-base` | [src/collections/KnowledgeBase.ts](src/collections/KnowledgeBase.ts)；对内知识库；多租户 |
 | `payload-mcp-api-keys` | 由 `@payloadcms/plugin-mcp` 注入；权限在 [src/payload.config.ts](src/payload.config.ts) 的 `mcpPlugin` 中配置 |
 
-**注册顺序（现状）**：[src/payload.config.ts](src/payload.config.ts) — `Tenants` → `SiteBlueprints` → `Sites` → `Users` → `Categories` → `Media` → `Posts` → `Keywords` → `WorkflowJobs` → `SiteQuotas` → `AffiliateNetworks` → `Offers` → `ClickEvents` → `Commissions`。
+**注册顺序（现状）**：[src/payload.config.ts](src/payload.config.ts) — `Tenants` → `SiteBlueprints` → `Sites` → `Users` → `SocialPlatforms` → `SocialAccounts` → `Categories` → `Media` → `Posts` → `Keywords` → `Rankings` → `WorkflowJobs` → `SiteQuotas` → `AffiliateNetworks` → `Offers` → `ClickEvents` → `Commissions` → `KnowledgeBase` → `AuditLogs`。
 
 **内置集合**（Payload 系统用，一般不改侧栏分组）：如 `payload-migrations`、`payload-preferences` 等，见 [src/payload-types.ts](src/payload-types.ts)。
 
@@ -77,6 +107,7 @@ isProject: false
 | `admin-branding` | [src/globals/AdminBranding.ts](src/globals/AdminBranding.ts)；白标与外观；**仅超管**侧栏与读写 |
 | `llm-prompts` | [src/globals/LlmPrompts.ts](src/globals/LlmPrompts.ts)；默认模型与系统提示等；**仅超管**侧栏与读写 |
 | `prompt-library` | [src/globals/PromptLibrary.ts](src/globals/PromptLibrary.ts)；提示词条目（array）；**仅超管**侧栏与读写 |
+| `announcements` | [src/globals/Announcements.ts](src/globals/Announcements.ts)；通知公告；已登录可读，**仅超管**可写 |
 
 后续若再增加其他 Globals，在 [src/payload.config.ts](src/payload.config.ts) 扩展 `globals` 并在本节与 §四 同步更新。
 
@@ -84,7 +115,7 @@ isProject: false
 
 ## 三、现状 — 多租户与权限要点
 
-- **多租户集合**：`sites`、`site-quotas`、`site-blueprints`、`categories`、`posts`、`keywords`、`workflow-jobs`、`affiliate-networks`、`offers`、`click-events`、`commissions` 与在 `multiTenantPlugin.collections` 中声明的 **`media`**（`useTenantAccess: false`，仍带租户字段）。
+- **多租户集合**：`sites`、`site-quotas`、`site-blueprints`、`categories`、`posts`、`keywords`、`workflow-jobs`、`rankings`、`audit-logs`、`knowledge-base`、`social-platforms`、`social-accounts`、`affiliate-networks`、`offers`、`click-events`、`commissions` 与在 `multiTenantPlugin.collections` 中声明的 **`media`**（`useTenantAccess: false`，仍带租户字段）。
 - **超管**：`userHasAllTenantAccess` — `super-admin` 角色和/或 `PAYLOAD_SUPER_ADMIN_EMAILS`（见 [src/utilities/superAdmin.ts](src/utilities/superAdmin.ts)）。
 - **`users.roles`**：非超管无法在 Admin 中把他人设为 `super-admin`（`beforeChange` 于 [src/collections/Users.ts](src/collections/Users.ts)）。
 - **阶段 A**：`tenants` / `users` / `media` 侧栏分组见 [src/constants/adminGroups.ts](src/constants/adminGroups.ts)。

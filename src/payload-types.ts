@@ -72,16 +72,21 @@ export interface Config {
     'site-blueprints': SiteBlueprint;
     sites: Site;
     users: User;
+    'social-platforms': SocialPlatform;
+    'social-accounts': SocialAccount;
     categories: Category;
     media: Media;
     posts: Post;
     keywords: Keyword;
+    rankings: Ranking;
     'workflow-jobs': WorkflowJob;
     'site-quotas': SiteQuota;
     'affiliate-networks': AffiliateNetwork;
     offers: Offer;
     'click-events': ClickEvent;
     commissions: Commission;
+    'knowledge-base': KnowledgeBase;
+    'audit-logs': AuditLog;
     'payload-mcp-api-keys': PayloadMcpApiKey;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -94,16 +99,21 @@ export interface Config {
     'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'social-platforms': SocialPlatformsSelect<false> | SocialPlatformsSelect<true>;
+    'social-accounts': SocialAccountsSelect<false> | SocialAccountsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     keywords: KeywordsSelect<false> | KeywordsSelect<true>;
+    rankings: RankingsSelect<false> | RankingsSelect<true>;
     'workflow-jobs': WorkflowJobsSelect<false> | WorkflowJobsSelect<true>;
     'site-quotas': SiteQuotasSelect<false> | SiteQuotasSelect<true>;
     'affiliate-networks': AffiliateNetworksSelect<false> | AffiliateNetworksSelect<true>;
     offers: OffersSelect<false> | OffersSelect<true>;
     'click-events': ClickEventsSelect<false> | ClickEventsSelect<true>;
     commissions: CommissionsSelect<false> | CommissionsSelect<true>;
+    'knowledge-base': KnowledgeBaseSelect<false> | KnowledgeBaseSelect<true>;
+    'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -115,6 +125,7 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    announcements: Announcement;
     'commission-rules': CommissionRule;
     'quota-rules': QuotaRule;
     'admin-branding': AdminBranding;
@@ -122,6 +133,7 @@ export interface Config {
     'prompt-library': PromptLibrary;
   };
   globalsSelect: {
+    announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
     'commission-rules': CommissionRulesSelect<false> | CommissionRulesSelect<true>;
     'quota-rules': QuotaRulesSelect<false> | QuotaRulesSelect<true>;
     'admin-branding': AdminBrandingSelect<false> | AdminBrandingSelect<true>;
@@ -244,6 +256,10 @@ export interface Site {
 export interface User {
   id: number;
   /**
+   * Optional team lead for commission / reporting (same tenant; refine access in PRD as needed).
+   */
+  teamLead?: (number | null) | User;
+  /**
    * Super Admin can access every tenant and all tenant-scoped content. Only Super Admins can grant this role.
    */
   roles: ('user' | 'super-admin')[];
@@ -271,6 +287,35 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-platforms".
+ */
+export interface SocialPlatform {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug: string;
+  status: 'active' | 'paused';
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-accounts".
+ */
+export interface SocialAccount {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  platform: number | SocialPlatform;
+  site?: (number | null) | Site;
+  handle: string;
+  status: 'active' | 'disconnected';
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -357,6 +402,23 @@ export interface Keyword {
    */
   site?: (number | null) | Site;
   status: 'draft' | 'active' | 'archived';
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rankings".
+ */
+export interface Ranking {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  keyword?: (number | null) | Keyword;
+  site?: (number | null) | Site;
+  searchQuery: string;
+  serpPosition?: number | null;
+  serpUrl?: string | null;
+  capturedAt: string;
   notes?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -492,12 +554,74 @@ export interface Commission {
   amount: number;
   currency: string;
   status: 'pending' | 'approved' | 'paid' | 'rejected';
+  /**
+   * Commission attributed to this system user (payout / team mapping).
+   */
+  recipient?: (number | null) | User;
   offer?: (number | null) | Offer;
   site?: (number | null) | Site;
   periodStart?: string | null;
   periodEnd?: string | null;
   paidAt?: string | null;
   notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "knowledge-base".
+ */
+export interface KnowledgeBase {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  slug?: string | null;
+  /**
+   * Optional scope to one site.
+   */
+  site?: (number | null) | Site;
+  categories?: (number | Category)[] | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  status: 'draft' | 'published' | 'archived';
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs".
+ */
+export interface AuditLog {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  action: string;
+  collectionSlug?: string | null;
+  documentId?: string | null;
+  actor?: (number | null) | User;
+  occurredAt: string;
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -701,6 +825,42 @@ export interface PayloadMcpApiKey {
      */
     delete?: boolean | null;
   };
+  knowledgeBase?: {
+    /**
+     * Allow clients to find knowledge-base.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create knowledge-base.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update knowledge-base.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete knowledge-base.
+     */
+    delete?: boolean | null;
+  };
+  rankings?: {
+    /**
+     * Allow clients to find rankings.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create rankings.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update rankings.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete rankings.
+     */
+    delete?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
   enableAPIKey?: boolean | null;
@@ -749,6 +909,14 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'social-platforms';
+        value: number | SocialPlatform;
+      } | null)
+    | ({
+        relationTo: 'social-accounts';
+        value: number | SocialAccount;
+      } | null)
+    | ({
         relationTo: 'categories';
         value: number | Category;
       } | null)
@@ -763,6 +931,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'keywords';
         value: number | Keyword;
+      } | null)
+    | ({
+        relationTo: 'rankings';
+        value: number | Ranking;
       } | null)
     | ({
         relationTo: 'workflow-jobs';
@@ -787,6 +959,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'commissions';
         value: number | Commission;
+      } | null)
+    | ({
+        relationTo: 'knowledge-base';
+        value: number | KnowledgeBase;
+      } | null)
+    | ({
+        relationTo: 'audit-logs';
+        value: number | AuditLog;
       } | null)
     | ({
         relationTo: 'payload-mcp-api-keys';
@@ -889,6 +1069,7 @@ export interface SitesSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  teamLead?: T;
   roles?: T;
   tenants?:
     | T
@@ -912,6 +1093,33 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-platforms_select".
+ */
+export interface SocialPlatformsSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-accounts_select".
+ */
+export interface SocialAccountsSelect<T extends boolean = true> {
+  tenant?: T;
+  platform?: T;
+  site?: T;
+  handle?: T;
+  status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -971,6 +1179,22 @@ export interface KeywordsSelect<T extends boolean = true> {
   slug?: T;
   site?: T;
   status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rankings_select".
+ */
+export interface RankingsSelect<T extends boolean = true> {
+  tenant?: T;
+  keyword?: T;
+  site?: T;
+  searchQuery?: T;
+  serpPosition?: T;
+  serpUrl?: T;
+  capturedAt?: T;
   notes?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1064,12 +1288,44 @@ export interface CommissionsSelect<T extends boolean = true> {
   amount?: T;
   currency?: T;
   status?: T;
+  recipient?: T;
   offer?: T;
   site?: T;
   periodStart?: T;
   periodEnd?: T;
   paidAt?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "knowledge-base_select".
+ */
+export interface KnowledgeBaseSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  site?: T;
+  categories?: T;
+  body?: T;
+  status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs_select".
+ */
+export interface AuditLogsSelect<T extends boolean = true> {
+  tenant?: T;
+  action?: T;
+  collectionSlug?: T;
+  documentId?: T;
+  actor?: T;
+  occurredAt?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1161,6 +1417,22 @@ export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
         update?: T;
         delete?: T;
       };
+  knowledgeBase?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  rankings?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   enableAPIKey?: T;
@@ -1206,6 +1478,20 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "announcements".
+ */
+export interface Announcement {
+  id: number;
+  title: string;
+  body: string;
+  isActive?: boolean | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1299,6 +1585,20 @@ export interface PromptLibrary {
     | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "announcements_select".
+ */
+export interface AnnouncementsSelect<T extends boolean = true> {
+  title?: T;
+  body?: T;
+  isActive?: T;
+  startsAt?: T;
+  endsAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

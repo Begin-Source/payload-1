@@ -8,7 +8,7 @@ export const Users: CollectionConfig = {
   slug: 'users',
   labels: { singular: '用户', plural: '用户' },
   admin: {
-    group: adminGroups.membersAndPermissions,
+    group: adminGroups.team,
     useAsTitle: 'email',
   },
   auth: true,
@@ -40,6 +40,15 @@ export const Users: CollectionConfig = {
     ],
   },
   fields: [
+    {
+      name: 'teamLead',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description:
+          'Optional team lead for commission / reporting (same tenant; refine access in PRD as needed).',
+      },
+    },
     {
       name: 'roles',
       type: 'select',
