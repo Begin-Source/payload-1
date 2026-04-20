@@ -1,15 +1,16 @@
 /**
  * Works for `ClientUser` (admin.hidden) and server `User` — only uses `email` + `roles`.
+ * Non-user principals (e.g. API keys) are treated as not super-admin.
  */
-export function isSuperAdminLikeUser(
-  user: { email?: string | null; roles?: unknown } | null | undefined,
-): boolean {
-  if (!user?.email) return false
+export function isSuperAdminLikeUser(user: unknown): boolean {
+  if (!user || typeof user !== 'object') return false
+  const email = (user as { email?: string | null }).email
+  if (!email) return false
   const fromEnv = (process.env.PAYLOAD_SUPER_ADMIN_EMAILS ?? '')
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
-  if (fromEnv.includes(user.email.toLowerCase())) return true
-  const roles = user.roles
+  if (fromEnv.includes(email.toLowerCase())) return true
+  const roles = (user as { roles?: unknown }).roles
   return Array.isArray(roles) && roles.includes('super-admin')
 }

@@ -74,6 +74,10 @@ export interface Config {
     users: User;
     media: Media;
     'site-quotas': SiteQuota;
+    'affiliate-networks': AffiliateNetwork;
+    offers: Offer;
+    'click-events': ClickEvent;
+    commissions: Commission;
     'payload-mcp-api-keys': PayloadMcpApiKey;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -88,6 +92,10 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'site-quotas': SiteQuotasSelect<false> | SiteQuotasSelect<true>;
+    'affiliate-networks': AffiliateNetworksSelect<false> | AffiliateNetworksSelect<true>;
+    offers: OffersSelect<false> | OffersSelect<true>;
+    'click-events': ClickEventsSelect<false> | ClickEventsSelect<true>;
+    commissions: CommissionsSelect<false> | CommissionsSelect<true>;
     'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -98,8 +106,14 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'commission-rules': CommissionRule;
+    'quota-rules': QuotaRule;
+  };
+  globalsSelect: {
+    'commission-rules': CommissionRulesSelect<false> | CommissionRulesSelect<true>;
+    'quota-rules': QuotaRulesSelect<false> | QuotaRulesSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -284,6 +298,86 @@ export interface SiteQuota {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "affiliate-networks".
+ */
+export interface AffiliateNetwork {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug: string;
+  websiteUrl?: string | null;
+  status: 'active' | 'paused';
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers".
+ */
+export interface Offer {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  slug?: string | null;
+  network: number | AffiliateNetwork;
+  /**
+   * Sites allowed to promote this offer (optional).
+   */
+  sites?: (number | Site)[] | null;
+  status: 'draft' | 'active' | 'paused';
+  externalId?: string | null;
+  targetUrl?: string | null;
+  commissionNotes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "click-events".
+ */
+export interface ClickEvent {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  occurredAt: string;
+  eventType: 'click' | 'impression';
+  site?: (number | null) | Site;
+  offer?: (number | null) | Offer;
+  destinationUrl?: string | null;
+  referrer?: string | null;
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commissions".
+ */
+export interface Commission {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'approved' | 'paid' | 'rejected';
+  offer?: (number | null) | Offer;
+  site?: (number | null) | Site;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  paidAt?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * API keys control which collections, resources, tools, and prompts MCP clients can access
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -375,6 +469,42 @@ export interface PayloadMcpApiKey {
      */
     delete?: boolean | null;
   };
+  affiliateNetworks?: {
+    /**
+     * Allow clients to find affiliate-networks.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create affiliate-networks.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update affiliate-networks.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete affiliate-networks.
+     */
+    delete?: boolean | null;
+  };
+  offers?: {
+    /**
+     * Allow clients to find offers.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create offers.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update offers.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete offers.
+     */
+    delete?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
   enableAPIKey?: boolean | null;
@@ -429,6 +559,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'site-quotas';
         value: number | SiteQuota;
+      } | null)
+    | ({
+        relationTo: 'affiliate-networks';
+        value: number | AffiliateNetwork;
+      } | null)
+    | ({
+        relationTo: 'offers';
+        value: number | Offer;
+      } | null)
+    | ({
+        relationTo: 'click-events';
+        value: number | ClickEvent;
+      } | null)
+    | ({
+        relationTo: 'commissions';
+        value: number | Commission;
       } | null)
     | ({
         relationTo: 'payload-mcp-api-keys';
@@ -588,6 +734,71 @@ export interface SiteQuotasSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "affiliate-networks_select".
+ */
+export interface AffiliateNetworksSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  websiteUrl?: T;
+  status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers_select".
+ */
+export interface OffersSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  network?: T;
+  sites?: T;
+  status?: T;
+  externalId?: T;
+  targetUrl?: T;
+  commissionNotes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "click-events_select".
+ */
+export interface ClickEventsSelect<T extends boolean = true> {
+  tenant?: T;
+  occurredAt?: T;
+  eventType?: T;
+  site?: T;
+  offer?: T;
+  destinationUrl?: T;
+  referrer?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commissions_select".
+ */
+export interface CommissionsSelect<T extends boolean = true> {
+  tenant?: T;
+  amount?: T;
+  currency?: T;
+  status?: T;
+  offer?: T;
+  site?: T;
+  periodStart?: T;
+  periodEnd?: T;
+  paidAt?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-mcp-api-keys_select".
  */
 export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
@@ -619,6 +830,22 @@ export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
         delete?: T;
       };
   sites?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  affiliateNetworks?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  offers?:
     | T
     | {
         find?: T;
@@ -671,6 +898,72 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commission-rules".
+ */
+export interface CommissionRule {
+  id: number;
+  /**
+   * JSON for default splits, floors, approval policy, etc.
+   */
+  rules?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  notes?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quota-rules".
+ */
+export interface QuotaRule {
+  id: number;
+  /**
+   * JSON for default per-site caps and tenant-wide limits.
+   */
+  rules?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  notes?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commission-rules_select".
+ */
+export interface CommissionRulesSelect<T extends boolean = true> {
+  rules?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quota-rules_select".
+ */
+export interface QuotaRulesSelect<T extends boolean = true> {
+  rules?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

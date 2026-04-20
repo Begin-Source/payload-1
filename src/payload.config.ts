@@ -17,12 +17,25 @@ import { Tenants } from './collections/Tenants'
 import { Sites } from './collections/Sites'
 import { SiteQuotas } from './collections/SiteQuotas'
 import { SiteBlueprints } from './collections/SiteBlueprints'
+import { AffiliateNetworks } from './collections/AffiliateNetworks'
+import { Offers } from './collections/Offers'
+import { ClickEvents } from './collections/ClickEvents'
+import { Commissions } from './collections/Commissions'
+import { CommissionRules } from './globals/CommissionRules'
+import { QuotaRules } from './globals/QuotaRules'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
 import { userHasAllTenantAccess } from './utilities/superAdmin'
 
 /** Collections exposed via MCP (camelCase keys on API key docs must match these slugs). */
-const mcpCollectionSlugs = ['tenants', 'users', 'media', 'sites'] as const
+const mcpCollectionSlugs = [
+  'tenants',
+  'users',
+  'media',
+  'sites',
+  'affiliate-networks',
+  'offers',
+] as const
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -89,7 +102,19 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Tenants, SiteBlueprints, Sites, Users, Media, SiteQuotas],
+  collections: [
+    Tenants,
+    SiteBlueprints,
+    Sites,
+    Users,
+    Media,
+    SiteQuotas,
+    AffiliateNetworks,
+    Offers,
+    ClickEvents,
+    Commissions,
+  ],
+  globals: [CommissionRules, QuotaRules],
   editor: lexicalEditor(),
   secret: payloadSecret,
   typescript: {
@@ -109,6 +134,10 @@ export default buildConfig({
         sites: {},
         'site-quotas': {},
         'site-blueprints': {},
+        'affiliate-networks': {},
+        offers: {},
+        'click-events': {},
+        commissions: {},
         /**
          * When tenant access wrapping is on, users with no `tenants[]` assignment cannot `read`
          * media — sidebar entry disappears. Disable wrapping so Media uses collection `access` only.
@@ -141,6 +170,14 @@ export default buildConfig({
           enabled: true,
           description:
             'Affiliate / rank-and-rent sites (domain, status, blueprint). Super-admin API keys receive full MCP CRUD.',
+        },
+        'affiliate-networks': {
+          enabled: true,
+          description: 'Affiliate program / network records.',
+        },
+        offers: {
+          enabled: true,
+          description: 'Offers linked to networks and optional site allowlists.',
         },
       },
       overrideAuth: async (_req, getDefaultMcpAccessSettings) => {
