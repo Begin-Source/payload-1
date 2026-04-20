@@ -30,6 +30,7 @@ import { SocialAccounts } from './collections/SocialAccounts'
 import { Rankings } from './collections/Rankings'
 import { AuditLogs } from './collections/AuditLogs'
 import { KnowledgeBase } from './collections/KnowledgeBase'
+import { adminGroups } from './constants/adminGroups'
 import { CommissionRules } from './globals/CommissionRules'
 import { QuotaRules } from './globals/QuotaRules'
 import { AdminBranding } from './globals/AdminBranding'
@@ -244,6 +245,13 @@ export default buildConfig({
           description: 'SERP ranking snapshots linked to keywords and sites.',
         },
       },
+      overrideApiKeyCollection: (collection) => ({
+        ...collection,
+        admin: {
+          ...collection.admin,
+          group: adminGroups.system,
+        },
+      }),
       overrideAuth: async (_req, getDefaultMcpAccessSettings) => {
         const settings = await getDefaultMcpAccessSettings()
         if (!userHasAllTenantAccess(settings.user)) {

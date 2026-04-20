@@ -36,24 +36,23 @@ isProject: false
 
 ## 产品 IA 定稿（2026-04 — 实施对齐）
 
-侧栏 **`admin.group`** 与 [`src/constants/adminGroups.ts`](src/constants/adminGroups.ts) 一致：**首页 / 网站 / 运营 / 社媒 / 团队 / 商务 / 财务 / 知识库 / 系统 / MCP**。全员**同一套导航结构**；可见范围由各 collection/global 的 `access` 与 `admin.hidden` 控制。
+侧栏 **`admin.group`** 与 [`src/constants/adminGroups.ts`](src/constants/adminGroups.ts) 一致：**首页 / 网站 / 运营 / 社媒 / 团队 / 商务 / 财务 / 知识库 / 系统**（插件集合 `payload-mcp-api-keys` 经 `mcpPlugin.overrideApiKeyCollection` 归入**系统**）。全员**同一套导航结构**；可见范围由各 collection/global 的 `access` 与 `admin.hidden` 控制。
 
-**产品定案约束**：租户、站点蓝图、配额规则 Global → **系统**；审计日志 → **运营**；知识库 → **独立** collection `knowledge-base`；通知公告 → Global `announcements`；佣金归属 → 系统用户 **`users`**（`commissions.recipient`）；组长关系 → **`users.teamLead`**（relationship → `users`）。
+**产品定案约束**：租户、配额规则 Global → **系统**；**站点蓝图** → **网站**（与 `sites` / 内容栈同组）；审计日志 → **运营**；知识库 → **独立** collection `knowledge-base`；通知公告 → Global `announcements`；佣金归属 → 系统用户 **`users`**（`commissions.recipient`）；组长关系 → **`users.teamLead`**（relationship → `users`）。
 
 ### 分组与 slug 对照
 
 | 产品分组 | `admin.group` 常量 | Collections / Globals（slug） |
 |----------|-------------------|--------------------------------|
 | 首页 | `home` | Global `announcements`；Dashboard 占位见 [`src/components/BeforeDashboardMilestone.tsx`](src/components/BeforeDashboardMilestone.tsx)（`payload.config` `admin.components.beforeDashboard`） |
-| 网站 | `website` | `sites`, `categories`, `media`, `posts`, `keywords` |
+| 网站 | `website` | `sites`, **`site-blueprints`**（仅超管）, `categories`, `media`, `posts`, `keywords` |
 | 运营 | `operations` | `site-quotas`, `click-events`, `workflow-jobs`, `rankings`, `audit-logs`；Global `llm-prompts`, `prompt-library` |
 | 社媒 | `social` | `social-platforms`, `social-accounts` |
 | 团队 | `team` | `users`（含 `teamLead`） |
 | 商务 | `business` | `affiliate-networks`, `offers` |
 | 财务 | `finance` | `commissions`（含 `recipient`）；Global `commission-rules` |
 | 知识库 | `knowledge` | `knowledge-base` |
-| 系统 | `system` | `tenants`, `site-blueprints`；Global `quota-rules`, `admin-branding` |
-| MCP | `mcp` | 插件 `payload-mcp-api-keys` |
+| 系统 | `system` | `tenants`；插件 **`payload-mcp-api-keys`**（`overrideApiKeyCollection` → `system`）；Global `quota-rules`, `admin-branding` |
 
 **迁移**：扩展模型与字段见 [`src/migrations/20260420_224925_product_ia_extensions.ts`](src/migrations/20260420_224925_product_ia_extensions.ts)。若后续按租户/组长收紧 `users` 的读写，可在 `src/access/` 新增模块并在 [`src/collections/Users.ts`](src/collections/Users.ts) 引用。
 
@@ -170,7 +169,7 @@ flowchart LR
 |------|-------------|-------------------|------|
 | `tenants` | 平台与租户 | 租户 / 租户 | 建议仅超管可写 |
 | `audit-logs` | 平台与租户 | 审计日志 / 审计日志 | 仅超管侧栏可见 |
-| `site-blueprints` | 平台与租户 | 站点蓝图 / 站点蓝图 | 仅超管侧栏可见 |
+| `site-blueprints` | 网站 | 站点蓝图 / 站点蓝图 | 仅超管侧栏可见 |
 | `site-quotas` | 平台与租户 | 站点配额 / 站点配额 | 仅超管侧栏可见 |
 | `sites` | 站点 | 站点 / 站点 | |
 | `users` | 成员与权限 | 用户 / 用户 | 可设非超管侧栏 hidden |
@@ -188,7 +187,7 @@ flowchart LR
 | `knowledge-base` | 运营支持 | 知识库文档 / 知识库 | |
 | `affiliate-networks` | 商业合作 | 联盟 / 联盟 | |
 | `offers` | 商业合作 | Offer / Offer | |
-| `payload-mcp-api-keys` | MCP | （插件生成） | 已存在 |
+| `payload-mcp-api-keys` | 系统 | （插件生成） | `mcpPlugin.overrideApiKeyCollection` |
 
 **目标注册顺序（实现后）**：`Tenants` → `Sites` → `Users` → `Categories` → `Media` → `Posts` → `Keywords` → `AuditLogs` → `WorkflowJobs` → `SiteQuotas` → `ClickEvents` → `Rankings` → `Commissions` → `EmployeePerformance` → `SiteBlueprints` → `SocialPlatforms` → `SocialAccounts` → `KnowledgeBase` → `AffiliateNetworks` → `Offers`。
 
@@ -206,8 +205,8 @@ flowchart LR
 
 ### 4.3 目标侧栏分组汇总
 
-- **平台与租户**：`tenants`, `audit-logs`, `site-blueprints`, `site-quotas`
-- **站点**：`sites`
+- **平台与租户**：`tenants`, `audit-logs`, `site-quotas`
+- **站点**：`sites`, `site-blueprints`（仅超管）
 - **成员与权限**：`users`
 - **素材**：`media`, `categories`
 - **关键词研究**：`keywords`
@@ -219,8 +218,7 @@ flowchart LR
 - **社交媒体**：`social-platforms`, `social-accounts`
 - **运营支持**：`knowledge-base`
 - **商业合作**：`affiliate-networks`, `offers`
-- **系统设置**：`admin-branding`, `llm-prompts`, `prompt-library`, `quota-rules`
-- **MCP**：`payload-mcp-api-keys`
+- **系统设置**：`admin-branding`, `llm-prompts`, `prompt-library`, `quota-rules`, **`payload-mcp-api-keys`**（MCP API Keys）
 - **[规划中]** **团队管理**：自定义 Admin 视图或 `beforeNavLinks`，与「成员与权限」分工
 
 ---
@@ -276,7 +274,7 @@ flowchart LR
 - 商务：`affiliate-networks`、`offers`。
 - 财务：明细 `commissions` + 汇总 Dashboard 或自定义视图；规则 `commission-rules`。
 - 知识库：`knowledge-base`（对内）；与对外 `posts` 区分。
-- 系统：MCP Keys、`admin-branding`、审计、租户、LLM/配额 Globals。
+- 系统：`payload-mcp-api-keys`（MCP Keys）、`admin-branding`、审计、租户、LLM/配额 Globals。
 
 ### 7.7 待拍板与缺口
 
