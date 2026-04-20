@@ -1,4 +1,4 @@
-import type { User } from '@/payload-types'
+import type { Config } from '@/payload-types'
 
 function superAdminEmails(): string[] {
   return (process.env.PAYLOAD_SUPER_ADMIN_EMAILS ?? '')
@@ -10,9 +10,12 @@ function superAdminEmails(): string[] {
 /**
  * Super admins bypass tenant scoping (all tenants, all tenant-scoped documents).
  * Assign via Users → roles → "Super Admin", and/or set PAYLOAD_SUPER_ADMIN_EMAILS (comma-separated).
+ *
+ * `Config['user']` is a union when multiple auth collections exist (e.g. MCP API keys); only `users` can be super admins.
  */
-export function userHasAllTenantAccess(user: User | null | undefined): boolean {
-  if (!user?.email) return false
+export function userHasAllTenantAccess(user: Config['user'] | null | undefined): boolean {
+  if (!user || user.collection !== 'users') return false
+  if (!user.email) return false
   if (superAdminEmails().includes(user.email.toLowerCase())) return true
   const roles = user.roles
   return Array.isArray(roles) && roles.includes('super-admin')

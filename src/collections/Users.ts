@@ -1,6 +1,5 @@
 import type { CollectionConfig } from 'payload'
 
-import type { User } from '@/payload-types'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 
 export const Users: CollectionConfig = {
@@ -16,7 +15,7 @@ export const Users: CollectionConfig = {
         if (!Array.isArray(roles) || !roles.includes('super-admin')) {
           return data
         }
-        if (!userHasAllTenantAccess(req.user as User | undefined)) {
+        if (!userHasAllTenantAccess(req.user)) {
           data.roles = roles.filter((r: string) => r !== 'super-admin')
           if (!data.roles.length) {
             data.roles = ['user']
@@ -38,7 +37,7 @@ export const Users: CollectionConfig = {
         { label: 'Super Admin', value: 'super-admin' },
       ],
       access: {
-        update: ({ req: { user } }) => userHasAllTenantAccess(user as User | undefined),
+        update: ({ req: { user } }) => userHasAllTenantAccess(user),
       },
       admin: {
         description:
