@@ -118,12 +118,14 @@ const serverURL =
 
 export default buildConfig({
   serverURL,
+  /** Browser tab titles for Payload Admin are rewritten client-side in `AdminBrandingEffects` when `admin-branding.brandName` is set; `admin.meta` (e.g. titleSuffix) does not replace that pass. */
   admin: {
     user: Users.slug,
     importMap: {
       baseDir: path.resolve(dirname),
     },
     components: {
+      providers: ['./components/AdminBrandingProvider#AdminBrandingProvider'],
       beforeDashboard: ['./components/BeforeDashboardMilestone#BeforeDashboardMilestone'],
       graphics: {
         Icon: './components/AdminBrandingIcon#AdminBrandingIcon',

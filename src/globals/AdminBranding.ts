@@ -20,6 +20,10 @@ export const AdminBranding: GlobalConfig = {
       name: 'brandName',
       type: 'text',
       label: 'Product / brand name',
+      admin: {
+        description:
+          'Shown in the admin browser tab as “… | {name}” instead of “… - Payload”. If empty, use env `NEXT_PUBLIC_ADMIN_BRAND_NAME` as fallback; if that is also unset, only the Payload suffix is removed (page name only).',
+      },
     },
     {
       name: 'logo',

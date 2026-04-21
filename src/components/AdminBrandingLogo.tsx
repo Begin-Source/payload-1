@@ -3,7 +3,6 @@
 import { PayloadLogo } from '@payloadcms/ui/shared'
 import React, { useEffect, useState } from 'react'
 
-import { AdminBrandingEffects } from '@/components/AdminBrandingEffects'
 import { fetchAdminBranding } from '@/components/fetchAdminBranding'
 import type { AdminBrandingPublic } from '@/types/adminBrandingPublic'
 
@@ -35,10 +34,5 @@ export function AdminBrandingLogo(): React.ReactElement {
     content = <PayloadLogo />
   }
 
-  return (
-    <>
-      <AdminBrandingEffects />
-      {content}
-    </>
-  )
+  return <>{content}</>
 }
