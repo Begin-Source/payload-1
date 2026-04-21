@@ -8,6 +8,13 @@ export const Media: CollectionConfig = {
   labels: { singular: '媒体', plural: '媒体库' },
   admin: {
     group: adminGroups.website,
+    components: {
+      views: {
+        list: {
+          actions: ['./components/CollectionQuickActions#MediaListQuickAction'],
+        },
+      },
+    },
   },
   access: {
     read: () => true,

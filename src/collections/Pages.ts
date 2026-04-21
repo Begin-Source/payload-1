@@ -11,6 +11,13 @@ export const Pages: CollectionConfig = {
     group: adminGroups.website,
     useAsTitle: 'title',
     defaultColumns: ['title', 'site', 'status', 'updatedAt'],
+    components: {
+      views: {
+        list: {
+          actions: ['./components/CollectionQuickActions#PageListQuickAction'],
+        },
+      },
+    },
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),

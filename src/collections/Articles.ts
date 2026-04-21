@@ -11,6 +11,13 @@ export const Articles: CollectionConfig = {
     group: adminGroups.website,
     useAsTitle: 'title',
     defaultColumns: ['title', 'site', 'status', 'updatedAt'],
+    components: {
+      views: {
+        list: {
+          actions: ['./components/CollectionQuickActions#ArticleListQuickAction'],
+        },
+      },
+    },
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),

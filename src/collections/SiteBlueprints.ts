@@ -12,6 +12,13 @@ export const SiteBlueprints: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'updatedAt'],
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
+    components: {
+      views: {
+        list: {
+          actions: ['./components/CollectionQuickActions#DesignListQuickAction'],
+        },
+      },
+    },
   },
   access: {
     read: superAdminPasses(() => false),

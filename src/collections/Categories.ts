@@ -10,6 +10,13 @@ export const Categories: CollectionConfig = {
     group: adminGroups.website,
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'updatedAt'],
+    components: {
+      views: {
+        list: {
+          actions: ['./components/CollectionQuickActions#CategoryListQuickAction'],
+        },
+      },
+    },
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),

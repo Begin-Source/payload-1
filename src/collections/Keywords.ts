@@ -10,6 +10,13 @@ export const Keywords: CollectionConfig = {
     group: adminGroups.website,
     useAsTitle: 'term',
     defaultColumns: ['term', 'site', 'status', 'updatedAt'],
+    components: {
+      views: {
+        list: {
+          actions: ['./components/CollectionQuickActions#KeywordListQuickAction'],
+        },
+      },
+    },
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),

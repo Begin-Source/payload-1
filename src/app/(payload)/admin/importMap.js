@@ -1,5 +1,7 @@
 import { TenantField as TenantField_1d0591e3cf4f332c83a86da13a0de59a } from '@payloadcms/plugin-multi-tenant/client'
 import { AssignTenantFieldTrigger as AssignTenantFieldTrigger_1d0591e3cf4f332c83a86da13a0de59a } from '@payloadcms/plugin-multi-tenant/client'
+import { DesignListQuickAction as DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
+import { CategoryListQuickAction as CategoryListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -23,6 +25,10 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { ArticleListQuickAction as ArticleListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
+import { PageListQuickAction as PageListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
+import { MediaListQuickAction as MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
+import { KeywordListQuickAction as KeywordListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { WatchTenantCollection as WatchTenantCollection_1d0591e3cf4f332c83a86da13a0de59a } from '@payloadcms/plugin-multi-tenant/client'
 import { BeforeDashboardMilestone as BeforeDashboardMilestone_3719a54b7b6993337f9eb099b70f0f9b } from '../../../components/BeforeDashboardMilestone'
 import { TenantSelector as TenantSelector_d6d5f193a167989e2ee7d14202901e62 } from '@payloadcms/plugin-multi-tenant/rsc'
@@ -34,6 +40,8 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 export const importMap = {
   "@payloadcms/plugin-multi-tenant/client#TenantField": TenantField_1d0591e3cf4f332c83a86da13a0de59a,
   "@payloadcms/plugin-multi-tenant/client#AssignTenantFieldTrigger": AssignTenantFieldTrigger_1d0591e3cf4f332c83a86da13a0de59a,
+  "./components/CollectionQuickActions#DesignListQuickAction": DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
+  "./components/CollectionQuickActions#CategoryListQuickAction": CategoryListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -57,6 +65,10 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "./components/CollectionQuickActions#ArticleListQuickAction": ArticleListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
+  "./components/CollectionQuickActions#PageListQuickAction": PageListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
+  "./components/CollectionQuickActions#MediaListQuickAction": MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
+  "./components/CollectionQuickActions#KeywordListQuickAction": KeywordListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "@payloadcms/plugin-multi-tenant/client#WatchTenantCollection": WatchTenantCollection_1d0591e3cf4f332c83a86da13a0de59a,
   "./components/BeforeDashboardMilestone#BeforeDashboardMilestone": BeforeDashboardMilestone_3719a54b7b6993337f9eb099b70f0f9b,
   "@payloadcms/plugin-multi-tenant/rsc#TenantSelector": TenantSelector_d6d5f193a167989e2ee7d14202901e62,
