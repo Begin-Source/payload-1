@@ -69,14 +69,15 @@ export interface Config {
   blocks: {};
   collections: {
     tenants: Tenant;
-    'site-blueprints': SiteBlueprint;
     sites: Site;
+    'site-blueprints': SiteBlueprint;
+    articles: Article;
+    pages: Page;
     users: User;
     'social-platforms': SocialPlatform;
     'social-accounts': SocialAccount;
     categories: Category;
     media: Media;
-    posts: Post;
     keywords: Keyword;
     rankings: Ranking;
     'workflow-jobs': WorkflowJob;
@@ -96,14 +97,15 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     tenants: TenantsSelect<false> | TenantsSelect<true>;
-    'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
+    'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
+    articles: ArticlesSelect<false> | ArticlesSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'social-platforms': SocialPlatformsSelect<false> | SocialPlatformsSelect<true>;
     'social-accounts': SocialAccountsSelect<false> | SocialAccountsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    posts: PostsSelect<false> | PostsSelect<true>;
     keywords: KeywordsSelect<false> | KeywordsSelect<true>;
     rankings: RankingsSelect<false> | RankingsSelect<true>;
     'workflow-jobs': WorkflowJobsSelect<false> | WorkflowJobsSelect<true>;
@@ -200,31 +202,6 @@ export interface Tenant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-blueprints".
- */
-export interface SiteBlueprint {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  name: string;
-  slug: string;
-  description?: string | null;
-  /**
-   * Arbitrary JSON for themes, sections, or generator defaults.
-   */
-  templateConfig?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sites".
  */
 export interface Site {
@@ -246,6 +223,31 @@ export interface Site {
    */
   operators?: (number | User)[] | null;
   notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-blueprints".
+ */
+export interface SiteBlueprint {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug: string;
+  description?: string | null;
+  /**
+   * Arbitrary JSON for themes, sections, or generator defaults.
+   */
+  templateConfig?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -290,30 +292,37 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "social-platforms".
+ * via the `definition` "articles".
  */
-export interface SocialPlatform {
+export interface Article {
   id: number;
   tenant?: (number | null) | Tenant;
-  name: string;
-  slug: string;
-  status: 'active' | 'paused';
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "social-accounts".
- */
-export interface SocialAccount {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  platform: number | SocialPlatform;
+  title: string;
+  slug?: string | null;
+  /**
+   * Owning site (optional while migrating legacy content).
+   */
   site?: (number | null) | Site;
-  handle: string;
-  status: 'active' | 'disconnected';
-  notes?: string | null;
+  categories?: (number | Category)[] | null;
+  featuredImage?: (number | null) | Media;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  status: 'draft' | 'published' | 'archived';
+  publishedAt?: string | null;
+  excerpt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -350,17 +359,13 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts".
+ * via the `definition` "pages".
  */
-export interface Post {
+export interface Page {
   id: number;
   tenant?: (number | null) | Tenant;
   title: string;
   slug?: string | null;
-  /**
-   * Use Page for static landers; Article for blog-style content.
-   */
-  postType: 'article' | 'page';
   /**
    * Owning site (optional while migrating legacy content).
    */
@@ -385,6 +390,35 @@ export interface Post {
   status: 'draft' | 'published' | 'archived';
   publishedAt?: string | null;
   excerpt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-platforms".
+ */
+export interface SocialPlatform {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug: string;
+  status: 'active' | 'paused';
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-accounts".
+ */
+export interface SocialAccount {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  platform: number | SocialPlatform;
+  site?: (number | null) | Site;
+  handle: string;
+  status: 'active' | 'disconnected';
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -435,9 +469,13 @@ export interface WorkflowJob {
   status: 'pending' | 'running' | 'completed' | 'failed';
   site?: (number | null) | Site;
   /**
-   * Optional target post for publish/AI jobs.
+   * Optional target article for publish/AI jobs.
    */
-  post?: (number | null) | Post;
+  article?: (number | null) | Article;
+  /**
+   * Optional target page for publish/AI jobs.
+   */
+  page?: (number | null) | Page;
   input?:
     | {
         [k: string]: unknown;
@@ -771,21 +809,39 @@ export interface PayloadMcpApiKey {
      */
     delete?: boolean | null;
   };
-  posts?: {
+  articles?: {
     /**
-     * Allow clients to find posts.
+     * Allow clients to find articles.
      */
     find?: boolean | null;
     /**
-     * Allow clients to create posts.
+     * Allow clients to create articles.
      */
     create?: boolean | null;
     /**
-     * Allow clients to update posts.
+     * Allow clients to update articles.
      */
     update?: boolean | null;
     /**
-     * Allow clients to delete posts.
+     * Allow clients to delete articles.
+     */
+    delete?: boolean | null;
+  };
+  pages?: {
+    /**
+     * Allow clients to find pages.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create pages.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update pages.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete pages.
      */
     delete?: boolean | null;
   };
@@ -897,12 +953,20 @@ export interface PayloadLockedDocument {
         value: number | Tenant;
       } | null)
     | ({
+        relationTo: 'sites';
+        value: number | Site;
+      } | null)
+    | ({
         relationTo: 'site-blueprints';
         value: number | SiteBlueprint;
       } | null)
     | ({
-        relationTo: 'sites';
-        value: number | Site;
+        relationTo: 'articles';
+        value: number | Article;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'users';
@@ -923,10 +987,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
-      } | null)
-    | ({
-        relationTo: 'posts';
-        value: number | Post;
       } | null)
     | ({
         relationTo: 'keywords';
@@ -1037,6 +1097,22 @@ export interface TenantsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sites_select".
+ */
+export interface SitesSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  primaryDomain?: T;
+  status?: T;
+  blueprint?: T;
+  operators?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-blueprints_select".
  */
 export interface SiteBlueprintsSelect<T extends boolean = true> {
@@ -1050,17 +1126,37 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "sites_select".
+ * via the `definition` "articles_select".
  */
-export interface SitesSelect<T extends boolean = true> {
+export interface ArticlesSelect<T extends boolean = true> {
   tenant?: T;
-  name?: T;
+  title?: T;
   slug?: T;
-  primaryDomain?: T;
+  site?: T;
+  categories?: T;
+  featuredImage?: T;
+  body?: T;
   status?: T;
-  blueprint?: T;
-  operators?: T;
-  notes?: T;
+  publishedAt?: T;
+  excerpt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  site?: T;
+  categories?: T;
+  featuredImage?: T;
+  body?: T;
+  status?: T;
+  publishedAt?: T;
+  excerpt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1152,25 +1248,6 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts_select".
- */
-export interface PostsSelect<T extends boolean = true> {
-  tenant?: T;
-  title?: T;
-  slug?: T;
-  postType?: T;
-  site?: T;
-  categories?: T;
-  featuredImage?: T;
-  body?: T;
-  status?: T;
-  publishedAt?: T;
-  excerpt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "keywords_select".
  */
 export interface KeywordsSelect<T extends boolean = true> {
@@ -1209,7 +1286,8 @@ export interface WorkflowJobsSelect<T extends boolean = true> {
   jobType?: T;
   status?: T;
   site?: T;
-  post?: T;
+  article?: T;
+  page?: T;
   input?: T;
   output?: T;
   startedAt?: T;
@@ -1393,7 +1471,15 @@ export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
         update?: T;
         delete?: T;
       };
-  posts?:
+  articles?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  pages?:
     | T
     | {
         find?: T;

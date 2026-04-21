@@ -53,11 +53,19 @@ export const WorkflowJobs: CollectionConfig = {
       relationTo: 'sites',
     },
     {
-      name: 'post',
+      name: 'article',
       type: 'relationship',
-      relationTo: 'posts',
+      relationTo: 'articles',
       admin: {
-        description: 'Optional target post for publish/AI jobs.',
+        description: 'Optional target article for publish/AI jobs.',
+      },
+    },
+    {
+      name: 'page',
+      type: 'relationship',
+      relationTo: 'pages',
+      admin: {
+        description: 'Optional target page for publish/AI jobs.',
       },
     },
     {

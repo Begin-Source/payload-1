@@ -23,7 +23,8 @@ import { ClickEvents } from './collections/ClickEvents'
 import { Commissions } from './collections/Commissions'
 import { Categories } from './collections/Categories'
 import { Keywords } from './collections/Keywords'
-import { Posts } from './collections/Posts'
+import { Articles } from './collections/Articles'
+import { Pages } from './collections/Pages'
 import { WorkflowJobs } from './collections/WorkflowJobs'
 import { SocialPlatforms } from './collections/SocialPlatforms'
 import { SocialAccounts } from './collections/SocialAccounts'
@@ -50,7 +51,8 @@ const mcpCollectionSlugs = [
   'affiliate-networks',
   'offers',
   'categories',
-  'posts',
+  'articles',
+  'pages',
   'keywords',
   'workflow-jobs',
   'knowledge-base',
@@ -127,14 +129,15 @@ export default buildConfig({
   },
   collections: [
     Tenants,
-    SiteBlueprints,
     Sites,
+    SiteBlueprints,
+    Articles,
+    Pages,
     Users,
     SocialPlatforms,
     SocialAccounts,
     Categories,
     Media,
-    Posts,
     Keywords,
     Rankings,
     WorkflowJobs,
@@ -171,7 +174,8 @@ export default buildConfig({
         'click-events': {},
         commissions: {},
         categories: {},
-        posts: {},
+        articles: {},
+        pages: {},
         keywords: {},
         'workflow-jobs': {},
         'knowledge-base': {},
@@ -224,9 +228,13 @@ export default buildConfig({
           enabled: true,
           description: 'Content taxonomy for posts and pages.',
         },
-        posts: {
+        articles: {
           enabled: true,
-          description: 'Articles and pages (Lexical body, optional site and categories).',
+          description: 'Articles (Lexical body, optional site and categories).',
+        },
+        pages: {
+          enabled: true,
+          description: 'Pages / landers (Lexical body, optional site and categories).',
         },
         keywords: {
           enabled: true,
