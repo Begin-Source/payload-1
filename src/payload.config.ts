@@ -125,6 +125,10 @@ export default buildConfig({
     },
     components: {
       beforeDashboard: ['./components/BeforeDashboardMilestone#BeforeDashboardMilestone'],
+      graphics: {
+        Icon: './components/AdminBrandingIcon#AdminBrandingIcon',
+        Logo: './components/AdminBrandingLogo#AdminBrandingLogo',
+      },
       /** 仅保留运营看板，隐藏默认「首页 / 网站 / …」集合快捷卡片 */
       views: {
         dashboard: {

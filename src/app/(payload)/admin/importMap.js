@@ -34,6 +34,8 @@ import { PageListQuickAction as PageListQuickAction_175e6fb4b4770cdb50ab070ca375
 import { MediaListQuickAction as MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { KeywordListQuickAction as KeywordListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { WatchTenantCollection as WatchTenantCollection_1d0591e3cf4f332c83a86da13a0de59a } from '@payloadcms/plugin-multi-tenant/client'
+import { AdminBrandingIcon as AdminBrandingIcon_b1627480a7b1ea44a480239cce60653d } from '../../../components/AdminBrandingIcon'
+import { AdminBrandingLogo as AdminBrandingLogo_ffcd50864d34f341cef09ccb08501192 } from '../../../components/AdminBrandingLogo'
 import { BeforeDashboardMilestone as BeforeDashboardMilestone_3719a54b7b6993337f9eb099b70f0f9b } from '../../../components/BeforeDashboardMilestone'
 import { TenantSelector as TenantSelector_d6d5f193a167989e2ee7d14202901e62 } from '@payloadcms/plugin-multi-tenant/rsc'
 import { TenantSelectionProvider as TenantSelectionProvider_d6d5f193a167989e2ee7d14202901e62 } from '@payloadcms/plugin-multi-tenant/rsc'
@@ -78,6 +80,8 @@ export const importMap = {
   "./components/CollectionQuickActions#MediaListQuickAction": MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "./components/CollectionQuickActions#KeywordListQuickAction": KeywordListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "@payloadcms/plugin-multi-tenant/client#WatchTenantCollection": WatchTenantCollection_1d0591e3cf4f332c83a86da13a0de59a,
+  "./components/AdminBrandingIcon#AdminBrandingIcon": AdminBrandingIcon_b1627480a7b1ea44a480239cce60653d,
+  "./components/AdminBrandingLogo#AdminBrandingLogo": AdminBrandingLogo_ffcd50864d34f341cef09ccb08501192,
   "./components/BeforeDashboardMilestone#BeforeDashboardMilestone": BeforeDashboardMilestone_3719a54b7b6993337f9eb099b70f0f9b,
   "@payloadcms/plugin-multi-tenant/rsc#TenantSelector": TenantSelector_d6d5f193a167989e2ee7d14202901e62,
   "@payloadcms/plugin-multi-tenant/rsc#TenantSelectionProvider": TenantSelectionProvider_d6d5f193a167989e2ee7d14202901e62,
