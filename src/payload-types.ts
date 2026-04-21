@@ -244,9 +244,9 @@ export interface User {
    */
   teamLead?: (number | null) | User;
   /**
-   * Super Admin can access every tenant and all tenant-scoped content. Only Super Admins can grant this role.
+   * Super Admin：全租户。仅 Super Admin 可修改本字段。其它角色（财务 / 运营 / 组长 / 站长）的具体权限在代码与各集合 access 中逐步收紧。
    */
-  roles: ('user' | 'super-admin')[];
+  roles: ('user' | 'super-admin' | 'finance' | 'ops-manager' | 'team-lead' | 'site-manager')[];
   tenants?:
     | {
         tenant: number | Tenant;

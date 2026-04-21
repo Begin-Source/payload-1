@@ -58,13 +58,17 @@ export const Users: CollectionConfig = {
       options: [
         { label: 'User', value: 'user' },
         { label: 'Super Admin', value: 'super-admin' },
+        { label: '财务经理', value: 'finance' },
+        { label: '运营经理', value: 'ops-manager' },
+        { label: '组长', value: 'team-lead' },
+        { label: '站长', value: 'site-manager' },
       ],
       access: {
         update: ({ req: { user } }) => userHasAllTenantAccess(user),
       },
       admin: {
         description:
-          'Super Admin can access every tenant and all tenant-scoped content. Only Super Admins can grant this role.',
+          'Super Admin：全租户。仅 Super Admin 可修改本字段。其它角色（财务 / 运营 / 组长 / 站长）的具体权限在代码与各集合 access 中逐步收紧。',
       },
     },
   ],
