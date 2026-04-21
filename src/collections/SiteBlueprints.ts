@@ -6,7 +6,7 @@ import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const SiteBlueprints: CollectionConfig = {
   slug: 'site-blueprints',
-  labels: { singular: '站点蓝图', plural: '站点蓝图' },
+  labels: { singular: '设计', plural: '设计' },
   admin: {
     group: adminGroups.website,
     useAsTitle: 'name',

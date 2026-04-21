@@ -37,7 +37,7 @@ import { QuotaRules } from './globals/QuotaRules'
 import { AdminBranding } from './globals/AdminBranding'
 import { LlmPrompts } from './globals/LlmPrompts'
 import { PromptLibrary } from './globals/PromptLibrary'
-import { Announcements } from './globals/Announcements'
+import { Announcements } from './collections/Announcements'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
 import { userHasAllTenantAccess } from './utilities/superAdmin'
@@ -128,15 +128,14 @@ export default buildConfig({
     },
   },
   collections: [
-    Tenants,
+    Announcements,
     Sites,
     SiteBlueprints,
+    Categories,
     Articles,
     Pages,
-    Users,
     SocialPlatforms,
     SocialAccounts,
-    Categories,
     Media,
     Keywords,
     Rankings,
@@ -146,16 +145,25 @@ export default buildConfig({
     Offers,
     ClickEvents,
     Commissions,
+    Users,
     KnowledgeBase,
     AuditLogs,
+    Tenants,
   ],
-  globals: [Announcements, CommissionRules, QuotaRules, AdminBranding, LlmPrompts, PromptLibrary],
+  globals: [CommissionRules, QuotaRules, AdminBranding, LlmPrompts, PromptLibrary],
   editor: lexicalEditor(),
   secret: payloadSecret,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-  db: sqliteD1Adapter({ binding: cloudflare.env.D1 }),
+  db: sqliteD1Adapter({
+    binding: cloudflare.env.D1,
+    /**
+     * Dev `pushDevSchema` would re-apply indexes already created by SQL migrations → duplicate
+     * `CREATE INDEX` (e.g. `announcements_tenant_idx`). Schema changes go through `src/migrations/`.
+     */
+    push: false,
+  }),
   logger: isProduction ? cloudflareLogger : undefined,
   plugins: [
     multiTenantPlugin<Config>({
@@ -166,6 +174,7 @@ export default buildConfig({
        */
       useTenantsCollectionAccess: false,
       collections: {
+        announcements: {},
         sites: {},
         'site-quotas': {},
         'site-blueprints': {},

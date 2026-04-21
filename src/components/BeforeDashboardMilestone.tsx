@@ -18,7 +18,7 @@ export function BeforeDashboardMilestone(): React.ReactElement {
     >
       <strong>首页里程碑</strong>
       <p style={{ margin: '0.5rem 0 0', opacity: 0.85 }}>
-        财务看板与运营看板将在此区域扩展；通知公告请维护 Global「通知公告」。
+        财务看板与运营看板将在此区域扩展；通知公告请在侧栏「首页」→「通知公告」中维护（系统公告与团队公告）。
       </p>
     </div>
   )

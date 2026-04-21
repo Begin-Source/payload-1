@@ -68,15 +68,14 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    tenants: Tenant;
+    announcements: Announcement;
     sites: Site;
     'site-blueprints': SiteBlueprint;
+    categories: Category;
     articles: Article;
     pages: Page;
-    users: User;
     'social-platforms': SocialPlatform;
     'social-accounts': SocialAccount;
-    categories: Category;
     media: Media;
     keywords: Keyword;
     rankings: Ranking;
@@ -86,8 +85,10 @@ export interface Config {
     offers: Offer;
     'click-events': ClickEvent;
     commissions: Commission;
+    users: User;
     'knowledge-base': KnowledgeBase;
     'audit-logs': AuditLog;
+    tenants: Tenant;
     'payload-mcp-api-keys': PayloadMcpApiKey;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -96,15 +97,14 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    tenants: TenantsSelect<false> | TenantsSelect<true>;
+    announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
     'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
-    users: UsersSelect<false> | UsersSelect<true>;
     'social-platforms': SocialPlatformsSelect<false> | SocialPlatformsSelect<true>;
     'social-accounts': SocialAccountsSelect<false> | SocialAccountsSelect<true>;
-    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     keywords: KeywordsSelect<false> | KeywordsSelect<true>;
     rankings: RankingsSelect<false> | RankingsSelect<true>;
@@ -114,8 +114,10 @@ export interface Config {
     offers: OffersSelect<false> | OffersSelect<true>;
     'click-events': ClickEventsSelect<false> | ClickEventsSelect<true>;
     commissions: CommissionsSelect<false> | CommissionsSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'knowledge-base': KnowledgeBaseSelect<false> | KnowledgeBaseSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
+    tenants: TenantsSelect<false> | TenantsSelect<true>;
     'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -127,7 +129,6 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
-    announcements: Announcement;
     'commission-rules': CommissionRule;
     'quota-rules': QuotaRule;
     'admin-branding': AdminBranding;
@@ -135,7 +136,6 @@ export interface Config {
     'prompt-library': PromptLibrary;
   };
   globalsSelect: {
-    announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
     'commission-rules': CommissionRulesSelect<false> | CommissionRulesSelect<true>;
     'quota-rules': QuotaRulesSelect<false> | QuotaRulesSelect<true>;
     'admin-branding': AdminBrandingSelect<false> | AdminBrandingSelect<true>;
@@ -189,6 +189,39 @@ export interface PayloadMcpApiKeyAuthOperations {
   };
 }
 /**
+ * 系统公告（租户内广播）与团队公告（组长发布给本组）。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "announcements".
+ */
+export interface Announcement {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  /**
+   * 组长仅可创建「团队公告」。系统公告仅超级管理员可发布。
+   */
+  kind: 'system' | 'team';
+  /**
+   * 团队公告面向该组长及其组员（users.teamLead 指向此用户）。
+   */
+  teamLead?: (number | null) | User;
+  /**
+   * 创建者（自动填充）。
+   */
+  author?: (number | null) | User;
+  title: string;
+  body: string;
+  isActive?: boolean | null;
+  /**
+   * 置顶显示（前端可按需排序）。
+   */
+  isPinned?: boolean | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tenants".
  */
@@ -199,6 +232,45 @@ export interface Tenant {
   domain: string;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  /**
+   * Optional team lead for commission / reporting (same tenant; refine access in PRD as needed).
+   */
+  teamLead?: (number | null) | User;
+  /**
+   * Super Admin can access every tenant and all tenant-scoped content. Only Super Admins can grant this role.
+   */
+  roles: ('user' | 'super-admin')[];
+  tenants?:
+    | {
+        tenant: number | Tenant;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -253,42 +325,16 @@ export interface SiteBlueprint {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "categories".
  */
-export interface User {
+export interface Category {
   id: number;
-  /**
-   * Optional team lead for commission / reporting (same tenant; refine access in PRD as needed).
-   */
-  teamLead?: (number | null) | User;
-  /**
-   * Super Admin can access every tenant and all tenant-scoped content. Only Super Admins can grant this role.
-   */
-  roles: ('user' | 'super-admin')[];
-  tenants?:
-    | {
-        tenant: number | Tenant;
-        id?: string | null;
-      }[]
-    | null;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug: string;
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -323,19 +369,6 @@ export interface Article {
   status: 'draft' | 'published' | 'archived';
   publishedAt?: string | null;
   excerpt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  name: string;
-  slug: string;
-  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -949,8 +982,8 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'tenants';
-        value: number | Tenant;
+        relationTo: 'announcements';
+        value: number | Announcement;
       } | null)
     | ({
         relationTo: 'sites';
@@ -961,6 +994,10 @@ export interface PayloadLockedDocument {
         value: number | SiteBlueprint;
       } | null)
     | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
         relationTo: 'articles';
         value: number | Article;
       } | null)
@@ -969,20 +1006,12 @@ export interface PayloadLockedDocument {
         value: number | Page;
       } | null)
     | ({
-        relationTo: 'users';
-        value: number | User;
-      } | null)
-    | ({
         relationTo: 'social-platforms';
         value: number | SocialPlatform;
       } | null)
     | ({
         relationTo: 'social-accounts';
         value: number | SocialAccount;
-      } | null)
-    | ({
-        relationTo: 'categories';
-        value: number | Category;
       } | null)
     | ({
         relationTo: 'media';
@@ -1021,12 +1050,20 @@ export interface PayloadLockedDocument {
         value: number | Commission;
       } | null)
     | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null)
+    | ({
         relationTo: 'knowledge-base';
         value: number | KnowledgeBase;
       } | null)
     | ({
         relationTo: 'audit-logs';
         value: number | AuditLog;
+      } | null)
+    | ({
+        relationTo: 'tenants';
+        value: number | Tenant;
       } | null)
     | ({
         relationTo: 'payload-mcp-api-keys';
@@ -1086,12 +1123,19 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tenants_select".
+ * via the `definition` "announcements_select".
  */
-export interface TenantsSelect<T extends boolean = true> {
-  name?: T;
-  slug?: T;
-  domain?: T;
+export interface AnnouncementsSelect<T extends boolean = true> {
+  tenant?: T;
+  kind?: T;
+  teamLead?: T;
+  author?: T;
+  title?: T;
+  body?: T;
+  isActive?: T;
+  isPinned?: T;
+  startsAt?: T;
+  endsAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1121,6 +1165,18 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   templateConfig?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1162,36 +1218,6 @@ export interface PagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
- */
-export interface UsersSelect<T extends boolean = true> {
-  teamLead?: T;
-  roles?: T;
-  tenants?:
-    | T
-    | {
-        tenant?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "social-platforms_select".
  */
 export interface SocialPlatformsSelect<T extends boolean = true> {
@@ -1214,18 +1240,6 @@ export interface SocialAccountsSelect<T extends boolean = true> {
   handle?: T;
   status?: T;
   notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories_select".
- */
-export interface CategoriesSelect<T extends boolean = true> {
-  tenant?: T;
-  name?: T;
-  slug?: T;
-  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1378,6 +1392,36 @@ export interface CommissionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  teamLead?: T;
+  roles?: T;
+  tenants?:
+    | T
+    | {
+        tenant?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "knowledge-base_select".
  */
 export interface KnowledgeBaseSelect<T extends boolean = true> {
@@ -1404,6 +1448,17 @@ export interface AuditLogsSelect<T extends boolean = true> {
   actor?: T;
   occurredAt?: T;
   metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants_select".
+ */
+export interface TenantsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  domain?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1567,20 +1622,6 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "announcements".
- */
-export interface Announcement {
-  id: number;
-  title: string;
-  body: string;
-  isActive?: boolean | null;
-  startsAt?: string | null;
-  endsAt?: string | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "commission-rules".
  */
 export interface CommissionRule {
@@ -1671,20 +1712,6 @@ export interface PromptLibrary {
     | null;
   updatedAt?: string | null;
   createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "announcements_select".
- */
-export interface AnnouncementsSelect<T extends boolean = true> {
-  title?: T;
-  body?: T;
-  isActive?: T;
-  startsAt?: T;
-  endsAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
