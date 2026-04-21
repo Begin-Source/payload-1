@@ -9,6 +9,8 @@ export const Media: CollectionConfig = {
   admin: {
     group: adminGroups.website,
     components: {
+      beforeListTable: ['./components/ArticleFindReplacePanel#FindReplacePanel'],
+      listMenuItems: ['./components/ArticleFindReplacePanel#FindReplaceListMenuItem'],
       views: {
         list: {
           actions: ['./components/CollectionQuickActions#MediaListQuickAction'],

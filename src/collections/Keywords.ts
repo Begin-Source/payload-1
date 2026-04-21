@@ -11,6 +11,8 @@ export const Keywords: CollectionConfig = {
     useAsTitle: 'term',
     defaultColumns: ['term', 'site', 'status', 'updatedAt'],
     components: {
+      beforeListTable: ['./components/ArticleFindReplacePanel#FindReplacePanel'],
+      listMenuItems: ['./components/ArticleFindReplacePanel#FindReplaceListMenuItem'],
       views: {
         list: {
           actions: ['./components/CollectionQuickActions#KeywordListQuickAction'],

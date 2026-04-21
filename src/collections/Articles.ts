@@ -12,6 +12,8 @@ export const Articles: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'site', 'status', 'updatedAt'],
     components: {
+      beforeListTable: ['./components/ArticleFindReplacePanel#FindReplacePanel'],
+      listMenuItems: ['./components/ArticleFindReplacePanel#FindReplaceListMenuItem'],
       views: {
         list: {
           actions: ['./components/CollectionQuickActions#ArticleListQuickAction'],

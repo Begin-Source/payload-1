@@ -25,6 +25,8 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { FindReplaceListMenuItem as FindReplaceListMenuItem_bbd4a2c11b395c24e454795a93320d63 } from '../../../components/ArticleFindReplacePanel'
+import { FindReplacePanel as FindReplacePanel_bbd4a2c11b395c24e454795a93320d63 } from '../../../components/ArticleFindReplacePanel'
 import { ArticleListQuickAction as ArticleListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { PageListQuickAction as PageListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { MediaListQuickAction as MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
@@ -65,6 +67,8 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "./components/ArticleFindReplacePanel#FindReplaceListMenuItem": FindReplaceListMenuItem_bbd4a2c11b395c24e454795a93320d63,
+  "./components/ArticleFindReplacePanel#FindReplacePanel": FindReplacePanel_bbd4a2c11b395c24e454795a93320d63,
   "./components/CollectionQuickActions#ArticleListQuickAction": ArticleListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "./components/CollectionQuickActions#PageListQuickAction": PageListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "./components/CollectionQuickActions#MediaListQuickAction": MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,

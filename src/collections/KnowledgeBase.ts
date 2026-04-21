@@ -11,6 +11,10 @@ export const KnowledgeBase: CollectionConfig = {
     group: adminGroups.knowledge,
     useAsTitle: 'title',
     defaultColumns: ['title', 'site', 'status', 'updatedAt'],
+    components: {
+      beforeListTable: ['./components/ArticleFindReplacePanel#FindReplacePanel'],
+      listMenuItems: ['./components/ArticleFindReplacePanel#FindReplaceListMenuItem'],
+    },
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),
