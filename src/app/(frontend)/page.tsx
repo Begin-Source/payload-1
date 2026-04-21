@@ -27,7 +27,7 @@ export default async function HomePage() {
         {!user ? (
           <>
             <h1>基源科技</h1>
-            <p className="heroSubtitle">内容发布与多站点运营控制台</p>
+            <p className="heroSubtitle">云系统</p>
           </>
         ) : (
           <>
