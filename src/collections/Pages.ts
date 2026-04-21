@@ -12,8 +12,14 @@ export const Pages: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'site', 'status', 'updatedAt'],
     components: {
-      beforeListTable: ['./components/ArticleFindReplacePanel#FindReplacePanel'],
-      listMenuItems: ['./components/ArticleFindReplacePanel#FindReplaceListMenuItem'],
+      beforeListTable: [
+        './components/ArticleFindReplacePanel#FindReplacePanel',
+        './components/ArticleCsvImportExport#CsvImportExportPanel',
+      ],
+      listMenuItems: [
+        './components/ArticleFindReplacePanel#FindReplaceListMenuItem',
+        './components/ArticleCsvImportExport#CsvImportExportListMenuItem',
+      ],
       views: {
         list: {
           actions: ['./components/CollectionQuickActions#PageListQuickAction'],

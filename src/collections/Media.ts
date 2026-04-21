@@ -9,8 +9,14 @@ export const Media: CollectionConfig = {
   admin: {
     group: adminGroups.website,
     components: {
-      beforeListTable: ['./components/ArticleFindReplacePanel#FindReplacePanel'],
-      listMenuItems: ['./components/ArticleFindReplacePanel#FindReplaceListMenuItem'],
+      beforeListTable: [
+        './components/ArticleFindReplacePanel#FindReplacePanel',
+        './components/ArticleCsvImportExport#CsvImportExportPanel',
+      ],
+      listMenuItems: [
+        './components/ArticleFindReplacePanel#FindReplaceListMenuItem',
+        './components/ArticleCsvImportExport#CsvImportExportListMenuItem',
+      ],
       views: {
         list: {
           actions: ['./components/CollectionQuickActions#MediaListQuickAction'],

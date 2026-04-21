@@ -13,6 +13,8 @@ export const SiteBlueprints: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'updatedAt'],
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
     components: {
+      beforeListTable: ['./components/ArticleCsvImportExport#CsvImportExportPanel'],
+      listMenuItems: ['./components/ArticleCsvImportExport#CsvImportExportListMenuItem'],
       views: {
         list: {
           actions: ['./components/CollectionQuickActions#DesignListQuickAction'],

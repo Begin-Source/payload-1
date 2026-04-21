@@ -11,6 +11,8 @@ export const Categories: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'updatedAt'],
     components: {
+      beforeListTable: ['./components/ArticleCsvImportExport#CsvImportExportPanel'],
+      listMenuItems: ['./components/ArticleCsvImportExport#CsvImportExportListMenuItem'],
       views: {
         list: {
           actions: ['./components/CollectionQuickActions#CategoryListQuickAction'],
