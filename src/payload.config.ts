@@ -125,6 +125,12 @@ export default buildConfig({
     },
     components: {
       beforeDashboard: ['./components/BeforeDashboardMilestone#BeforeDashboardMilestone'],
+      /** 仅保留运营看板，隐藏默认「首页 / 网站 / …」集合快捷卡片 */
+      views: {
+        dashboard: {
+          Component: './components/MinimalDashboard#MinimalDashboard',
+        },
+      },
     },
   },
   collections: [

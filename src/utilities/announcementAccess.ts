@@ -1,24 +1,13 @@
 import type { Where } from 'payload'
 
 import type { Config } from '@/payload-types'
+import { getTenantIdsForUser } from '@/utilities/tenantScope'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 
 export function isUsersCollection(
   user: Config['user'] | null | undefined,
 ): user is Config['user'] & { collection: 'users' } {
   return Boolean(user && user.collection === 'users')
-}
-
-function tenantIdsForUser(user: Config['user'] & { collection: 'users' }): number[] {
-  const rows = user.tenants
-  if (!Array.isArray(rows)) return []
-  const ids: number[] = []
-  for (const row of rows) {
-    const t = row?.tenant
-    const id = typeof t === 'object' && t !== null ? t.id : typeof t === 'number' ? t : null
-    if (typeof id === 'number') ids.push(id)
-  }
-  return ids
 }
 
 function teamLeadId(user: Config['user'] & { collection: 'users' }): number | null {
@@ -36,7 +25,7 @@ export function announcementsReadWhere(
   if (!isUsersCollection(user)) return false
   if (userHasAllTenantAccess(user)) return true
 
-  const tenantIds = tenantIdsForUser(user)
+  const tenantIds = getTenantIdsForUser(user)
   if (tenantIds.length === 0) return false
 
   const uid = user.id
