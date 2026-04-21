@@ -1,6 +1,10 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
+import {
+  requireSiteOnCreate,
+  siteScopedSiteField,
+} from '@/collections/shared/siteScopedSiteField'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Categories: CollectionConfig = {
@@ -9,7 +13,7 @@ export const Categories: CollectionConfig = {
   admin: {
     group: adminGroups.website,
     useAsTitle: 'name',
-    defaultColumns: ['name', 'slug', 'updatedAt'],
+    defaultColumns: ['name', 'slug', 'site', 'updatedAt'],
     components: {
       beforeListTable: ['./components/ArticleCsvImportExport#CsvImportExportPanel'],
       listMenuItems: ['./components/ArticleCsvImportExport#CsvImportExportListMenuItem'],
@@ -19,6 +23,9 @@ export const Categories: CollectionConfig = {
         },
       },
     },
+  },
+  hooks: {
+    beforeChange: [requireSiteOnCreate],
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),
@@ -38,6 +45,7 @@ export const Categories: CollectionConfig = {
       required: true,
       index: true,
     },
+    siteScopedSiteField,
     {
       name: 'description',
       type: 'textarea',

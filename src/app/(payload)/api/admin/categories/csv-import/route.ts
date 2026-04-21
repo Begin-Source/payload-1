@@ -10,17 +10,29 @@ export const dynamic = 'force-dynamic'
 
 const MAX_ROWS = 500
 
-function resolveTenantForCreate(
-  scope: ReturnType<typeof getTenantScopeForStats>,
-  rowTenantId: number | null,
+function tenantIdFromRelation(
+  tenant: number | { id: number } | null | undefined,
 ): number | null {
-  if (scope.mode === 'all') {
-    return rowTenantId
-  }
-  if (scope.mode === 'none') return null
-  if (scope.tenantIds.length === 1) return scope.tenantIds[0]
-  if (rowTenantId != null && scope.tenantIds.includes(rowTenantId)) return rowTenantId
+  if (tenant == null || tenant === undefined) return null
+  if (typeof tenant === 'number') return tenant
+  if (typeof tenant === 'object' && typeof tenant.id === 'number') return tenant.id
   return null
+}
+
+function siteAccessible(
+  scope: ReturnType<typeof getTenantScopeForStats>,
+  siteTenantId: number | null,
+): boolean {
+  if (scope.mode === 'all') return true
+  if (scope.mode === 'none') return false
+  if (siteTenantId == null) return false
+  return scope.tenantIds.includes(siteTenantId)
+}
+
+function docSiteId(doc: { site?: number | { id: number } | null }): number | null {
+  const s = doc.site
+  if (s == null) return null
+  return typeof s === 'object' ? s.id : s
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -32,10 +44,31 @@ export async function POST(request: Request): Promise<Response> {
 
   const form = await request.formData()
   const file = form.get('file')
+  const siteId = Number(form.get('siteId'))
+
+  if (!Number.isFinite(siteId)) {
+    return Response.json({ error: 'siteId is required' }, { status: 400 })
+  }
 
   if (!(file instanceof Blob)) {
     return Response.json({ error: 'file is required' }, { status: 400 })
   }
+
+  const scope = getTenantScopeForStats(user)
+  const siteDoc = await payload.findByID({
+    collection: 'sites',
+    id: siteId,
+    depth: 0,
+  })
+  if (!siteDoc) {
+    return Response.json({ error: 'Site not found' }, { status: 404 })
+  }
+  const siteTenantId = tenantIdFromRelation(siteDoc.tenant)
+  if (!siteAccessible(scope, siteTenantId)) {
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const tenantFromSite = tenantIdFromRelation(siteDoc.tenant)
 
   const rows = parseCsvRows(await file.text())
   if (rows.length < 2) {
@@ -48,7 +81,6 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: `At most ${MAX_ROWS} data rows` }, { status: 400 })
   }
 
-  const scope = getTenantScopeForStats(user)
   const userArg = user as Config['user'] & { collection: 'users' }
 
   let created = 0
@@ -77,9 +109,6 @@ export async function POST(request: Request): Promise<Response> {
 
     const description = col('description', row)
     const idStr = col('id', row).trim()
-    const tenantIdRaw = col('tenant_id', row).trim()
-    const rowTenantId = tenantIdRaw ? Number(tenantIdRaw) : null
-    const rowTenantOk = rowTenantId != null && Number.isFinite(rowTenantId)
 
     try {
       if (idStr) {
@@ -101,33 +130,40 @@ export async function POST(request: Request): Promise<Response> {
           continue
         }
 
+        const prevSite = docSiteId(existing)
+        if (prevSite != null && prevSite !== siteId) {
+          errors.push({ row: lineNum, message: 'document does not belong to selected site' })
+          continue
+        }
+
+        const data: Record<string, unknown> = { name, slug, description }
+        if (prevSite == null) {
+          data.site = siteId
+          if (tenantFromSite != null) data.tenant = tenantFromSite
+        }
+
         await payload.update({
           collection: 'categories',
           id,
-          data: { name, slug, description },
+          data,
           user: userArg,
           overrideAccess: false,
         })
         updated++
       } else {
-        const tenantForCreate = resolveTenantForCreate(scope, rowTenantOk ? rowTenantId : null)
-        if (tenantForCreate == null) {
-          errors.push({
-            row: lineNum,
-            message:
-              'tenant_id required (multi-tenant user) or invalid; super-admin must set tenant_id per row',
-          })
-          continue
+        const data: Record<string, unknown> = {
+          name,
+          slug,
+          description,
+          site: siteId,
+        }
+        if (tenantFromSite != null) {
+          data.tenant = tenantFromSite
         }
 
         await payload.create({
           collection: 'categories',
-          data: {
-            name,
-            slug,
-            description,
-            tenant: tenantForCreate,
-          } as never,
+          data: data as never,
           user: userArg,
           overrideAccess: false,
         })

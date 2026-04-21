@@ -4,10 +4,36 @@ import { getPayload } from 'payload'
 import type { Config } from '@/payload-types'
 import { isUsersCollection } from '@/utilities/announcementAccess'
 import { parseCsvRows } from '@/utilities/csv'
+import { getTenantScopeForStats } from '@/utilities/tenantScope'
 
 export const dynamic = 'force-dynamic'
 
 const MAX_ROWS = 500
+
+function tenantIdFromRelation(
+  tenant: number | { id: number } | null | undefined,
+): number | null {
+  if (tenant == null || tenant === undefined) return null
+  if (typeof tenant === 'number') return tenant
+  if (typeof tenant === 'object' && typeof tenant.id === 'number') return tenant.id
+  return null
+}
+
+function siteAccessible(
+  scope: ReturnType<typeof getTenantScopeForStats>,
+  siteTenantId: number | null,
+): boolean {
+  if (scope.mode === 'all') return true
+  if (scope.mode === 'none') return false
+  if (siteTenantId == null) return false
+  return scope.tenantIds.includes(siteTenantId)
+}
+
+function docSiteId(doc: { site?: number | { id: number } | null }): number | null {
+  const s = doc.site
+  if (s == null) return null
+  return typeof s === 'object' ? s.id : s
+}
 
 export async function POST(request: Request): Promise<Response> {
   const payload = await getPayload({ config: configPromise })
@@ -18,9 +44,29 @@ export async function POST(request: Request): Promise<Response> {
 
   const form = await request.formData()
   const file = form.get('file')
+  const siteIdRaw = form.get('siteId')
+  const siteId = Number(siteIdRaw)
+
+  if (!Number.isFinite(siteId)) {
+    return Response.json({ error: 'siteId is required' }, { status: 400 })
+  }
 
   if (!(file instanceof Blob)) {
     return Response.json({ error: 'file is required' }, { status: 400 })
+  }
+
+  const scope = getTenantScopeForStats(user)
+  const site = await payload.findByID({
+    collection: 'sites',
+    id: siteId,
+    depth: 0,
+  })
+  if (!site) {
+    return Response.json({ error: 'Site not found' }, { status: 404 })
+  }
+  const siteTenantId = tenantIdFromRelation(site.tenant)
+  if (!siteAccessible(scope, siteTenantId)) {
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const rows = parseCsvRows(await file.text())
@@ -82,10 +128,21 @@ export async function POST(request: Request): Promise<Response> {
         continue
       }
 
+      const prevSite = docSiteId(existing)
+      if (prevSite != null && prevSite !== siteId) {
+        errors.push({ row: lineNum, message: 'media does not belong to selected site' })
+        continue
+      }
+
+      const data: Record<string, unknown> = { alt }
+      if (prevSite == null) {
+        data.site = siteId
+      }
+
       await payload.update({
         collection: 'media',
         id,
-        data: { alt },
+        data,
         user: userArg,
         overrideAccess: false,
       })

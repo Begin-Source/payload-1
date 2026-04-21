@@ -55,16 +55,6 @@ function csvApiBase(slug: CsvCollection): string {
   return `/api/admin/${slug}`
 }
 
-/** 站点下拉 + 按站点导出/导入（与文章一致） */
-function csvNeedsSite(slug: CsvCollection): boolean {
-  return slug === 'articles' || slug === 'keywords' || slug === 'pages'
-}
-
-/** 导出全部 URL 带 ?all=1（仅站点级集合） */
-function csvExportAllUsesAllParam(slug: CsvCollection): boolean {
-  return slug === 'articles' || slug === 'keywords' || slug === 'pages'
-}
-
 export type CsvImportExportSlotProps = {
   collectionSlug?: string
 }
@@ -94,7 +84,6 @@ export function CsvImportExportListMenuItem(props: CsvImportExportSlotProps): Re
  */
 export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.ReactElement | null {
   const slug = resolveCsvSlug(props.collectionSlug)
-  const needsSite = csvNeedsSite(slug)
 
   const expanded = useSyncExternalStore(
     (onChange) => subscribeCsvPanelOpen(slug, onChange),
@@ -129,14 +118,14 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
   }, [])
 
   useEffect(() => {
-    if (!expanded || !needsSite || !siteMenuOpen) return
+    if (!expanded || !siteMenuOpen) return
     const t = window.setTimeout((): void => {
       void loadSites(siteQuery)
     }, 300)
     return (): void => {
       window.clearTimeout(t)
     }
-  }, [expanded, needsSite, siteMenuOpen, siteQuery, loadSites])
+  }, [expanded, siteMenuOpen, siteQuery, loadSites])
 
   useEffect(() => {
     if (!siteMenuOpen) return
@@ -151,9 +140,9 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
   }, [siteMenuOpen])
 
   useEffect(() => {
-    if (!expanded || !needsSite) return
+    if (!expanded) return
     void loadSites('')
-  }, [expanded, needsSite, loadSites])
+  }, [expanded, loadSites])
 
   const closePanel = (): void => {
     setCsvPanelOpen(slug, false)
@@ -174,7 +163,7 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
   }
 
   const runExportSelected = async (): Promise<void> => {
-    if (!needsSite || selectedSiteId == null) {
+    if (selectedSiteId == null) {
       window.alert('请先选择站点')
       return
     }
@@ -197,9 +186,7 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
     const base = csvApiBase(slug)
     try {
       const u = new URL(`${base}/csv-export`, window.location.origin)
-      if (csvExportAllUsesAllParam(slug)) {
-        u.searchParams.set('all', '1')
-      }
+      u.searchParams.set('all', '1')
       const res = await fetch(u.toString(), { credentials: 'include' })
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string }
@@ -215,16 +202,14 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    if (needsSite && selectedSiteId == null) {
+    if (selectedSiteId == null) {
       window.alert('请先选择站点')
       return
     }
     const base = csvApiBase(slug)
     const fd = new FormData()
     fd.append('file', file)
-    if (needsSite && selectedSiteId != null) {
-      fd.append('siteId', String(selectedSiteId))
-    }
+    fd.append('siteId', String(selectedSiteId))
     try {
       const res = await fetch(`${base}/csv-import`, {
         method: 'POST',
@@ -263,10 +248,10 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
         : slug === 'keywords'
           ? '列：id, term, slug, notes, status, site_id。'
           : slug === 'media'
-            ? '列：id, alt, filename, mimeType, filesize。导入仅更新 alt（需已有 id）。'
+            ? '列：id, alt, filename, mimeType, filesize, site_id。导入仅更新 alt；无 site 的旧媒体会写入所选站点。'
             : slug === 'categories'
-              ? '列：id, name, slug, description, tenant_id。新建无 id 时需 tenant_id（多租户）或单租户自动归属。'
-              : '列：id, name, slug, description, templateConfig_json, tenant_id。新建无 id 时需 tenant_id（多租户）或单租户自动归属。'
+              ? '列：id, name, slug, description, tenant_id, site_id。导入需先选站点；新建行写入该站点。'
+              : '列：id, name, slug, description, templateConfig_json, tenant_id, site_id。导入需先选站点；新建行写入该站点。'
 
   if (!expanded) {
     return null
@@ -301,8 +286,7 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
           </Button>
         </div>
 
-        {needsSite ? (
-          <div
+        <div
             style={{
               display: 'flex',
               flexWrap: 'wrap',
@@ -481,38 +465,6 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
               </Button>
             </div>
           </div>
-        ) : (
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              gap: '0.5rem',
-              marginBottom: '0.65rem',
-            }}
-          >
-            <Button onClick={() => void runExportAll()} size="small" type="button">
-              导出全部
-            </Button>
-            <span style={{ fontSize: '0.8125rem', opacity: 0.85 }}>导入</span>
-            <input
-              ref={fileRef}
-              accept=".csv,text/csv"
-              style={{ display: 'none' }}
-              type="file"
-              onChange={(e) => void onFile(e)}
-            />
-            <Button
-              buttonStyle="secondary"
-              onClick={() => fileRef.current?.click()}
-              size="small"
-              type="button"
-            >
-              选择文件…
-            </Button>
-          </div>
-        )}
 
         <p style={{ fontSize: '0.7rem', opacity: 0.65, margin: '0.5rem 0 0' }}>{hint}</p>
       </div>

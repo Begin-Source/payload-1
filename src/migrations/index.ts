@@ -9,6 +9,7 @@ import * as migration_20260420_214651_phase_d_content_automation from './2026042
 import * as migration_20260420_224925_product_ia_extensions from './20260420_224925_product_ia_extensions';
 import * as migration_20260421_120000_articles_pages_split from './20260421_120000_articles_pages_split';
 import * as migration_20260421_150000_announcements_collection from './20260421_150000_announcements_collection';
+import * as migration_20260421_210000_site_scope_categories_media_blueprints from './20260421_210000_site_scope_categories_media_blueprints';
 
 export const migrations = [
   {
@@ -65,5 +66,10 @@ export const migrations = [
     up: migration_20260421_150000_announcements_collection.up,
     down: migration_20260421_150000_announcements_collection.down,
     name: '20260421_150000_announcements_collection',
+  },
+  {
+    up: migration_20260421_210000_site_scope_categories_media_blueprints.up,
+    down: migration_20260421_210000_site_scope_categories_media_blueprints.down,
+    name: '20260421_210000_site_scope_categories_media_blueprints',
   },
 ];

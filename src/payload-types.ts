@@ -307,6 +307,10 @@ export interface SiteBlueprint {
   tenant?: (number | null) | Tenant;
   name: string;
   slug: string;
+  /**
+   * 新建必填；旧数据可暂为空后再补全。
+   */
+  site?: (number | null) | Site;
   description?: string | null;
   /**
    * Arbitrary JSON for themes, sections, or generator defaults.
@@ -332,6 +336,10 @@ export interface Category {
   tenant?: (number | null) | Tenant;
   name: string;
   slug: string;
+  /**
+   * 新建必填；旧数据可暂为空后再补全。
+   */
+  site?: (number | null) | Site;
   description?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -380,6 +388,10 @@ export interface Media {
   id: number;
   tenant?: (number | null) | Tenant;
   alt: string;
+  /**
+   * 新建必填；旧数据可暂为空后再补全。
+   */
+  site?: (number | null) | Site;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -1163,6 +1175,7 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
   slug?: T;
+  site?: T;
   description?: T;
   templateConfig?: T;
   updatedAt?: T;
@@ -1176,6 +1189,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
   slug?: T;
+  site?: T;
   description?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1250,6 +1264,7 @@ export interface SocialAccountsSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   tenant?: T;
   alt?: T;
+  site?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

@@ -1,6 +1,10 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
+import {
+  requireSiteOnCreate,
+  siteScopedSiteField,
+} from '@/collections/shared/siteScopedSiteField'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Media: CollectionConfig = {
@@ -8,6 +12,7 @@ export const Media: CollectionConfig = {
   labels: { singular: '媒体', plural: '媒体库' },
   admin: {
     group: adminGroups.website,
+    defaultColumns: ['alt', 'site', 'filename', 'updatedAt'],
     components: {
       beforeListTable: [
         './components/ArticleFindReplacePanel#FindReplacePanel',
@@ -24,6 +29,9 @@ export const Media: CollectionConfig = {
       },
     },
   },
+  hooks: {
+    beforeChange: [requireSiteOnCreate],
+  },
   access: {
     read: () => true,
     create: superAdminPasses(({ req: { user } }) => Boolean(user)),
@@ -36,6 +44,7 @@ export const Media: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    siteScopedSiteField,
   ],
   upload: {
     // These are not supported on Workers yet due to lack of sharp

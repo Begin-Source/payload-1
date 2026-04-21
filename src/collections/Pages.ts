@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
 import { postLikeFields } from '@/collections/shared/postLikeFields'
+import { validateCategoriesMatchSite } from '@/collections/shared/validateCategoriesMatchSite'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Pages: CollectionConfig = {
@@ -26,6 +27,9 @@ export const Pages: CollectionConfig = {
         },
       },
     },
+  },
+  hooks: {
+    beforeChange: [validateCategoriesMatchSite],
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),
