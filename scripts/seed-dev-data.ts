@@ -1,5 +1,6 @@
 /**
  * 本地开发库灌入测试数据（幂等：固定 slug/email，已存在则跳过）。
+ * 双租户：seed-alpha（联盟/评测）与 seed-beta（B2B 线索/白皮书）。
  * Usage: pnpm seed:dev
  */
 import 'dotenv/config'
@@ -13,17 +14,200 @@ import config from '../src/payload.config.js'
 
 const PASSWORD = 'SeedTest123!'
 
-const TENANT_SLUG = 'seed-alpha'
-
 const EMAILS = {
   superadmin: 'seed.superadmin@local.test',
   finance: 'seed.finance@local.test',
   ops: 'seed.ops@local.test',
   lead: 'seed.lead@local.test',
   sitemgr: 'seed.sitemgr@local.test',
+  betaSitemgr: 'seed.beta.sitemgr@local.test',
 } as const
 
 type SeedUserDoc = User & { id: number }
+
+type SiteSpec = { slug: string; name: string; primaryDomain: string }
+
+type TenantProfile = {
+  slug: string
+  name: string
+  rootDomain: string
+  sites: [SiteSpec, SiteSpec]
+  network: { slug: string; name: string; websiteUrl: string }
+  offers: Array<{ slug: string; title: string; targetUrl: string }>
+  /** [siteIndex, category index 0|1 per site] */
+  categories: [{ slug: string; name: string; siteIndex: 0 | 1 }, { slug: string; name: string; siteIndex: 0 | 1 }]
+  articles: Array<{ slug: string; title: string; siteIndex: 0 | 1; catKey: 0 | 1 }>
+  pages: Array<{ slug: string; title: string; siteIndex: 0 | 1; catKey: 0 | 1 }>
+  keyword: { slug: string; term: string; siteIndex: 0 | 1 }
+  ranking: { searchQuery: string; serpPosition: number }
+  workflowLabel: string
+  workflowJobType: 'publish' | 'sync' | 'ai_generate' | 'custom'
+  socialPlatformSlug: string
+  socialPlatformName: string
+  socialHandle: string
+  knowledge: { slug: string; title: string; siteIndex: 0 | 1; catKey: 0 | 1 }
+  announcementTitle: string
+  announcementBody: string
+  clickDestinationUrl: string
+  commissionNotes: string
+}
+
+const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
+  {
+    slug: 'seed-alpha',
+    name: 'Seed Alpha 租户',
+    rootDomain: 'seed-alpha.local.test',
+    sites: [
+      {
+        slug: 'seed-site-a',
+        name: 'Alpha 主站 · 评测与落地',
+        primaryDomain: 'site-a.seed.local.test',
+      },
+      {
+        slug: 'seed-site-b',
+        name: 'Alpha 子站 · 垂直转化',
+        primaryDomain: 'site-b.seed.local.test',
+      },
+    ],
+    network: {
+      slug: 'seed-network',
+      name: 'Alpha 联盟计划',
+      websiteUrl: 'https://example.com/alpha-program',
+    },
+    offers: [
+      {
+        slug: 'seed-offer-1',
+        title: 'Alpha 主推 Offer · 路由器联盟',
+        targetUrl: 'https://example.com/alpha-offer-main',
+      },
+      {
+        slug: 'seed-offer-2',
+        title: 'Alpha 备用 Offer · 季节性活动',
+        targetUrl: 'https://example.com/alpha-offer-alt',
+      },
+    ],
+    categories: [
+      { slug: 'seed-cat-a', name: '评测对比', siteIndex: 0 },
+      { slug: 'seed-cat-b', name: '优惠活动', siteIndex: 1 },
+    ],
+    articles: [
+      {
+        slug: 'seed-article-a',
+        title: '2025 家用路由器横评：性能与联盟链接策略',
+        siteIndex: 0,
+        catKey: 0,
+      },
+      {
+        slug: 'seed-article-b',
+        title: '黑五大促落地：追踪参数与转化复盘',
+        siteIndex: 1,
+        catKey: 1,
+      },
+    ],
+    pages: [
+      {
+        slug: 'seed-page-a',
+        title: '限时优惠落地页 · Alpha',
+        siteIndex: 0,
+        catKey: 0,
+      },
+    ],
+    keyword: { slug: 'seed-keyword-1', term: 'best wifi router 2025', siteIndex: 0 },
+    ranking: { searchQuery: 'alpha router review serp', serpPosition: 4 },
+    workflowLabel: 'Alpha · 发布队列（种子）',
+    workflowJobType: 'publish',
+    socialPlatformSlug: 'seed-platform',
+    socialPlatformName: 'Seed Platform (Alpha)',
+    socialHandle: 'alpha_seed_social',
+    knowledge: {
+      slug: 'alpha-kb-playbook',
+      title: '联盟运营手册（Alpha）',
+      siteIndex: 0,
+      catKey: 0,
+    },
+    announcementTitle: '【测试】系统公告',
+    announcementBody: '这是一条种子系统公告（Seed Alpha），用于本地与多租户测试。',
+    clickDestinationUrl: 'https://seed-track.local/alpha-click-1',
+    commissionNotes: 'seed:commission-alpha-1',
+  },
+  {
+    slug: 'seed-beta',
+    name: 'Seed Beta 租户',
+    rootDomain: 'seed-beta.local.test',
+    sites: [
+      {
+        slug: 'beta-saas-main',
+        name: 'Beta B2B 工具主站',
+        primaryDomain: 'saas.beta.local.test',
+      },
+      {
+        slug: 'beta-whitepaper',
+        name: 'Beta 白皮书落地站',
+        primaryDomain: 'whitepaper.beta.local.test',
+      },
+    ],
+    network: {
+      slug: 'seed-network-beta',
+      name: 'Beta Partner Hub',
+      websiteUrl: 'https://example.com/beta-partners',
+    },
+    offers: [
+      {
+        slug: 'beta-offer-main',
+        title: '企业版试用 · SaaS 注册转化',
+        targetUrl: 'https://example.com/beta-trial',
+      },
+      {
+        slug: 'beta-offer-lead',
+        title: '白皮书下载 · 线索收集',
+        targetUrl: 'https://example.com/beta-whitepaper',
+      },
+    ],
+    categories: [
+      { slug: 'beta-cat-product', name: '产品功能', siteIndex: 0 },
+      { slug: 'beta-cat-lead', name: '线索内容', siteIndex: 1 },
+    ],
+    articles: [
+      {
+        slug: 'beta-article-crm',
+        title: '中小企业 CRM 选型：从线索到成交',
+        siteIndex: 0,
+        catKey: 0,
+      },
+      {
+        slug: 'beta-article-whitepaper',
+        title: '2025 B2B 内容营销白皮书导读',
+        siteIndex: 1,
+        catKey: 1,
+      },
+    ],
+    pages: [
+      {
+        slug: 'beta-page-demo',
+        title: '预约演示落地页',
+        siteIndex: 0,
+        catKey: 0,
+      },
+    ],
+    keyword: { slug: 'beta-keyword-main', term: 'b2b crm comparison', siteIndex: 0 },
+    ranking: { searchQuery: 'beta saas crm serp', serpPosition: 7 },
+    workflowLabel: 'Beta · 线索同步（种子）',
+    workflowJobType: 'sync',
+    socialPlatformSlug: 'seed-platform-beta',
+    socialPlatformName: 'Seed Platform (Beta)',
+    socialHandle: 'beta_seed_social',
+    knowledge: {
+      slug: 'beta-kb-onboarding',
+      title: 'B2B 线索入库流程（Beta）',
+      siteIndex: 0,
+      catKey: 0,
+    },
+    announcementTitle: '【Beta】B2B 线索租户上线说明',
+    announcementBody: '本租户用于 B2B 工具线索、白皮书与落地页测试数据。',
+    clickDestinationUrl: 'https://seed-track.local/beta-click-1',
+    commissionNotes: 'seed:commission-beta-1',
+  },
+]
 
 function superReq(user: SeedUserDoc): { req: Partial<PayloadRequest> } {
   return {
@@ -31,6 +215,14 @@ function superReq(user: SeedUserDoc): { req: Partial<PayloadRequest> } {
       user: { ...user, collection: 'users' },
     },
   }
+}
+
+function whereTenantSlug(slug: string) {
+  return { slug: { equals: slug } }
+}
+
+function whereTenantAndSlug(tenantId: number, slug: string) {
+  return { and: [{ slug: { equals: slug } }, { tenant: { equals: tenantId } }] }
 }
 
 /**
@@ -76,11 +268,6 @@ async function ensureSiteScopeColumns(payload: Payload): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  /**
-   * Users.beforeChange only allows assigning `super-admin` when `userHasAllTenantAccess(req.user)` is true.
-   * First-time seed creates the super user without `req.user`, so the role may be stripped; matching email here
-   * makes `userHasAllTenantAccess` true for that user so hooks (and role repair) work.
-   */
   process.env.PAYLOAD_SUPER_ADMIN_EMAILS = [
     process.env.PAYLOAD_SUPER_ADMIN_EMAILS,
     EMAILS.superadmin,
@@ -93,29 +280,37 @@ async function main(): Promise<void> {
   console.info('[seed:dev] Starting…')
   await ensureSiteScopeColumns(payload)
 
-  let tenantList = await payload.find({
-    collection: 'tenants',
-    where: { slug: { equals: TENANT_SLUG } },
-    limit: 1,
-    overrideAccess: true,
-  })
-  let tenant = tenantList.docs[0]
-  if (!tenant) {
-    tenant = await payload.create({
+  const tenantIds: number[] = []
+  const tenantBySlug = new Map<string, { id: number }>()
+
+  for (const p of TENANT_PROFILES) {
+    const list = await payload.find({
       collection: 'tenants',
-      data: {
-        name: 'Seed Alpha 租户',
-        slug: TENANT_SLUG,
-        domain: 'seed-alpha.local.test',
-      },
+      where: whereTenantSlug(p.slug),
+      limit: 1,
       overrideAccess: true,
     })
-    console.info('[seed:dev] Created tenant', tenant.id, tenant.slug)
-  } else {
-    console.info('[seed:dev] Tenant exists', tenant.id, tenant.slug)
+    let doc = list.docs[0]
+    if (!doc) {
+      doc = await payload.create({
+        collection: 'tenants',
+        data: {
+          name: p.name,
+          slug: p.slug,
+          domain: p.rootDomain,
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created tenant', doc.id, doc.slug)
+    } else {
+      console.info('[seed:dev] Tenant exists', doc.id, doc.slug)
+    }
+    tenantIds.push(doc.id as number)
+    tenantBySlug.set(p.slug, { id: doc.id as number })
   }
 
-  const tenantId = tenant.id
+  const alphaId = tenantBySlug.get('seed-alpha')!.id
+  const betaId = tenantBySlug.get('seed-beta')!.id
 
   let superList = await payload.find({
     collection: 'users',
@@ -131,19 +326,22 @@ async function main(): Promise<void> {
         email: EMAILS.superadmin,
         password: PASSWORD,
         roles: ['super-admin'],
-        tenants: [{ tenant: tenantId }],
+        tenants: [{ tenant: alphaId }, { tenant: betaId }],
       },
     })) as SeedUserDoc
     console.info('[seed:dev] Created super admin', superUser.email)
   } else {
-    console.info('[seed:dev] Super admin exists', superUser.email)
+    await payload.update({
+      collection: 'users',
+      id: superUser.id,
+      data: {
+        tenants: [{ tenant: alphaId }, { tenant: betaId }],
+      },
+      overrideAccess: true,
+    })
+    console.info('[seed:dev] Super admin exists', superUser.email, '(tenants synced to Alpha+Beta)')
   }
 
-  /**
-   * Full user doc for `req.user` (Announcements hooks, etc.). We do not `update` the user to add
-   * `super-admin` here: Users.beforeChange may have stripped that role on first create, but
-   * `PAYLOAD_SUPER_ADMIN_EMAILS` (set above) makes `userHasAllTenantAccess` true for this email.
-   */
   const superForReq = (await payload.findByID({
     collection: 'users',
     id: superUser.id,
@@ -152,14 +350,15 @@ async function main(): Promise<void> {
 
   const reqOpts = superReq(superForReq)
 
-  const roleSeeds: { email: string; roles: SeedUserDoc['roles'] }[] = [
-    { email: EMAILS.finance, roles: ['user', 'finance'] },
-    { email: EMAILS.ops, roles: ['user', 'ops-manager'] },
-    { email: EMAILS.lead, roles: ['user', 'team-lead'] },
-    { email: EMAILS.sitemgr, roles: ['user', 'site-manager'] },
+  const roleSeeds: { email: string; roles: SeedUserDoc['roles']; tenantId: number }[] = [
+    { email: EMAILS.finance, roles: ['user', 'finance'], tenantId: alphaId },
+    { email: EMAILS.ops, roles: ['user', 'ops-manager'], tenantId: alphaId },
+    { email: EMAILS.lead, roles: ['user', 'team-lead'], tenantId: alphaId },
+    { email: EMAILS.sitemgr, roles: ['user', 'site-manager'], tenantId: alphaId },
+    { email: EMAILS.betaSitemgr, roles: ['user', 'site-manager'], tenantId: betaId },
   ]
 
-  for (const { email, roles } of roleSeeds) {
+  for (const { email, roles, tenantId } of roleSeeds) {
     const ex = await payload.find({
       collection: 'users',
       where: { email: { equals: email } },
@@ -167,7 +366,15 @@ async function main(): Promise<void> {
       overrideAccess: true,
     })
     if (ex.docs[0]) {
-      console.info('[seed:dev] User exists', email)
+      await payload.update({
+        collection: 'users',
+        id: ex.docs[0].id,
+        data: {
+          tenants: [{ tenant: tenantId }],
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] User exists', email, '(tenant assignment refreshed)')
       continue
     }
     await payload.create({
@@ -182,265 +389,477 @@ async function main(): Promise<void> {
     console.info('[seed:dev] Created user', email)
   }
 
-  async function ensureSite(slug: string, name: string, domain: string) {
-    const found = await payload.find({
-      collection: 'sites',
-      where: { and: [{ slug: { equals: slug } }, { tenant: { equals: tenantId } }] },
+  for (const p of TENANT_PROFILES) {
+    const tenantId = tenantBySlug.get(p.slug)!.id
+    console.info('[seed:dev] --- Seeding tenant', p.slug, '---')
+
+    async function ensureSite(spec: SiteSpec) {
+      const found = await payload.find({
+        collection: 'sites',
+        where: whereTenantAndSlug(tenantId, spec.slug),
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (found.docs[0]) return found.docs[0]
+      return payload.create({
+        collection: 'sites',
+        ...reqOpts,
+        data: {
+          name: spec.name,
+          slug: spec.slug,
+          primaryDomain: spec.primaryDomain,
+          status: 'active',
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+    }
+
+    const site0 = await ensureSite(p.sites[0])
+    const site1 = await ensureSite(p.sites[1])
+    const sites = [site0, site1] as [{ id: number }, { id: number }]
+    console.info('[seed:dev] Sites', site0.id, site1.id)
+
+    const blueprintSlug = `${p.slug}-blueprint-default`
+    const bpFound = await payload.find({
+      collection: 'site-blueprints',
+      where: whereTenantAndSlug(tenantId, blueprintSlug),
       limit: 1,
       overrideAccess: true,
     })
-    if (found.docs[0]) return found.docs[0]
-    return payload.create({
-      collection: 'sites',
-      ...reqOpts,
-      data: {
-        name,
-        slug,
-        primaryDomain: domain,
-        status: 'active',
-        tenant: tenantId,
-      },
-      overrideAccess: true,
-    })
-  }
+    if (!bpFound.docs[0]) {
+      await payload.create({
+        collection: 'site-blueprints',
+        ...reqOpts,
+        data: {
+          name: `${p.name} 默认模板`,
+          slug: blueprintSlug,
+          site: site0.id,
+          tenant: tenantId,
+          description: '种子设计模板',
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created site blueprint', blueprintSlug)
+    }
 
-  const siteA = await ensureSite('seed-site-a', 'Seed Site A', 'site-a.seed.local.test')
-  const siteB = await ensureSite('seed-site-b', 'Seed Site B', 'site-b.seed.local.test')
-  console.info('[seed:dev] Sites', siteA.id, siteB.id)
+    async function ensureCategory(slug: string, name: string, siteId: number) {
+      const found = await payload.find({
+        collection: 'categories',
+        where: {
+          and: [
+            { slug: { equals: slug } },
+            { tenant: { equals: tenantId } },
+            { site: { equals: siteId } },
+          ],
+        },
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (found.docs[0]) return found.docs[0]
+      return payload.create({
+        collection: 'categories',
+        ...reqOpts,
+        data: {
+          name,
+          slug,
+          site: siteId,
+          tenant: tenantId,
+          description: `Seed category · ${p.slug}`,
+        },
+        overrideAccess: true,
+      })
+    }
 
-  async function ensureCategory(slug: string, name: string, siteId: number) {
-    const found = await payload.find({
-      collection: 'categories',
-      where: { slug: { equals: slug } },
-      limit: 1,
-      overrideAccess: true,
-    })
-    if (found.docs[0]) return found.docs[0]
-    return payload.create({
-      collection: 'categories',
-      ...reqOpts,
-      data: {
-        name,
-        slug,
-        site: siteId,
-        tenant: tenantId,
-        description: 'Seed category',
-      },
-      overrideAccess: true,
-    })
-  }
+    const cat0 = (await ensureCategory(
+      p.categories[0].slug,
+      p.categories[0].name,
+      sites[p.categories[0].siteIndex].id,
+    )) as { id: number }
+    const cat1 = (await ensureCategory(
+      p.categories[1].slug,
+      p.categories[1].name,
+      sites[p.categories[1].siteIndex].id,
+    )) as { id: number }
+    const cats = [cat0, cat1] as const
 
-  const catA = await ensureCategory('seed-cat-a', '分类 A', siteA.id as number)
-  const catB = await ensureCategory('seed-cat-b', '分类 B', siteB.id as number)
-
-  let netList = await payload.find({
-    collection: 'affiliate-networks',
-    where: { slug: { equals: 'seed-network' } },
-    limit: 1,
-    overrideAccess: true,
-  })
-  let network = netList.docs[0]
-  if (!network) {
-    network = await payload.create({
+    const netList = await payload.find({
       collection: 'affiliate-networks',
-      ...reqOpts,
-      data: {
-        name: 'Seed Network',
-        slug: 'seed-network',
-        websiteUrl: 'https://example.com/program',
-        status: 'active',
-        tenant: tenantId,
-      },
-      overrideAccess: true,
-    })
-    console.info('[seed:dev] Created affiliate network', network.id)
-  }
-
-  const offerExists = await payload.find({
-    collection: 'offers',
-    where: { slug: { equals: 'seed-offer-1' } },
-    limit: 1,
-    overrideAccess: true,
-  })
-  if (!offerExists.docs[0]) {
-    await payload.create({
-      collection: 'offers',
-      ...reqOpts,
-      data: {
-        title: 'Seed Offer',
-        slug: 'seed-offer-1',
-        network: network.id as number,
-        status: 'active',
-        sites: [siteA.id as number, siteB.id as number],
-        targetUrl: 'https://example.com/offer',
-        tenant: tenantId,
-      },
-      overrideAccess: true,
-    })
-    console.info('[seed:dev] Created offer')
-  }
-
-  async function ensureArticle(slug: string, title: string, siteId: number, categoryIds: number[]) {
-    const found = await payload.find({
-      collection: 'articles',
-      where: { slug: { equals: slug } },
+      where: whereTenantAndSlug(tenantId, p.network.slug),
       limit: 1,
       overrideAccess: true,
     })
-    if (found.docs[0]) return
-    await payload.create({
-      collection: 'articles',
-      ...reqOpts,
-      data: {
-        title,
-        slug,
-        site: siteId,
-        categories: categoryIds,
-        status: 'published',
-        tenant: tenantId,
-      },
-      overrideAccess: true,
-    })
-  }
+    let network = netList.docs[0]
+    if (!network) {
+      network = await payload.create({
+        collection: 'affiliate-networks',
+        ...reqOpts,
+        data: {
+          name: p.network.name,
+          slug: p.network.slug,
+          websiteUrl: p.network.websiteUrl,
+          status: 'active',
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created affiliate network', network.id)
+    }
 
-  async function ensurePage(slug: string, title: string, siteId: number, categoryIds: number[]) {
-    const found = await payload.find({
-      collection: 'pages',
-      where: { slug: { equals: slug } },
+    for (const off of p.offers) {
+      const offerExists = await payload.find({
+        collection: 'offers',
+        where: whereTenantAndSlug(tenantId, off.slug),
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (offerExists.docs[0]) continue
+      await payload.create({
+        collection: 'offers',
+        ...reqOpts,
+        data: {
+          title: off.title,
+          slug: off.slug,
+          network: network.id as number,
+          status: 'active',
+          sites: [site0.id as number, site1.id as number],
+          targetUrl: off.targetUrl,
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created offer', off.slug)
+    }
+
+    async function ensureArticle(
+      slug: string,
+      title: string,
+      siteId: number,
+      categoryIds: number[],
+    ) {
+      const found = await payload.find({
+        collection: 'articles',
+        where: whereTenantAndSlug(tenantId, slug),
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (found.docs[0]) return
+      await payload.create({
+        collection: 'articles',
+        ...reqOpts,
+        data: {
+          title,
+          slug,
+          site: siteId,
+          categories: categoryIds,
+          status: 'published',
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+    }
+
+    async function ensurePage(
+      slug: string,
+      title: string,
+      siteId: number,
+      categoryIds: number[],
+    ) {
+      const found = await payload.find({
+        collection: 'pages',
+        where: whereTenantAndSlug(tenantId, slug),
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (found.docs[0]) return
+      await payload.create({
+        collection: 'pages',
+        ...reqOpts,
+        data: {
+          title,
+          slug,
+          site: siteId,
+          categories: categoryIds,
+          status: 'published',
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+    }
+
+    for (const a of p.articles) {
+      const catId = cats[a.catKey].id
+      await ensureArticle(
+        a.slug,
+        a.title,
+        sites[a.siteIndex].id as number,
+        [catId],
+      )
+    }
+    for (const pg of p.pages) {
+      const catId = cats[pg.catKey].id
+      await ensurePage(pg.slug, pg.title, sites[pg.siteIndex].id as number, [catId])
+    }
+
+    async function ensureKeyword() {
+      const kwSlug = p.keyword.slug
+      const found = await payload.find({
+        collection: 'keywords',
+        where: whereTenantAndSlug(tenantId, kwSlug),
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (found.docs[0]) return found.docs[0]
+      return payload.create({
+        collection: 'keywords',
+        ...reqOpts,
+        data: {
+          term: p.keyword.term,
+          slug: kwSlug,
+          site: sites[p.keyword.siteIndex].id,
+          status: 'active',
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+    }
+
+    const keywordDoc = await ensureKeyword()
+
+    const rankFound = await payload.find({
+      collection: 'rankings',
+      where: {
+        and: [
+          { tenant: { equals: tenantId } },
+          { searchQuery: { equals: p.ranking.searchQuery } },
+        ],
+      },
       limit: 1,
       overrideAccess: true,
     })
-    if (found.docs[0]) return
-    await payload.create({
-      collection: 'pages',
-      ...reqOpts,
-      data: {
-        title,
-        slug,
-        site: siteId,
-        categories: categoryIds,
-        status: 'published',
-        tenant: tenantId,
-      },
-      overrideAccess: true,
-    })
-  }
+    if (!rankFound.docs[0]) {
+      await payload.create({
+        collection: 'rankings',
+        ...reqOpts,
+        data: {
+          keyword: keywordDoc.id as number,
+          site: sites[p.keyword.siteIndex].id,
+          searchQuery: p.ranking.searchQuery,
+          serpPosition: p.ranking.serpPosition,
+          capturedAt: new Date('2026-04-01T12:00:00.000Z').toISOString(),
+          notes: `Seed ${p.slug}`,
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created ranking', p.ranking.searchQuery)
+    }
 
-  await ensureArticle('seed-article-a', 'Seed 文章 A', siteA.id as number, [catA.id as number])
-  await ensurePage('seed-page-a', 'Seed 页面 A', siteA.id as number, [catA.id as number])
-  await ensureArticle('seed-article-b', 'Seed 文章 B', siteB.id as number, [catB.id as number])
-
-  const kwExists = await payload.find({
-    collection: 'keywords',
-    where: { slug: { equals: 'seed-keyword-1' } },
-    limit: 1,
-    overrideAccess: true,
-  })
-  if (!kwExists.docs[0]) {
-    await payload.create({
-      collection: 'keywords',
-      ...reqOpts,
-      data: {
-        term: 'seed keyword',
-        slug: 'seed-keyword-1',
-        site: siteA.id,
-        status: 'active',
-        tenant: tenantId,
-      },
-      overrideAccess: true,
-    })
-  }
-
-  const wj = await payload.find({
-    collection: 'workflow-jobs',
-    where: { label: { equals: 'Seed workflow job' } },
-    limit: 1,
-    overrideAccess: true,
-  })
-  if (!wj.docs[0]) {
-    await payload.create({
+    const wj = await payload.find({
       collection: 'workflow-jobs',
-      ...reqOpts,
-      data: {
-        label: 'Seed workflow job',
-        jobType: 'custom',
-        status: 'pending',
-        site: siteA.id,
-        input: { note: 'seed' },
-        tenant: tenantId,
+      where: {
+        and: [
+          { tenant: { equals: tenantId } },
+          { label: { equals: p.workflowLabel } },
+        ],
       },
+      limit: 1,
       overrideAccess: true,
     })
-  }
+    if (!wj.docs[0]) {
+      await payload.create({
+        collection: 'workflow-jobs',
+        ...reqOpts,
+        data: {
+          label: p.workflowLabel,
+          jobType: p.workflowJobType,
+          status: 'pending',
+          site: site0.id,
+          input: { note: 'seed', tenant: p.slug },
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created workflow job', p.workflowLabel)
+    }
 
-  let platList = await payload.find({
-    collection: 'social-platforms',
-    where: { slug: { equals: 'seed-platform' } },
-    limit: 1,
-    overrideAccess: true,
-  })
-  let platform = platList.docs[0]
-  if (!platform) {
-    platform = await payload.create({
+    let platList = await payload.find({
       collection: 'social-platforms',
-      ...reqOpts,
-      data: {
-        name: 'Seed Platform',
-        slug: 'seed-platform',
-        status: 'active',
-        tenant: tenantId,
-      },
+      where: whereTenantAndSlug(tenantId, p.socialPlatformSlug),
+      limit: 1,
       overrideAccess: true,
     })
-  }
+    let platform = platList.docs[0]
+    if (!platform) {
+      platform = await payload.create({
+        collection: 'social-platforms',
+        ...reqOpts,
+        data: {
+          name: p.socialPlatformName,
+          slug: p.socialPlatformSlug,
+          status: 'active',
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+    }
 
-  const sa = await payload.find({
-    collection: 'social-accounts',
-    where: { handle: { equals: 'seed_account' } },
-    limit: 1,
-    overrideAccess: true,
-  })
-  if (!sa.docs[0]) {
-    await payload.create({
+    const sa = await payload.find({
       collection: 'social-accounts',
-      ...reqOpts,
-      data: {
-        platform: platform.id as number,
-        site: siteA.id,
-        handle: 'seed_account',
-        status: 'active',
-        tenant: tenantId,
+      where: {
+        and: [
+          { tenant: { equals: tenantId } },
+          { handle: { equals: p.socialHandle } },
+        ],
       },
+      limit: 1,
       overrideAccess: true,
     })
-  }
+    if (!sa.docs[0]) {
+      await payload.create({
+        collection: 'social-accounts',
+        ...reqOpts,
+        data: {
+          platform: platform.id as number,
+          site: site0.id,
+          handle: p.socialHandle,
+          status: 'active',
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created social account', p.socialHandle)
+    }
 
-  const ann = await payload.find({
-    collection: 'announcements',
-    where: { title: { equals: '【测试】系统公告' } },
-    limit: 1,
-    overrideAccess: true,
-  })
-  if (!ann.docs[0]) {
-    await payload.create({
-      collection: 'announcements',
-      ...superReq(superForReq),
-      /** Top-level `user` is merged into `req` by `createLocalReq` (see Payload Local API). */
-      user: { ...superForReq, collection: 'users' },
-      data: {
-        kind: 'system',
-        tenant: tenantId,
-        title: '【测试】系统公告',
-        body: '这是一条种子系统公告，用于本地测试。',
-        isActive: true,
-      },
+    const kbSlug = p.knowledge.slug
+    const kbFound = await payload.find({
+      collection: 'knowledge-base',
+      where: whereTenantAndSlug(tenantId, kbSlug),
+      limit: 1,
       overrideAccess: true,
     })
-    console.info('[seed:dev] Created system announcement')
+    if (!kbFound.docs[0]) {
+      await payload.create({
+        collection: 'knowledge-base',
+        ...reqOpts,
+        data: {
+          title: p.knowledge.title,
+          slug: kbSlug,
+          site: sites[p.knowledge.siteIndex].id,
+          categories: [cats[p.knowledge.catKey].id as number],
+          status: 'published',
+          notes: `Seed KB · ${p.slug}`,
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created knowledge base', kbSlug)
+    }
+
+    const ann = await payload.find({
+      collection: 'announcements',
+      where: {
+        and: [
+          { tenant: { equals: tenantId } },
+          { title: { equals: p.announcementTitle } },
+        ],
+      },
+      limit: 1,
+      overrideAccess: true,
+    })
+    if (!ann.docs[0]) {
+      await payload.create({
+        collection: 'announcements',
+        ...superReq(superForReq),
+        user: { ...superForReq, collection: 'users' },
+        data: {
+          kind: 'system',
+          tenant: tenantId,
+          title: p.announcementTitle,
+          body: p.announcementBody,
+          isActive: true,
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created announcement', p.announcementTitle)
+    }
+
+    const firstOffer = await payload.find({
+      collection: 'offers',
+      where: whereTenantAndSlug(tenantId, p.offers[0].slug),
+      limit: 1,
+      overrideAccess: true,
+    })
+    const offer0 = firstOffer.docs[0]
+    if (offer0) {
+      const clickFound = await payload.find({
+        collection: 'click-events',
+        where: {
+          and: [
+            { tenant: { equals: tenantId } },
+            { destinationUrl: { equals: p.clickDestinationUrl } },
+          ],
+        },
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (!clickFound.docs[0]) {
+        await payload.create({
+          collection: 'click-events',
+          ...reqOpts,
+          data: {
+            occurredAt: new Date('2026-04-15T10:30:00.000Z').toISOString(),
+            eventType: 'click',
+            site: site0.id,
+            offer: offer0.id as number,
+            destinationUrl: p.clickDestinationUrl,
+            referrer: 'https://example.com/referrer',
+            metadata: { seed: true, tenant: p.slug },
+            tenant: tenantId,
+          },
+          overrideAccess: true,
+        })
+        console.info('[seed:dev] Created click event', p.clickDestinationUrl)
+      }
+
+      const commFound = await payload.find({
+        collection: 'commissions',
+        where: {
+          and: [
+            { tenant: { equals: tenantId } },
+            { notes: { equals: p.commissionNotes } },
+          ],
+        },
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (!commFound.docs[0]) {
+        await payload.create({
+          collection: 'commissions',
+          ...reqOpts,
+          data: {
+            amount: p.slug === 'seed-alpha' ? 42.5 : 128,
+            currency: 'USD',
+            status: 'pending',
+            recipient: superForReq.id,
+            offer: offer0.id as number,
+            site: site0.id,
+            periodStart: new Date('2026-04-01T00:00:00.000Z').toISOString(),
+            periodEnd: new Date('2026-04-30T00:00:00.000Z').toISOString(),
+            notes: p.commissionNotes,
+            tenant: tenantId,
+          },
+          overrideAccess: true,
+        })
+        console.info('[seed:dev] Created commission', p.commissionNotes)
+      }
+    }
   }
 
   console.info('[seed:dev] Done.')
+  console.info('[seed:dev] Tenants:', TENANT_PROFILES.map((x) => x.slug).join(', '))
   console.info('[seed:dev] Login (super admin):', EMAILS.superadmin, '/', PASSWORD)
+  console.info('[seed:dev] Beta site-manager only:', EMAILS.betaSitemgr, '/', PASSWORD)
 }
 
 main().catch((err) => {
