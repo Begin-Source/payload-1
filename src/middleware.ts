@@ -58,6 +58,12 @@ export async function middleware(request: NextRequest) {
     })
   }
 
+  if (pathname === '/') {
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    })
+  }
+
   const segments = pathname.split('/').filter(Boolean)
   const first = segments[0]
   if (!first || !isAppLocale(first)) {

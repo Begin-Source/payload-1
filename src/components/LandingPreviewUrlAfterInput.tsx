@@ -1,12 +1,21 @@
 'use client'
 
-import { ExternalLinkIcon } from '@payloadcms/ui'
-import { useField } from '@payloadcms/ui/forms/useField'
+import { ExternalLinkIcon, useField } from '@payloadcms/ui'
 import React from 'react'
 
-/** Renders under `landing-templates.previewUrl` — opens stored public URL in a new tab. */
-export function LandingPreviewUrlAfterInput() {
-  const { value } = useField<string>({})
+type Props = {
+  /** Injected by Payload `renderField` clientProps for `afterInput`. */
+  path?: string
+}
+
+/**
+ * Renders under `landing-templates.previewUrl` — opens stored public URL in a new tab.
+ * Import `useField` from the main `@payloadcms/ui` barrel so the same `RootConfigContext`
+ * instance as the Admin shell is used (deep `@payloadcms/ui/forms/useField` can duplicate
+ * the context module and make `useConfig()` undefined).
+ */
+export function LandingPreviewUrlAfterInput({ path: pathProp }: Props) {
+  const { value } = useField<string>({ path: pathProp ?? 'previewUrl' })
   const trimmed = typeof value === 'string' ? value.trim() : ''
   const canOpen = /^https?:\/\//i.test(trimmed)
 
