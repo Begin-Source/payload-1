@@ -124,10 +124,10 @@ export const LandingTemplates: CollectionConfig = {
           '完整可访问的前台 URL，且对应站点须已选用本模版（本地示例：http://localhost:3000/zh/?site=站点 slug）。',
         components: {
           afterInput: ['./components/LandingPreviewUrlAfterInput#LandingPreviewUrlAfterInput'],
-          Cell: ['./components/PreviewUrlListCell#PreviewUrlListCell'],
+          Cell: './components/PreviewUrlListCell#PreviewUrlListCell',
         },
       },
-      validate: (value) => {
+      validate: (value: string | null | undefined) => {
         if (value == null || String(value).trim() === '') return true
         try {
           const u = new URL(String(value).trim())
