@@ -16,6 +16,8 @@ import * as migration_20260424_120000_blog_public_theme from './20260424_120000_
 import * as migration_20260425_120000_seo_plugin_meta from './20260425_120000_seo_plugin_meta';
 import * as migration_20260426_100000_locale_and_redirects from './20260426_100000_locale_and_redirects';
 import * as migration_20260427_120000_landing_template_preview_url from './20260427_120000_landing_template_preview_url';
+import * as migration_20260428_120000_plugin_ai_instructions from './20260428_120000_plugin_ai_instructions';
+import * as migration_20260429_120000_payload_automation from './20260429_120000_payload_automation';
 
 export const migrations = [
   {
@@ -107,5 +109,15 @@ export const migrations = [
     up: migration_20260427_120000_landing_template_preview_url.up,
     down: migration_20260427_120000_landing_template_preview_url.down,
     name: '20260427_120000_landing_template_preview_url',
+  },
+  {
+    up: migration_20260428_120000_plugin_ai_instructions.up,
+    down: migration_20260428_120000_plugin_ai_instructions.down,
+    name: '20260428_120000_plugin_ai_instructions'
+  },
+  {
+    up: migration_20260429_120000_payload_automation.up,
+    down: migration_20260429_120000_payload_automation.down,
+    name: '20260429_120000_payload_automation',
   },
 ];

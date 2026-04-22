@@ -27,6 +27,7 @@
     "seed:dev": "cross-env NODE_OPTIONS=--no-deprecation --import=tsx/esm tsx scripts/seed-dev-data.ts"
   },
   "dependencies": {
+    "@ai-stack/payloadcms": "^3.2.27",
     "@opennextjs/cloudflare": "^1.11.0",
     "@payloadcms/db-d1-sqlite": "3.82.1",
     "@payloadcms/next": "3.82.1",
@@ -36,6 +37,7 @@
     "@payloadcms/richtext-lexical": "3.82.1",
     "@payloadcms/storage-r2": "3.82.1",
     "@payloadcms/ui": "3.82.1",
+    "@xtr-dev/payload-automation": "^0.0.54",
     "cross-env": "^7.0.3",
     "dotenv": "16.4.7",
     "graphql": "^16.8.1",

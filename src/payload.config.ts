@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 import { sqliteD1Adapter } from '@payloadcms/db-d1-sqlite'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { buildConfig } from 'payload'
+import { payloadAiPlugin } from '@ai-stack/payloadcms'
 import type { PayloadLogger } from 'payload'
 import { fileURLToPath } from 'url'
 import { CloudflareContext, getCloudflareContext } from '@opennextjs/cloudflare'
@@ -11,6 +11,15 @@ import { r2Storage } from '@payloadcms/storage-r2'
 import { mcpPlugin } from '@payloadcms/plugin-mcp'
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 import { seoPlugin } from '@payloadcms/plugin-seo'
+import {
+  CreateDocumentStepTask,
+  DeleteDocumentStepTask,
+  HttpRequestStepTask,
+  ReadDocumentStepTask,
+  SendEmailStepTask,
+  UpdateDocumentStepTask,
+  workflowsPlugin,
+} from '@xtr-dev/payload-automation/server'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
@@ -42,9 +51,16 @@ import { LlmPrompts } from './globals/LlmPrompts'
 import { PromptLibrary } from './globals/PromptLibrary'
 import { PublicLanding } from './globals/PublicLanding'
 import { Announcements } from './collections/Announcements'
+import type { GenerationModel } from '@ai-stack/payloadcms/types'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
 import { userHasAllTenantAccess } from './utilities/superAdmin'
+import { aiPluginSeedPrompts } from './utilities/aiPluginSeedPrompts'
+import {
+  applyOpenRouterToGenerationModels,
+  fetchOpenRouterModelOptions,
+} from './utilities/openRouterGenerationModels'
+import { lexicalEditorWithAi } from './utilities/lexicalEditorWithAi'
 
 /** Collections exposed via MCP (camelCase keys on API key docs must match these slugs). */
 const mcpCollectionSlugs = [
@@ -120,6 +136,11 @@ const serverURL =
         '')
     : ''
 
+const openRouterModelOptions = await fetchOpenRouterModelOptions({
+  isNextBuild,
+  isCli: isCLI,
+})
+
 export default buildConfig({
   serverURL,
   /** Browser tab titles for Payload Admin are rewritten client-side in `AdminBrandingEffects` when `admin-branding.brandName` is set; `admin.meta` (e.g. titleSuffix) does not replace that pass. */
@@ -169,7 +190,7 @@ export default buildConfig({
     Tenants,
   ],
   globals: [CommissionRules, QuotaRules, AdminBranding, PublicLanding, LlmPrompts, PromptLibrary],
-  editor: lexicalEditor(),
+  editor: lexicalEditorWithAi(),
   secret: payloadSecret,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
@@ -220,6 +241,31 @@ export default buildConfig({
       },
       userHasAccessToAllTenants: (user) => userHasAllTenantAccess(user),
     }),
+    // @ai-stack plugin typings recurse deeply with `Config`; `opts: any` avoids `tsc` stack overflow in this repo.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- cast only
+    (payloadAiPlugin as (opts: any) => import('payload').Plugin)({
+      collections: {
+        articles: true,
+        pages: true,
+        'knowledge-base': true,
+      },
+      /**
+       * When `OPENAI_BASE_URL` is OpenRouter, fetches `GET /models` and fills `Oai-text` / `Oai-object`
+       * model dropdowns. Otherwise uses plugin defaults.
+       */
+      generationModels: (defaults: GenerationModel[]) =>
+        applyOpenRouterToGenerationModels(defaults, openRouterModelOptions),
+      /** When true, onInit seeds `plugin-ai-instructions` so Lexical/Compose has instruction ids. Skip in production to avoid OpenAI on boot. */
+      generatePromptOnInit: process.env.NODE_ENV !== 'production',
+      /** Static seeds only (no top-level `prompt`/`system`) → no `systemGenerate` / OpenAI call on boot. */
+      seedPrompts: aiPluginSeedPrompts,
+      debugging: process.env.NODE_ENV !== 'production',
+      uploadCollectionSlug: 'media',
+      access: {
+        generate: ({ req }: { req: import('payload').PayloadRequest }) => Boolean(req.user),
+        settings: ({ req }: { req: import('payload').PayloadRequest }) => Boolean(req.user),
+      },
+    }),
     seoPlugin({
       collections: ['articles', 'pages'],
       uploadsCollection: 'media',
@@ -261,6 +307,21 @@ export default buildConfig({
           }
           return field
         }),
+    }),
+    workflowsPlugin({
+      enabled: true,
+      collectionTriggers: {
+        articles: { afterChange: true },
+        pages: { afterChange: true },
+      },
+      steps: [
+        HttpRequestStepTask,
+        CreateDocumentStepTask,
+        ReadDocumentStepTask,
+        UpdateDocumentStepTask,
+        DeleteDocumentStepTask,
+        SendEmailStepTask,
+      ],
     }),
     r2Storage({
       bucket: cloudflare.env.R2,

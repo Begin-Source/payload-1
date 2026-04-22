@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
+
+import { lexicalEditorWithAi } from '@/utilities/lexicalEditorWithAi'
 
 import { adminGroups } from '@/constants/adminGroups'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
@@ -40,7 +41,7 @@ export const KnowledgeBase: CollectionConfig = {
     {
       name: 'body',
       type: 'richText',
-      editor: lexicalEditor(),
+      editor: lexicalEditorWithAi(),
     },
     {
       name: 'status',

@@ -6,9 +6,11 @@ import { CsvImportExportListMenuItem as CsvImportExportListMenuItem_4c39b1e20c32
 import { CsvImportExportPanel as CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e } from '../../../components/ArticleCsvImportExport'
 import { DesignListQuickAction as DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { CategoryListQuickAction as CategoryListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
+import { ComposeField as ComposeField_c25bd927cd468b8e16d7bdb2cc282659 } from '@ai-stack/payloadcms/fields'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
+import { LexicalEditorFeatureClient as LexicalEditorFeatureClient_4490b89d4413c1ffaecdacfe72efaf73 } from '@ai-stack/payloadcms/client'
 import { InlineToolbarFeatureClient as InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { UploadFeatureClient as UploadFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
@@ -41,12 +43,18 @@ import { PageListQuickAction as PageListQuickAction_175e6fb4b4770cdb50ab070ca375
 import { MediaListQuickAction as MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { KeywordListQuickAction as KeywordListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { WatchTenantCollection as WatchTenantCollection_1d0591e3cf4f332c83a86da13a0de59a } from '@payloadcms/plugin-multi-tenant/client'
+import { SelectField as SelectField_c25bd927cd468b8e16d7bdb2cc282659 } from '@ai-stack/payloadcms/fields'
+import { PromptEditorField as PromptEditorField_c25bd927cd468b8e16d7bdb2cc282659 } from '@ai-stack/payloadcms/fields'
+import { ReadOnlyBanner as ReadOnlyBanner_6f365a93b6cb4b34ad564b391e21db6f } from '@xtr-dev/payload-automation/client'
+import { StatusCell as StatusCell_6f365a93b6cb4b34ad564b391e21db6f } from '@xtr-dev/payload-automation/client'
+import { ErrorDisplay as ErrorDisplay_6f365a93b6cb4b34ad564b391e21db6f } from '@xtr-dev/payload-automation/client'
 import { AdminBrandingIcon as AdminBrandingIcon_b1627480a7b1ea44a480239cce60653d } from '../../../components/AdminBrandingIcon'
 import { AdminBrandingLogo as AdminBrandingLogo_ffcd50864d34f341cef09ccb08501192 } from '../../../components/AdminBrandingLogo'
 import { BeforeDashboardMilestone as BeforeDashboardMilestone_3719a54b7b6993337f9eb099b70f0f9b } from '../../../components/BeforeDashboardMilestone'
 import { TenantSelector as TenantSelector_d6d5f193a167989e2ee7d14202901e62 } from '@payloadcms/plugin-multi-tenant/rsc'
 import { AdminBrandingProvider as AdminBrandingProvider_44ab57c43dcee8db134a3e5db338ce23 } from '../../../components/AdminBrandingProvider'
 import { TenantSelectionProvider as TenantSelectionProvider_d6d5f193a167989e2ee7d14202901e62 } from '@payloadcms/plugin-multi-tenant/rsc'
+import { InstructionsProvider as InstructionsProvider_4490b89d4413c1ffaecdacfe72efaf73 } from '@ai-stack/payloadcms/client'
 import { R2ClientUploadHandler as R2ClientUploadHandler_85cc02ed84006fcc91d3aff39dda669d } from '@payloadcms/storage-r2/client'
 import { MinimalDashboard as MinimalDashboard_1c676c4519e9773b53ff114b36bd0515 } from '../../../components/MinimalDashboard'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
@@ -60,9 +68,11 @@ export const importMap = {
   "./components/ArticleCsvImportExport#CsvImportExportPanel": CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e,
   "./components/CollectionQuickActions#DesignListQuickAction": DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "./components/CollectionQuickActions#CategoryListQuickAction": CategoryListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
+  "@ai-stack/payloadcms/fields#ComposeField": ComposeField_c25bd927cd468b8e16d7bdb2cc282659,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,
+  "@ai-stack/payloadcms/client#LexicalEditorFeatureClient": LexicalEditorFeatureClient_4490b89d4413c1ffaecdacfe72efaf73,
   "@payloadcms/richtext-lexical/client#InlineToolbarFeatureClient": InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#HorizontalRuleFeatureClient": HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#UploadFeatureClient": UploadFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
@@ -95,12 +105,18 @@ export const importMap = {
   "./components/CollectionQuickActions#MediaListQuickAction": MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "./components/CollectionQuickActions#KeywordListQuickAction": KeywordListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "@payloadcms/plugin-multi-tenant/client#WatchTenantCollection": WatchTenantCollection_1d0591e3cf4f332c83a86da13a0de59a,
+  "@ai-stack/payloadcms/fields#SelectField": SelectField_c25bd927cd468b8e16d7bdb2cc282659,
+  "@ai-stack/payloadcms/fields#PromptEditorField": PromptEditorField_c25bd927cd468b8e16d7bdb2cc282659,
+  "@xtr-dev/payload-automation/client#ReadOnlyBanner": ReadOnlyBanner_6f365a93b6cb4b34ad564b391e21db6f,
+  "@xtr-dev/payload-automation/client#StatusCell": StatusCell_6f365a93b6cb4b34ad564b391e21db6f,
+  "@xtr-dev/payload-automation/client#ErrorDisplay": ErrorDisplay_6f365a93b6cb4b34ad564b391e21db6f,
   "./components/AdminBrandingIcon#AdminBrandingIcon": AdminBrandingIcon_b1627480a7b1ea44a480239cce60653d,
   "./components/AdminBrandingLogo#AdminBrandingLogo": AdminBrandingLogo_ffcd50864d34f341cef09ccb08501192,
   "./components/BeforeDashboardMilestone#BeforeDashboardMilestone": BeforeDashboardMilestone_3719a54b7b6993337f9eb099b70f0f9b,
   "@payloadcms/plugin-multi-tenant/rsc#TenantSelector": TenantSelector_d6d5f193a167989e2ee7d14202901e62,
   "./components/AdminBrandingProvider#AdminBrandingProvider": AdminBrandingProvider_44ab57c43dcee8db134a3e5db338ce23,
   "@payloadcms/plugin-multi-tenant/rsc#TenantSelectionProvider": TenantSelectionProvider_d6d5f193a167989e2ee7d14202901e62,
+  "@ai-stack/payloadcms/client#InstructionsProvider": InstructionsProvider_4490b89d4413c1ffaecdacfe72efaf73,
   "@payloadcms/storage-r2/client#R2ClientUploadHandler": R2ClientUploadHandler_85cc02ed84006fcc91d3aff39dda669d,
   "./components/MinimalDashboard#MinimalDashboard": MinimalDashboard_1c676c4519e9773b53ff114b36bd0515,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1

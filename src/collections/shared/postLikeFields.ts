@@ -1,5 +1,6 @@
 import type { Field } from 'payload'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
+
+import { lexicalEditorWithAi } from '@/utilities/lexicalEditorWithAi'
 
 /** Shared body for article-like and page-like content (no postType — implied by collection). */
 export const postLikeFields: Field[] = [
@@ -49,7 +50,7 @@ export const postLikeFields: Field[] = [
   {
     name: 'body',
     type: 'richText',
-    editor: lexicalEditor(),
+    editor: lexicalEditorWithAi(),
   },
   {
     name: 'status',
