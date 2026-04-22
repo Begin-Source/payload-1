@@ -1,0 +1,50 @@
+import { headers } from 'next/headers.js'
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import React from 'react'
+
+import { AboutSidebar } from '@/components/blog/AboutSidebar'
+import { PostList } from '@/components/blog/PostList'
+import { isAppLocale } from '@/i18n/config'
+import { getPublicSiteContext } from '@/utilities/publicLandingTheme'
+import {
+  getCategoryBySlugForSite,
+  getPublishedArticlesForSiteAndCategory,
+} from '@/utilities/publicSiteQueries'
+
+type Props = { params: Promise<{ locale: string; slug: string }> }
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const { locale: loc, slug: raw } = await props.params
+  if (!isAppLocale(loc)) return { title: 'Not found' }
+  const slug = decodeURIComponent(raw)
+  const headersList = await headers()
+  const { site, theme } = await getPublicSiteContext(headersList)
+  if (!site) return { title: theme.browserTitle }
+  const category = await getCategoryBySlugForSite(site.id, slug)
+  if (!category) return { title: theme.browserTitle }
+  return { title: `${category.name} · ${theme.siteName}` }
+}
+
+export default async function CategoryPage(props: Props) {
+  const { locale: loc, slug: raw } = await props.params
+  if (!isAppLocale(loc)) notFound()
+  const locale = loc
+  const slug = decodeURIComponent(raw)
+  const headersList = await headers()
+  const { site, theme } = await getPublicSiteContext(headersList)
+  if (!site) notFound()
+  const category = await getCategoryBySlugForSite(site.id, slug)
+  if (!category) notFound()
+  const articles = await getPublishedArticlesForSiteAndCategory(site.id, category.id, locale)
+
+  return (
+    <div className="blogRow">
+      <div>
+        <h1 className="blogPageTitle">{category.name}</h1>
+        <PostList articles={articles} locale={locale} />
+      </div>
+      <AboutSidebar theme={theme} />
+    </div>
+  )
+}

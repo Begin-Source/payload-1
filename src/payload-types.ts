@@ -69,11 +69,13 @@ export interface Config {
   blocks: {};
   collections: {
     announcements: Announcement;
+    'landing-templates': LandingTemplate;
     sites: Site;
     'site-blueprints': SiteBlueprint;
     categories: Category;
     articles: Article;
     pages: Page;
+    redirects: Redirect;
     'social-platforms': SocialPlatform;
     'social-accounts': SocialAccount;
     media: Media;
@@ -98,11 +100,13 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
+    'landing-templates': LandingTemplatesSelect<false> | LandingTemplatesSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
     'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     'social-platforms': SocialPlatformsSelect<false> | SocialPlatformsSelect<true>;
     'social-accounts': SocialAccountsSelect<false> | SocialAccountsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -132,6 +136,7 @@ export interface Config {
     'commission-rules': CommissionRule;
     'quota-rules': QuotaRule;
     'admin-branding': AdminBranding;
+    'public-landing': PublicLanding;
     'llm-prompts': LlmPrompt;
     'prompt-library': PromptLibrary;
   };
@@ -139,6 +144,7 @@ export interface Config {
     'commission-rules': CommissionRulesSelect<false> | CommissionRulesSelect<true>;
     'quota-rules': QuotaRulesSelect<false> | QuotaRulesSelect<true>;
     'admin-branding': AdminBrandingSelect<false> | AdminBrandingSelect<true>;
+    'public-landing': PublicLandingSelect<false> | PublicLandingSelect<true>;
     'llm-prompts': LlmPromptsSelect<false> | LlmPromptsSelect<true>;
     'prompt-library': PromptLibrarySelect<false> | PromptLibrarySelect<true>;
   };
@@ -273,6 +279,102 @@ export interface User {
   collection: 'users';
 }
 /**
+ * 站点选用的预设主题与配文；具体微调在「设计」中覆盖。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "landing-templates".
+ */
+export interface LandingTemplate {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  /**
+   * URL-safe key; unique per tenant with `slug`.
+   */
+  slug: string;
+  description?: string | null;
+  /**
+   * 完整可访问的前台 URL，且对应站点须已选用本模版（本地示例：http://localhost:3000/zh/?site=站点 slug）。
+   */
+  previewUrl?: string | null;
+  /**
+   * 留空则使用站点名称或全局兜底。
+   */
+  landingBrowserTitle?: string | null;
+  landingSiteName?: string | null;
+  landingTagline?: string | null;
+  landingLoggedInTitle?: string | null;
+  landingLoggedInSubtitle?: string | null;
+  landingFooterLine?: string | null;
+  landingCtaLabel?: string | null;
+  landingBgColor?: string | null;
+  landingTextColor?: string | null;
+  landingMutedColor?: string | null;
+  landingCtaBgColor?: string | null;
+  landingCtaTextColor?: string | null;
+  landingFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
+  /**
+   * CSS 颜色，如 #2d8659
+   */
+  blogPrimaryColor?: string | null;
+  /**
+   * 如 #e6c84a
+   */
+  blogAccentColor?: string | null;
+  /**
+   * 如 #f0f0f0
+   */
+  blogContentBgColor?: string | null;
+  /**
+   * 如 #ffffff
+   */
+  blogCardBgColor?: string | null;
+  /**
+   * 如 #ffffff
+   */
+  blogHeaderTextColor?: string | null;
+  /**
+   * 如 #333333
+   */
+  blogHeadingColor?: string | null;
+  /**
+   * 如 #444444
+   */
+  blogBodyColor?: string | null;
+  aboutTitle?: string | null;
+  aboutBio?: string | null;
+  aboutImage?: (number | null) | Media;
+  aboutCtaLabel?: string | null;
+  /**
+   * 相对路径如 /pages/about 或绝对 URL
+   */
+  aboutCtaHref?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  alt: string;
+  /**
+   * 新建必填；旧数据可暂为空后再补全。
+   */
+  site?: (number | null) | Site;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sites".
  */
@@ -291,10 +393,42 @@ export interface Site {
    */
   blueprint?: (number | null) | SiteBlueprint;
   /**
+   * 公开首页预设主题与配文；换模版仅在此处。设计里可微调字体/配色/文案。
+   */
+  landingTemplate?: (number | null) | LandingTemplate;
+  /**
    * Users who operate this site (optional; tenant scoping still applies).
    */
   operators?: (number | User)[] | null;
   notes?: string | null;
+  /**
+   * 留空则使用全局兜底或站点名称。
+   */
+  landingBrowserTitle?: string | null;
+  landingSiteName?: string | null;
+  landingTagline?: string | null;
+  landingLoggedInTitle?: string | null;
+  landingLoggedInSubtitle?: string | null;
+  landingFooterLine?: string | null;
+  landingCtaLabel?: string | null;
+  landingBgColor?: string | null;
+  landingTextColor?: string | null;
+  landingMutedColor?: string | null;
+  landingCtaBgColor?: string | null;
+  landingCtaTextColor?: string | null;
+  landingFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
+  landingBlogPrimaryColor?: string | null;
+  landingBlogAccentColor?: string | null;
+  landingBlogContentBgColor?: string | null;
+  landingBlogCardBgColor?: string | null;
+  landingBlogHeaderTextColor?: string | null;
+  landingBlogHeadingColor?: string | null;
+  landingBlogBodyColor?: string | null;
+  landingAboutTitle?: string | null;
+  landingAboutBio?: string | null;
+  landingAboutImage?: (number | null) | Media;
+  landingAboutCtaLabel?: string | null;
+  landingAboutCtaHref?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -324,6 +458,31 @@ export interface SiteBlueprint {
     | number
     | boolean
     | null;
+  designBrowserTitle?: string | null;
+  designSiteName?: string | null;
+  designTagline?: string | null;
+  designLoggedInTitle?: string | null;
+  designLoggedInSubtitle?: string | null;
+  designFooterLine?: string | null;
+  designCtaLabel?: string | null;
+  designBgColor?: string | null;
+  designTextColor?: string | null;
+  designMutedColor?: string | null;
+  designCtaBgColor?: string | null;
+  designCtaTextColor?: string | null;
+  designFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
+  designBlogPrimaryColor?: string | null;
+  designBlogAccentColor?: string | null;
+  designBlogContentBgColor?: string | null;
+  designBlogCardBgColor?: string | null;
+  designBlogHeaderTextColor?: string | null;
+  designBlogHeadingColor?: string | null;
+  designBlogBodyColor?: string | null;
+  designAboutTitle?: string | null;
+  designAboutBio?: string | null;
+  designAboutImage?: (number | null) | Media;
+  designAboutCtaLabel?: string | null;
+  designAboutCtaHref?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -354,6 +513,10 @@ export interface Article {
   title: string;
   slug?: string | null;
   /**
+   * URL prefix /zh/ or /en/; must be unique per site + slug.
+   */
+  locale: 'zh' | 'en';
+  /**
    * Owning site (optional while migrating legacy content).
    */
   site?: (number | null) | Site;
@@ -377,30 +540,16 @@ export interface Article {
   status: 'draft' | 'published' | 'archived';
   publishedAt?: string | null;
   excerpt?: string | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  alt: string;
-  /**
-   * 新建必填；旧数据可暂为空后再补全。
-   */
-  site?: (number | null) | Site;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -412,6 +561,10 @@ export interface Page {
   title: string;
   slug?: string | null;
   /**
+   * URL prefix /zh/ or /en/; must be unique per site + slug.
+   */
+  locale: 'zh' | 'en';
+  /**
    * Owning site (optional while migrating legacy content).
    */
   site?: (number | null) | Site;
@@ -435,6 +588,42 @@ export interface Page {
   status: 'draft' | 'published' | 'archived';
   publishedAt?: string | null;
   excerpt?: string | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects".
+ */
+export interface Redirect {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  /**
+   * Optional. Leave empty for a host-wide rule; set to scope to one site.
+   */
+  site?: (number | null) | Site;
+  /**
+   * Full pathname including locale, e.g. /zh/old-slug or /en/legacy
+   */
+  fromPath: string;
+  /**
+   * Target path (relative, e.g. /zh/new) or absolute URL.
+   */
+  toPath: string;
+  statusCode: '301' | '302';
+  enabled?: boolean | null;
+  /**
+   * Lower runs first when multiple rules match (should be unique per fromPath).
+   */
+  sortOrder?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -998,6 +1187,10 @@ export interface PayloadLockedDocument {
         value: number | Announcement;
       } | null)
     | ({
+        relationTo: 'landing-templates';
+        value: number | LandingTemplate;
+      } | null)
+    | ({
         relationTo: 'sites';
         value: number | Site;
       } | null)
@@ -1016,6 +1209,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pages';
         value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'redirects';
+        value: number | Redirect;
       } | null)
     | ({
         relationTo: 'social-platforms';
@@ -1153,6 +1350,44 @@ export interface AnnouncementsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "landing-templates_select".
+ */
+export interface LandingTemplatesSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  description?: T;
+  previewUrl?: T;
+  landingBrowserTitle?: T;
+  landingSiteName?: T;
+  landingTagline?: T;
+  landingLoggedInTitle?: T;
+  landingLoggedInSubtitle?: T;
+  landingFooterLine?: T;
+  landingCtaLabel?: T;
+  landingBgColor?: T;
+  landingTextColor?: T;
+  landingMutedColor?: T;
+  landingCtaBgColor?: T;
+  landingCtaTextColor?: T;
+  landingFontPreset?: T;
+  blogPrimaryColor?: T;
+  blogAccentColor?: T;
+  blogContentBgColor?: T;
+  blogCardBgColor?: T;
+  blogHeaderTextColor?: T;
+  blogHeadingColor?: T;
+  blogBodyColor?: T;
+  aboutTitle?: T;
+  aboutBio?: T;
+  aboutImage?: T;
+  aboutCtaLabel?: T;
+  aboutCtaHref?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sites_select".
  */
 export interface SitesSelect<T extends boolean = true> {
@@ -1162,8 +1397,34 @@ export interface SitesSelect<T extends boolean = true> {
   primaryDomain?: T;
   status?: T;
   blueprint?: T;
+  landingTemplate?: T;
   operators?: T;
   notes?: T;
+  landingBrowserTitle?: T;
+  landingSiteName?: T;
+  landingTagline?: T;
+  landingLoggedInTitle?: T;
+  landingLoggedInSubtitle?: T;
+  landingFooterLine?: T;
+  landingCtaLabel?: T;
+  landingBgColor?: T;
+  landingTextColor?: T;
+  landingMutedColor?: T;
+  landingCtaBgColor?: T;
+  landingCtaTextColor?: T;
+  landingFontPreset?: T;
+  landingBlogPrimaryColor?: T;
+  landingBlogAccentColor?: T;
+  landingBlogContentBgColor?: T;
+  landingBlogCardBgColor?: T;
+  landingBlogHeaderTextColor?: T;
+  landingBlogHeadingColor?: T;
+  landingBlogBodyColor?: T;
+  landingAboutTitle?: T;
+  landingAboutBio?: T;
+  landingAboutImage?: T;
+  landingAboutCtaLabel?: T;
+  landingAboutCtaHref?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1178,6 +1439,31 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   site?: T;
   description?: T;
   templateConfig?: T;
+  designBrowserTitle?: T;
+  designSiteName?: T;
+  designTagline?: T;
+  designLoggedInTitle?: T;
+  designLoggedInSubtitle?: T;
+  designFooterLine?: T;
+  designCtaLabel?: T;
+  designBgColor?: T;
+  designTextColor?: T;
+  designMutedColor?: T;
+  designCtaBgColor?: T;
+  designCtaTextColor?: T;
+  designFontPreset?: T;
+  designBlogPrimaryColor?: T;
+  designBlogAccentColor?: T;
+  designBlogContentBgColor?: T;
+  designBlogCardBgColor?: T;
+  designBlogHeaderTextColor?: T;
+  designBlogHeadingColor?: T;
+  designBlogBodyColor?: T;
+  designAboutTitle?: T;
+  designAboutBio?: T;
+  designAboutImage?: T;
+  designAboutCtaLabel?: T;
+  designAboutCtaHref?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1202,6 +1488,7 @@ export interface ArticlesSelect<T extends boolean = true> {
   tenant?: T;
   title?: T;
   slug?: T;
+  locale?: T;
   site?: T;
   categories?: T;
   featuredImage?: T;
@@ -1209,6 +1496,13 @@ export interface ArticlesSelect<T extends boolean = true> {
   status?: T;
   publishedAt?: T;
   excerpt?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1220,6 +1514,7 @@ export interface PagesSelect<T extends boolean = true> {
   tenant?: T;
   title?: T;
   slug?: T;
+  locale?: T;
   site?: T;
   categories?: T;
   featuredImage?: T;
@@ -1227,6 +1522,28 @@ export interface PagesSelect<T extends boolean = true> {
   status?: T;
   publishedAt?: T;
   excerpt?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects_select".
+ */
+export interface RedirectsSelect<T extends boolean = true> {
+  tenant?: T;
+  site?: T;
+  fromPath?: T;
+  toPath?: T;
+  statusCode?: T;
+  enabled?: T;
+  sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1700,6 +2017,45 @@ export interface AdminBranding {
   createdAt?: string | null;
 }
 /**
+ * 未匹配到具体站点域名时使用；各站点可在「站点」里覆盖。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "public-landing".
+ */
+export interface PublicLanding {
+  id: number;
+  siteName: string;
+  /**
+   * 留空则与网站名称相同。
+   */
+  browserTitle?: string | null;
+  tagline?: string | null;
+  loggedInTitle?: string | null;
+  loggedInSubtitle?: string | null;
+  footerLine?: string | null;
+  adminCtaLabel?: string | null;
+  backgroundColor?: string | null;
+  textColor?: string | null;
+  mutedTextColor?: string | null;
+  ctaBackgroundColor?: string | null;
+  ctaTextColor?: string | null;
+  fontPreset?: ('system' | 'serif' | 'noto_sans_sc') | null;
+  blogPrimaryColor?: string | null;
+  blogAccentColor?: string | null;
+  blogContentBgColor?: string | null;
+  blogCardBgColor?: string | null;
+  blogHeaderTextColor?: string | null;
+  blogHeadingColor?: string | null;
+  blogBodyColor?: string | null;
+  aboutTitle?: string | null;
+  aboutBio?: string | null;
+  aboutImage?: (number | null) | Media;
+  aboutCtaLabel?: string | null;
+  aboutCtaHref?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "llm-prompts".
  */
@@ -1763,6 +2119,40 @@ export interface AdminBrandingSelect<T extends boolean = true> {
   primaryColor?: T;
   supportEmail?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "public-landing_select".
+ */
+export interface PublicLandingSelect<T extends boolean = true> {
+  siteName?: T;
+  browserTitle?: T;
+  tagline?: T;
+  loggedInTitle?: T;
+  loggedInSubtitle?: T;
+  footerLine?: T;
+  adminCtaLabel?: T;
+  backgroundColor?: T;
+  textColor?: T;
+  mutedTextColor?: T;
+  ctaBackgroundColor?: T;
+  ctaTextColor?: T;
+  fontPreset?: T;
+  blogPrimaryColor?: T;
+  blogAccentColor?: T;
+  blogContentBgColor?: T;
+  blogCardBgColor?: T;
+  blogHeaderTextColor?: T;
+  blogHeadingColor?: T;
+  blogBodyColor?: T;
+  aboutTitle?: T;
+  aboutBio?: T;
+  aboutImage?: T;
+  aboutCtaLabel?: T;
+  aboutCtaHref?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

@@ -14,6 +14,20 @@ export const postLikeFields: Field[] = [
     index: true,
   },
   {
+    name: 'locale',
+    type: 'select',
+    required: true,
+    defaultValue: 'zh',
+    index: true,
+    options: [
+      { label: '中文', value: 'zh' },
+      { label: 'English', value: 'en' },
+    ],
+    admin: {
+      description: 'URL prefix /zh/ or /en/; must be unique per site + slug.',
+    },
+  },
+  {
     name: 'site',
     type: 'relationship',
     relationTo: 'sites',

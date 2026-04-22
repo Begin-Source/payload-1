@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
 import { postLikeFields } from '@/collections/shared/postLikeFields'
+import { validateSlugLocaleUnique } from '@/collections/shared/validateSlugLocaleUnique'
 import { validateCategoriesMatchSite } from '@/collections/shared/validateCategoriesMatchSite'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
@@ -29,7 +30,7 @@ export const Articles: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [validateCategoriesMatchSite],
+    beforeChange: [validateCategoriesMatchSite, validateSlugLocaleUnique('articles')],
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),

@@ -36,8 +36,22 @@ type TenantProfile = {
   offers: Array<{ slug: string; title: string; targetUrl: string }>
   /** [siteIndex, category index 0|1 per site] */
   categories: [{ slug: string; name: string; siteIndex: 0 | 1 }, { slug: string; name: string; siteIndex: 0 | 1 }]
-  articles: Array<{ slug: string; title: string; siteIndex: 0 | 1; catKey: 0 | 1 }>
-  pages: Array<{ slug: string; title: string; siteIndex: 0 | 1; catKey: 0 | 1 }>
+  articles: Array<{
+    slug: string
+    title: string
+    siteIndex: 0 | 1
+    catKey: 0 | 1
+    locale?: 'zh' | 'en'
+    excerpt?: string
+  }>
+  pages: Array<{
+    slug: string
+    title: string
+    siteIndex: 0 | 1
+    catKey: 0 | 1
+    locale?: 'zh' | 'en'
+    excerpt?: string
+  }>
   keyword: { slug: string; term: string; siteIndex: 0 | 1 }
   ranking: { searchQuery: string; serpPosition: number }
   workflowLabel: string
@@ -96,12 +110,30 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
         title: '2025 家用路由器横评：性能与联盟链接策略',
         siteIndex: 0,
         catKey: 0,
+        excerpt: '中文示例：列表摘要，分类「评测对比」。',
+      },
+      {
+        slug: 'seed-article-a',
+        title: '2025 Home Wi‑Fi Router Roundup (English demo)',
+        siteIndex: 0,
+        catKey: 0,
+        locale: 'en',
+        excerpt: 'Same slug as Chinese version; use header EN / 中文 to compare.',
       },
       {
         slug: 'seed-article-b',
         title: '黑五大促落地：追踪参数与转化复盘',
         siteIndex: 1,
         catKey: 1,
+        excerpt: '中文示例：第二站点 seed-site-b。',
+      },
+      {
+        slug: 'seed-article-b',
+        title: 'Black Friday promo: tracking & conversion (EN)',
+        siteIndex: 1,
+        catKey: 1,
+        locale: 'en',
+        excerpt: 'English article on seed-site-b.',
       },
     ],
     pages: [
@@ -110,6 +142,15 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
         title: '限时优惠落地页 · Alpha',
         siteIndex: 0,
         catKey: 0,
+        excerpt: '独立页面（中文）→ /zh/pages/seed-page-a',
+      },
+      {
+        slug: 'seed-page-a',
+        title: 'Limited-time offer landing (EN)',
+        siteIndex: 0,
+        catKey: 0,
+        locale: 'en',
+        excerpt: 'English page → /en/pages/seed-page-a',
       },
     ],
     keyword: { slug: 'seed-keyword-1', term: 'best wifi router 2025', siteIndex: 0 },
@@ -173,12 +214,28 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
         title: '中小企业 CRM 选型：从线索到成交',
         siteIndex: 0,
         catKey: 0,
+        excerpt: 'Beta 中文；预览加 ?site=beta-saas-main',
+      },
+      {
+        slug: 'beta-article-crm',
+        title: 'SMB CRM selection: lead to close (EN)',
+        siteIndex: 0,
+        catKey: 0,
+        locale: 'en',
+        excerpt: 'Beta English mirror for hreflang.',
       },
       {
         slug: 'beta-article-whitepaper',
         title: '2025 B2B 内容营销白皮书导读',
         siteIndex: 1,
         catKey: 1,
+      },
+      {
+        slug: 'beta-article-whitepaper',
+        title: '2025 B2B content marketing whitepaper (EN)',
+        siteIndex: 1,
+        catKey: 1,
+        locale: 'en',
       },
     ],
     pages: [
@@ -187,6 +244,13 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
         title: '预约演示落地页',
         siteIndex: 0,
         catKey: 0,
+      },
+      {
+        slug: 'beta-page-demo',
+        title: 'Book a demo (EN)',
+        siteIndex: 0,
+        catKey: 0,
+        locale: 'en',
       },
     ],
     keyword: { slug: 'beta-keyword-main', term: 'b2b crm comparison', siteIndex: 0 },
@@ -209,6 +273,47 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
   },
 ]
 
+/** `landing-templates.slug` — unique per tenant. */
+const BLOG_DEFAULT_LANDING_TEMPLATE_SLUG = 'blog-default'
+
+/** Align with `BLOG_DEFAULTS` in src/utilities/publicLandingTheme.ts; keep in sync manually. */
+/** Dev-only preview links; tenant slug → URL (site must use blog-default template). */
+const BLOG_DEFAULT_PREVIEW_URL_BY_TENANT: Record<string, string> = {
+  'seed-alpha': 'http://localhost:3000/zh/?site=seed-site-a',
+  'seed-beta': 'http://localhost:3000/zh/?site=beta-saas-main',
+}
+
+const BLOG_DEFAULT_LANDING_TEMPLATE_BASE = {
+  name: '整站博客 · 默认',
+  slug: BLOG_DEFAULT_LANDING_TEMPLATE_SLUG,
+  description:
+    '与当前工程默认整站博客一致：文章列表 + 顶栏 + About 侧栏；色板与 publicLandingTheme BLOG_DEFAULTS 对齐。',
+  landingBrowserTitle: '',
+  landingSiteName: '',
+  landingTagline: '',
+  landingLoggedInTitle: '',
+  landingLoggedInSubtitle: '',
+  landingFooterLine: '© 种子数据 · 整站博客模版演示',
+  landingCtaLabel: '前往管理后台',
+  landingBgColor: '#f0f0f0',
+  landingTextColor: '#333333',
+  landingMutedColor: '#888888',
+  landingCtaBgColor: '#2d8659',
+  landingCtaTextColor: '#ffffff',
+  landingFontPreset: 'noto_sans_sc' as const,
+  blogPrimaryColor: '#2d8659',
+  blogAccentColor: '#e6c84a',
+  blogContentBgColor: '#f0f0f0',
+  blogCardBgColor: '#ffffff',
+  blogHeaderTextColor: '#ffffff',
+  blogHeadingColor: '#333333',
+  blogBodyColor: '#444444',
+  aboutTitle: 'About Me',
+  aboutBio: '',
+  aboutCtaLabel: 'Learn more',
+  aboutCtaHref: '#',
+}
+
 function superReq(user: SeedUserDoc): { req: Partial<PayloadRequest> } {
   return {
     req: {
@@ -223,6 +328,16 @@ function whereTenantSlug(slug: string) {
 
 function whereTenantAndSlug(tenantId: number, slug: string) {
   return { and: [{ slug: { equals: slug } }, { tenant: { equals: tenantId } }] }
+}
+
+function whereTenantSlugLocale(tenantId: number, slug: string, locale: string) {
+  return {
+    and: [
+      { slug: { equals: slug } },
+      { tenant: { equals: tenantId } },
+      { locale: { equals: locale } },
+    ],
+  }
 }
 
 /**
@@ -393,6 +508,52 @@ async function main(): Promise<void> {
     const tenantId = tenantBySlug.get(p.slug)!.id
     console.info('[seed:dev] --- Seeding tenant', p.slug, '---')
 
+    async function ensureBlogLandingTemplate(): Promise<{ id: number }> {
+      const found = await payload.find({
+        collection: 'landing-templates',
+        where: {
+          and: [
+            { slug: { equals: BLOG_DEFAULT_LANDING_TEMPLATE_SLUG } },
+            { tenant: { equals: tenantId } },
+          ],
+        },
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (found.docs[0]) {
+        const existing = found.docs[0] as { id: number; previewUrl?: string | null }
+        const desiredPreview = BLOG_DEFAULT_PREVIEW_URL_BY_TENANT[p.slug] ?? ''
+        if (
+          desiredPreview &&
+          (existing.previewUrl == null || String(existing.previewUrl).trim() === '')
+        ) {
+          await payload.update({
+            collection: 'landing-templates',
+            id: existing.id,
+            ...reqOpts,
+            data: { previewUrl: desiredPreview },
+            overrideAccess: true,
+          })
+          console.info('[seed:dev] Set previewUrl on landing template', existing.id)
+        }
+        return { id: existing.id as number }
+      }
+      const doc = await payload.create({
+        collection: 'landing-templates',
+        ...reqOpts,
+        data: {
+          ...BLOG_DEFAULT_LANDING_TEMPLATE_BASE,
+          previewUrl: BLOG_DEFAULT_PREVIEW_URL_BY_TENANT[p.slug] ?? '',
+          tenant: tenantId,
+        },
+        overrideAccess: true,
+      })
+      console.info('[seed:dev] Created landing template', BLOG_DEFAULT_LANDING_TEMPLATE_SLUG)
+      return { id: doc.id as number }
+    }
+
+    const blogLandingTemplate = await ensureBlogLandingTemplate()
+
     async function ensureSite(spec: SiteSpec) {
       const found = await payload.find({
         collection: 'sites',
@@ -400,7 +561,31 @@ async function main(): Promise<void> {
         limit: 1,
         overrideAccess: true,
       })
-      if (found.docs[0]) return found.docs[0]
+      if (found.docs[0]) {
+        const row = found.docs[0] as {
+          id: number
+          landingTemplate?: number | { id: number } | null
+        }
+        if (row.landingTemplate == null) {
+          await payload.update({
+            collection: 'sites',
+            id: row.id,
+            ...reqOpts,
+            data: { landingTemplate: blogLandingTemplate.id },
+            overrideAccess: true,
+          })
+          console.info('[seed:dev] Linked landing template → site', spec.slug)
+        }
+        const refreshed = await payload.findByID({
+          collection: 'sites',
+          id: row.id,
+          overrideAccess: true,
+        })
+        if (!refreshed) {
+          throw new Error(`[seed:dev] site id ${row.id} missing after landingTemplate link`)
+        }
+        return refreshed
+      }
       return payload.create({
         collection: 'sites',
         ...reqOpts,
@@ -410,6 +595,7 @@ async function main(): Promise<void> {
           primaryDomain: spec.primaryDomain,
           status: 'active',
           tenant: tenantId,
+          landingTemplate: blogLandingTemplate.id,
         },
         overrideAccess: true,
       })
@@ -441,6 +627,33 @@ async function main(): Promise<void> {
         overrideAccess: true,
       })
       console.info('[seed:dev] Created site blueprint', blueprintSlug)
+    }
+
+    const bpRow = (
+      await payload.find({
+        collection: 'site-blueprints',
+        where: whereTenantAndSlug(tenantId, blueprintSlug),
+        limit: 1,
+        overrideAccess: true,
+      })
+    ).docs[0] as { id: number } | undefined
+    if (bpRow) {
+      for (const siteRow of [site0, site1]) {
+        const s = siteRow as {
+          id: number
+          blueprint?: number | { id: number } | null
+        }
+        if (s.blueprint == null) {
+          await payload.update({
+            collection: 'sites',
+            id: s.id,
+            ...reqOpts,
+            data: { blueprint: bpRow.id },
+            overrideAccess: true,
+          })
+          console.info('[seed:dev] Linked blueprint → site id', s.id)
+        }
+      }
     }
 
     async function ensureCategory(slug: string, name: string, siteId: number) {
@@ -536,10 +749,12 @@ async function main(): Promise<void> {
       title: string,
       siteId: number,
       categoryIds: number[],
+      locale: 'zh' | 'en' = 'zh',
+      excerpt?: string,
     ) {
       const found = await payload.find({
         collection: 'articles',
-        where: whereTenantAndSlug(tenantId, slug),
+        where: whereTenantSlugLocale(tenantId, slug, locale),
         limit: 1,
         overrideAccess: true,
       })
@@ -550,13 +765,17 @@ async function main(): Promise<void> {
         data: {
           title,
           slug,
+          locale,
+          excerpt: excerpt ?? undefined,
           site: siteId,
           categories: categoryIds,
           status: 'published',
+          publishedAt: new Date().toISOString(),
           tenant: tenantId,
         },
         overrideAccess: true,
       })
+      console.info('[seed:dev] Created article', slug, locale)
     }
 
     async function ensurePage(
@@ -564,10 +783,12 @@ async function main(): Promise<void> {
       title: string,
       siteId: number,
       categoryIds: number[],
+      locale: 'zh' | 'en' = 'zh',
+      excerpt?: string,
     ) {
       const found = await payload.find({
         collection: 'pages',
-        where: whereTenantAndSlug(tenantId, slug),
+        where: whereTenantSlugLocale(tenantId, slug, locale),
         limit: 1,
         overrideAccess: true,
       })
@@ -578,27 +799,42 @@ async function main(): Promise<void> {
         data: {
           title,
           slug,
+          locale,
+          excerpt: excerpt ?? undefined,
           site: siteId,
           categories: categoryIds,
           status: 'published',
+          publishedAt: new Date().toISOString(),
           tenant: tenantId,
         },
         overrideAccess: true,
       })
+      console.info('[seed:dev] Created page', slug, locale)
     }
 
     for (const a of p.articles) {
       const catId = cats[a.catKey].id
+      const loc = a.locale ?? 'zh'
       await ensureArticle(
         a.slug,
         a.title,
         sites[a.siteIndex].id as number,
         [catId],
+        loc,
+        a.excerpt,
       )
     }
     for (const pg of p.pages) {
       const catId = cats[pg.catKey].id
-      await ensurePage(pg.slug, pg.title, sites[pg.siteIndex].id as number, [catId])
+      const loc = pg.locale ?? 'zh'
+      await ensurePage(
+        pg.slug,
+        pg.title,
+        sites[pg.siteIndex].id as number,
+        [catId],
+        loc,
+        pg.excerpt,
+      )
     }
 
     async function ensureKeyword() {
@@ -860,6 +1096,11 @@ async function main(): Promise<void> {
   console.info('[seed:dev] Tenants:', TENANT_PROFILES.map((x) => x.slug).join(', '))
   console.info('[seed:dev] Login (super admin):', EMAILS.superadmin, '/', PASSWORD)
   console.info('[seed:dev] Beta site-manager only:', EMAILS.betaSitemgr, '/', PASSWORD)
+  console.info('')
+  console.info('[seed:dev] Blog template preview (after pnpm dev):')
+  console.info('  Set NEXT_PUBLIC_DEFAULT_SITE_SLUG=seed-site-a in .env, then open http://localhost:3000/zh/')
+  console.info('  Or: http://localhost:3000/zh/?site=seed-site-a  |  second site: ?site=seed-site-b')
+  console.info('  Beta tenant: ?site=beta-saas-main')
 }
 
 main().catch((err) => {

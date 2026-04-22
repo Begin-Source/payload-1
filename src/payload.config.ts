@@ -10,10 +10,12 @@ import { GetPlatformProxyOptions } from 'wrangler'
 import { r2Storage } from '@payloadcms/storage-r2'
 import { mcpPlugin } from '@payloadcms/plugin-mcp'
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
+import { seoPlugin } from '@payloadcms/plugin-seo'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Tenants } from './collections/Tenants'
+import { LandingTemplates } from './collections/LandingTemplates'
 import { Sites } from './collections/Sites'
 import { SiteQuotas } from './collections/SiteQuotas'
 import { SiteBlueprints } from './collections/SiteBlueprints'
@@ -25,6 +27,7 @@ import { Categories } from './collections/Categories'
 import { Keywords } from './collections/Keywords'
 import { Articles } from './collections/Articles'
 import { Pages } from './collections/Pages'
+import { Redirects } from './collections/Redirects'
 import { WorkflowJobs } from './collections/WorkflowJobs'
 import { SocialPlatforms } from './collections/SocialPlatforms'
 import { SocialAccounts } from './collections/SocialAccounts'
@@ -37,6 +40,7 @@ import { QuotaRules } from './globals/QuotaRules'
 import { AdminBranding } from './globals/AdminBranding'
 import { LlmPrompts } from './globals/LlmPrompts'
 import { PromptLibrary } from './globals/PromptLibrary'
+import { PublicLanding } from './globals/PublicLanding'
 import { Announcements } from './collections/Announcements'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
@@ -141,11 +145,13 @@ export default buildConfig({
   },
   collections: [
     Announcements,
+    LandingTemplates,
     Sites,
     SiteBlueprints,
     Categories,
     Articles,
     Pages,
+    Redirects,
     SocialPlatforms,
     SocialAccounts,
     Media,
@@ -162,7 +168,7 @@ export default buildConfig({
     AuditLogs,
     Tenants,
   ],
-  globals: [CommissionRules, QuotaRules, AdminBranding, LlmPrompts, PromptLibrary],
+  globals: [CommissionRules, QuotaRules, AdminBranding, PublicLanding, LlmPrompts, PromptLibrary],
   editor: lexicalEditor(),
   secret: payloadSecret,
   typescript: {
@@ -187,6 +193,7 @@ export default buildConfig({
       useTenantsCollectionAccess: false,
       collections: {
         announcements: {},
+        'landing-templates': {},
         sites: {},
         'site-quotas': {},
         'site-blueprints': {},
@@ -197,6 +204,7 @@ export default buildConfig({
         categories: {},
         articles: {},
         pages: {},
+        redirects: {},
         keywords: {},
         'workflow-jobs': {},
         'knowledge-base': {},
@@ -211,6 +219,48 @@ export default buildConfig({
         media: { useTenantAccess: false },
       },
       userHasAccessToAllTenants: (user) => userHasAllTenantAccess(user),
+    }),
+    seoPlugin({
+      collections: ['articles', 'pages'],
+      uploadsCollection: 'media',
+      tabbedUI: true,
+      generateTitle: ({ doc }) => {
+        const d = doc as { title?: string | null }
+        const t = d.title?.trim()
+        return t ? String(t) : ''
+      },
+      generateDescription: ({ doc }) => {
+        const d = doc as { excerpt?: string | null }
+        const x = d.excerpt?.trim()
+        return x ? String(x) : ''
+      },
+      generateImage: ({ doc }) => {
+        const id = seoUploadRelationId((doc as { featuredImage?: unknown }).featuredImage)
+        return id ?? undefined
+      },
+      generateURL: ({ doc, collectionSlug }) => {
+        const d = doc as { slug?: string | null; locale?: string | null }
+        const slug = d.slug?.trim()
+        const loc = (d.locale?.trim() || 'zh') as string
+        if (!slug) return ''
+        if (collectionSlug === 'articles') return `/${loc}/posts/${encodeURIComponent(slug)}`
+        if (collectionSlug === 'pages') return `/${loc}/pages/${encodeURIComponent(slug)}`
+        return ''
+      },
+      /** Avoid locale-specific meta columns until app `localization` is enabled. */
+      fields: ({ defaultFields }) =>
+        defaultFields.map((field) => {
+          if (
+            typeof field === 'object' &&
+            field !== null &&
+            'name' in field &&
+            typeof (field as { name: string }).name === 'string' &&
+            ['title', 'description', 'image'].includes((field as { name: string }).name)
+          ) {
+            return { ...field, localized: false }
+          }
+          return field
+        }),
     }),
     r2Storage({
       bucket: cloudflare.env.R2,
@@ -306,4 +356,15 @@ function getCloudflareContextFromWrangler(): Promise<CloudflareContext> {
         remoteBindings: isProduction && !isNextBuild,
       } satisfies GetPlatformProxyOptions),
   )
+}
+
+function seoUploadRelationId(value: unknown): number | string | null {
+  if (value == null) return null
+  if (typeof value === 'number' && !Number.isNaN(value)) return value
+  if (typeof value === 'string' && value.trim()) return value
+  if (typeof value === 'object' && value !== null && 'id' in value) {
+    const id = (value as { id: unknown }).id
+    if (typeof id === 'number' || typeof id === 'string') return id
+  }
+  return null
 }
