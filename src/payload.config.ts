@@ -57,7 +57,7 @@ import { PromptLibrary } from './globals/PromptLibrary'
 import { PublicLanding } from './globals/PublicLanding'
 import { PipelineSettings } from './globals/PipelineSettings'
 import { Announcements } from './collections/Announcements'
-import type { GenerationModel } from '@ai-stack/payloadcms/types'
+import { OpenAIConfig } from './utilities/aiOpenAIConfigImport'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
 import { userHasAllTenantAccess } from './utilities/superAdmin'
@@ -101,25 +101,40 @@ const isNextBuild =
   process.env.npm_lifecycle_event === 'build' ||
   process.env.NEXT_PHASE === 'phase-production-build'
 
+type LogBindings = Record<string, unknown>
+
 const createLog =
-  (level: string, fn: typeof console.log) => (objOrMsg: object | string, msg?: string) => {
+  (level: string, fn: typeof console.log, bindings: LogBindings = {}) =>
+  (objOrMsg: object | string, msg?: string) => {
     if (typeof objOrMsg === 'string') {
-      fn(JSON.stringify({ level, msg: objOrMsg }))
+      fn(JSON.stringify({ level, ...bindings, msg: objOrMsg }))
     } else {
-      fn(JSON.stringify({ level, ...objOrMsg, msg: msg ?? (objOrMsg as { msg?: string }).msg }))
+      fn(
+        JSON.stringify({
+          level,
+          ...bindings,
+          ...objOrMsg,
+          msg: msg ?? (objOrMsg as { msg?: string }).msg,
+        }),
+      )
     }
   }
 
-const cloudflareLogger = {
-  level: process.env.PAYLOAD_LOG_LEVEL || 'info',
-  trace: createLog('trace', console.debug),
-  debug: createLog('debug', console.debug),
-  info: createLog('info', console.log),
-  warn: createLog('warn', console.warn),
-  error: createLog('error', console.error),
-  fatal: createLog('fatal', console.error),
-  silent: () => {},
-} as unknown as PayloadLogger
+function makeCloudflareLogger(bindings: LogBindings = {}): PayloadLogger {
+  return {
+    level: process.env.PAYLOAD_LOG_LEVEL || 'info',
+    trace: createLog('trace', console.debug, bindings),
+    debug: createLog('debug', console.debug, bindings),
+    info: createLog('info', console.log, bindings),
+    warn: createLog('warn', console.warn, bindings),
+    error: createLog('error', console.error, bindings),
+    fatal: createLog('fatal', console.error, bindings),
+    silent: () => {},
+    child: (childBindings: LogBindings) => makeCloudflareLogger({ ...bindings, ...childBindings }),
+  } as unknown as PayloadLogger
+}
+
+const cloudflareLogger = makeCloudflareLogger()
 
 /** During `next build`, use local Miniflare bindings (same pattern as Payload Cloudflare template + OpenNext). */
 const cloudflare =
@@ -305,11 +320,20 @@ export default buildConfig({
         'knowledge-base': true,
       },
       /**
-       * When `OPENAI_BASE_URL` is OpenRouter, fetches `GET /models` and fills `Oai-text` / `Oai-object`
-       * model dropdowns. Otherwise uses plugin defaults.
+       * Base models from `OpenAIConfig` so `isPluginActivated` is true even if
+       * `defaultGenerationModels` from the package was built with empty `process.env` (Workers isolate).
+       * When `OPENAI_BASE_URL` is OpenRouter, `applyOpenRouterToGenerationModels` fills dropdowns.
        */
-      generationModels: (defaults: GenerationModel[]) =>
-        applyOpenRouterToGenerationModels(defaults, openRouterModelOptions),
+      generationModels: () => {
+        const base = [...OpenAIConfig.models]
+        return applyOpenRouterToGenerationModels(base, openRouterModelOptions)
+      },
+      overrideInstructions: {
+        admin: {
+          group: 'Plugins',
+          hidden: false,
+        },
+      },
       /**
        * Seeds `plugin-ai-instructions` on init so Lexical/Compose has instruction ids.
        * - **Development:** on (same as `NODE_ENV !== 'production'`).

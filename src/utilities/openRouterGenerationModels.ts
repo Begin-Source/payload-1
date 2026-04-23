@@ -21,7 +21,7 @@ type FetchArgs = {
   isCli: boolean
 }
 
-const OPENROUTER_MODEL_LIST_TIMEOUT_MS = 3_000
+const OPENROUTER_MODEL_LIST_TIMEOUT_MS = 8_000
 
 /**
  * When `OPENAI_BASE_URL` points at OpenRouter, fetches the public model list (same key as
