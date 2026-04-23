@@ -284,8 +284,8 @@ export default buildConfig({
        */
       generationModels: (defaults: GenerationModel[]) =>
         applyOpenRouterToGenerationModels(defaults, openRouterModelOptions),
-      /** When true, onInit seeds `plugin-ai-instructions` so Lexical/Compose has instruction ids. Skip in production to avoid OpenAI on boot. */
-      generatePromptOnInit: process.env.NODE_ENV !== 'production',
+      /** When true, onInit seeds `plugin-ai-instructions` so Lexical/Compose has instruction ids. */
+      generatePromptOnInit: true,
       /** Static seeds only (no top-level `prompt`/`system`) → no `systemGenerate` / OpenAI call on boot. */
       seedPrompts: aiPluginSeedPrompts,
       debugging: process.env.NODE_ENV !== 'production',
