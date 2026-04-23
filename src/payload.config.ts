@@ -218,7 +218,6 @@ export default buildConfig({
   },
   collections: [
     Announcements,
-    LandingTemplates,
     Sites,
     SiteBlueprints,
     Categories,
@@ -244,13 +243,14 @@ export default buildConfig({
     AuditLogs,
     Tenants,
     OriginalEvidence,
+    LandingTemplates,
     PageLinkGraph,
   ],
   globals: [
     CommissionRules,
+    PublicLanding,
     QuotaRules,
     AdminBranding,
-    PublicLanding,
     LlmPrompts,
     PromptLibrary,
     PipelineSettings,

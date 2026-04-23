@@ -8,9 +8,9 @@ import { superAdminPasses } from '@/utilities/superAdminPasses'
 /** App-wide fallback when no `sites` row matches Host / dev slug. */
 export const PublicLanding: GlobalConfig = {
   slug: 'public-landing',
-  label: '公开落地页主题（全局兜底）',
+  label: '系统文案',
   admin: {
-    group: adminGroups.website,
+    group: adminGroups.system,
     description: '未匹配到具体站点域名时使用；各站点可在「站点」里覆盖。',
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
   },

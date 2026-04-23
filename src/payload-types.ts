@@ -69,7 +69,6 @@ export interface Config {
   blocks: {};
   collections: {
     announcements: Announcement;
-    'landing-templates': LandingTemplate;
     sites: Site;
     'site-blueprints': SiteBlueprint;
     categories: Category;
@@ -95,6 +94,7 @@ export interface Config {
     'audit-logs': AuditLog;
     tenants: Tenant;
     'original-evidence': OriginalEvidence;
+    'landing-templates': LandingTemplate;
     'page-link-graph': PageLinkGraph;
     'plugin-ai-instructions': PluginAiInstruction;
     'automation-triggers': AutomationTrigger;
@@ -111,7 +111,6 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
-    'landing-templates': LandingTemplatesSelect<false> | LandingTemplatesSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
     'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
@@ -137,6 +136,7 @@ export interface Config {
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     'original-evidence': OriginalEvidenceSelect<false> | OriginalEvidenceSelect<true>;
+    'landing-templates': LandingTemplatesSelect<false> | LandingTemplatesSelect<true>;
     'page-link-graph': PageLinkGraphSelect<false> | PageLinkGraphSelect<true>;
     'plugin-ai-instructions': PluginAiInstructionsSelect<false> | PluginAiInstructionsSelect<true>;
     'automation-triggers': AutomationTriggersSelect<false> | AutomationTriggersSelect<true>;
@@ -156,18 +156,18 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'commission-rules': CommissionRule;
+    'public-landing': PublicLanding;
     'quota-rules': QuotaRule;
     'admin-branding': AdminBranding;
-    'public-landing': PublicLanding;
     'llm-prompts': LlmPrompt;
     'prompt-library': PromptLibrary;
     'pipeline-settings': PipelineSetting;
   };
   globalsSelect: {
     'commission-rules': CommissionRulesSelect<false> | CommissionRulesSelect<true>;
+    'public-landing': PublicLandingSelect<false> | PublicLandingSelect<true>;
     'quota-rules': QuotaRulesSelect<false> | QuotaRulesSelect<true>;
     'admin-branding': AdminBrandingSelect<false> | AdminBrandingSelect<true>;
-    'public-landing': PublicLandingSelect<false> | PublicLandingSelect<true>;
     'llm-prompts': LlmPromptsSelect<false> | LlmPromptsSelect<true>;
     'prompt-library': PromptLibrarySelect<false> | PromptLibrarySelect<true>;
     'pipeline-settings': PipelineSettingsSelect<false> | PipelineSettingsSelect<true>;
@@ -314,103 +314,6 @@ export interface User {
   collection: 'users';
 }
 /**
- * 站点选用的预设主题与配文；具体微调在「设计」中覆盖。
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "landing-templates".
- */
-export interface LandingTemplate {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  name: string;
-  /**
-   * URL-safe key; unique per tenant with `slug`.
-   */
-  slug: string;
-  description?: string | null;
-  /**
-   * 完整可访问的前台 URL，且对应站点须已选用本模版（本地示例：http://localhost:3000/zh/?site=站点 slug）。
-   */
-  previewUrl?: string | null;
-  /**
-   * 留空则使用站点名称或全局兜底。
-   */
-  landingBrowserTitle?: string | null;
-  landingSiteName?: string | null;
-  landingTagline?: string | null;
-  landingLoggedInTitle?: string | null;
-  landingLoggedInSubtitle?: string | null;
-  landingFooterLine?: string | null;
-  landingCtaLabel?: string | null;
-  landingBgColor?: string | null;
-  landingTextColor?: string | null;
-  landingMutedColor?: string | null;
-  landingCtaBgColor?: string | null;
-  landingCtaTextColor?: string | null;
-  landingFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
-  /**
-   * CSS 颜色，如 #2d8659
-   */
-  blogPrimaryColor?: string | null;
-  /**
-   * 如 #e6c84a
-   */
-  blogAccentColor?: string | null;
-  /**
-   * 如 #f0f0f0
-   */
-  blogContentBgColor?: string | null;
-  /**
-   * 如 #ffffff
-   */
-  blogCardBgColor?: string | null;
-  /**
-   * 如 #ffffff
-   */
-  blogHeaderTextColor?: string | null;
-  /**
-   * 如 #333333
-   */
-  blogHeadingColor?: string | null;
-  /**
-   * 如 #444444
-   */
-  blogBodyColor?: string | null;
-  aboutTitle?: string | null;
-  aboutBio?: string | null;
-  aboutImage?: (number | null) | Media;
-  aboutCtaLabel?: string | null;
-  /**
-   * 相对路径如 /pages/about 或绝对 URL
-   */
-  aboutCtaHref?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  alt: string;
-  /**
-   * 新建必填；旧数据可暂为空后再补全。
-   */
-  site?: (number | null) | Site;
-  assetClass?: ('decorative' | 'evidence') | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sites".
  */
@@ -550,6 +453,103 @@ export interface SiteBlueprint {
     | boolean
     | null;
   showBreadcrumb?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  alt: string;
+  /**
+   * 新建必填；旧数据可暂为空后再补全。
+   */
+  site?: (number | null) | Site;
+  assetClass?: ('decorative' | 'evidence') | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+}
+/**
+ * 站点前台预设主题与配文；在「设计」中可微调。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "landing-templates".
+ */
+export interface LandingTemplate {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  /**
+   * URL-safe key; unique per tenant with `slug`.
+   */
+  slug: string;
+  description?: string | null;
+  /**
+   * 完整可访问的前台 URL，且对应站点须已选用本模版（本地示例：http://localhost:3000/zh/?site=站点 slug）。
+   */
+  previewUrl?: string | null;
+  /**
+   * 留空则使用站点名称或全局兜底。
+   */
+  landingBrowserTitle?: string | null;
+  landingSiteName?: string | null;
+  landingTagline?: string | null;
+  landingLoggedInTitle?: string | null;
+  landingLoggedInSubtitle?: string | null;
+  landingFooterLine?: string | null;
+  landingCtaLabel?: string | null;
+  landingBgColor?: string | null;
+  landingTextColor?: string | null;
+  landingMutedColor?: string | null;
+  landingCtaBgColor?: string | null;
+  landingCtaTextColor?: string | null;
+  landingFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
+  /**
+   * CSS 颜色，如 #2d8659
+   */
+  blogPrimaryColor?: string | null;
+  /**
+   * 如 #e6c84a
+   */
+  blogAccentColor?: string | null;
+  /**
+   * 如 #f0f0f0
+   */
+  blogContentBgColor?: string | null;
+  /**
+   * 如 #ffffff
+   */
+  blogCardBgColor?: string | null;
+  /**
+   * 如 #ffffff
+   */
+  blogHeaderTextColor?: string | null;
+  /**
+   * 如 #333333
+   */
+  blogHeadingColor?: string | null;
+  /**
+   * 如 #444444
+   */
+  blogBodyColor?: string | null;
+  aboutTitle?: string | null;
+  aboutBio?: string | null;
+  aboutImage?: (number | null) | Media;
+  aboutCtaLabel?: string | null;
+  /**
+   * 相对路径如 /pages/about 或绝对 URL
+   */
+  aboutCtaHref?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2346,10 +2346,6 @@ export interface PayloadLockedDocument {
         value: number | Announcement;
       } | null)
     | ({
-        relationTo: 'landing-templates';
-        value: number | LandingTemplate;
-      } | null)
-    | ({
         relationTo: 'sites';
         value: number | Site;
       } | null)
@@ -2450,6 +2446,10 @@ export interface PayloadLockedDocument {
         value: number | OriginalEvidence;
       } | null)
     | ({
+        relationTo: 'landing-templates';
+        value: number | LandingTemplate;
+      } | null)
+    | ({
         relationTo: 'page-link-graph';
         value: number | PageLinkGraph;
       } | null)
@@ -2544,44 +2544,6 @@ export interface AnnouncementsSelect<T extends boolean = true> {
   isPinned?: T;
   startsAt?: T;
   endsAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "landing-templates_select".
- */
-export interface LandingTemplatesSelect<T extends boolean = true> {
-  tenant?: T;
-  name?: T;
-  slug?: T;
-  description?: T;
-  previewUrl?: T;
-  landingBrowserTitle?: T;
-  landingSiteName?: T;
-  landingTagline?: T;
-  landingLoggedInTitle?: T;
-  landingLoggedInSubtitle?: T;
-  landingFooterLine?: T;
-  landingCtaLabel?: T;
-  landingBgColor?: T;
-  landingTextColor?: T;
-  landingMutedColor?: T;
-  landingCtaBgColor?: T;
-  landingCtaTextColor?: T;
-  landingFontPreset?: T;
-  blogPrimaryColor?: T;
-  blogAccentColor?: T;
-  blogContentBgColor?: T;
-  blogCardBgColor?: T;
-  blogHeaderTextColor?: T;
-  blogHeadingColor?: T;
-  blogBodyColor?: T;
-  aboutTitle?: T;
-  aboutBio?: T;
-  aboutImage?: T;
-  aboutCtaLabel?: T;
-  aboutCtaHref?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3146,6 +3108,44 @@ export interface OriginalEvidenceSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "landing-templates_select".
+ */
+export interface LandingTemplatesSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  description?: T;
+  previewUrl?: T;
+  landingBrowserTitle?: T;
+  landingSiteName?: T;
+  landingTagline?: T;
+  landingLoggedInTitle?: T;
+  landingLoggedInSubtitle?: T;
+  landingFooterLine?: T;
+  landingCtaLabel?: T;
+  landingBgColor?: T;
+  landingTextColor?: T;
+  landingMutedColor?: T;
+  landingCtaBgColor?: T;
+  landingCtaTextColor?: T;
+  landingFontPreset?: T;
+  blogPrimaryColor?: T;
+  blogAccentColor?: T;
+  blogContentBgColor?: T;
+  blogCardBgColor?: T;
+  blogHeaderTextColor?: T;
+  blogHeadingColor?: T;
+  blogBodyColor?: T;
+  aboutTitle?: T;
+  aboutBio?: T;
+  aboutImage?: T;
+  aboutCtaLabel?: T;
+  aboutCtaHref?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "page-link-graph_select".
  */
 export interface PageLinkGraphSelect<T extends boolean = true> {
@@ -3569,6 +3569,45 @@ export interface CommissionRule {
   createdAt?: string | null;
 }
 /**
+ * 未匹配到具体站点域名时使用；各站点可在「站点」里覆盖。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "public-landing".
+ */
+export interface PublicLanding {
+  id: number;
+  siteName: string;
+  /**
+   * 留空则与网站名称相同。
+   */
+  browserTitle?: string | null;
+  tagline?: string | null;
+  loggedInTitle?: string | null;
+  loggedInSubtitle?: string | null;
+  footerLine?: string | null;
+  adminCtaLabel?: string | null;
+  backgroundColor?: string | null;
+  textColor?: string | null;
+  mutedTextColor?: string | null;
+  ctaBackgroundColor?: string | null;
+  ctaTextColor?: string | null;
+  fontPreset?: ('system' | 'serif' | 'noto_sans_sc') | null;
+  blogPrimaryColor?: string | null;
+  blogAccentColor?: string | null;
+  blogContentBgColor?: string | null;
+  blogCardBgColor?: string | null;
+  blogHeaderTextColor?: string | null;
+  blogHeadingColor?: string | null;
+  blogBodyColor?: string | null;
+  aboutTitle?: string | null;
+  aboutBio?: string | null;
+  aboutImage?: (number | null) | Media;
+  aboutCtaLabel?: string | null;
+  aboutCtaHref?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "quota-rules".
  */
@@ -3607,45 +3646,6 @@ export interface AdminBranding {
   primaryColor?: string | null;
   supportEmail?: string | null;
   notes?: string | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * 未匹配到具体站点域名时使用；各站点可在「站点」里覆盖。
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "public-landing".
- */
-export interface PublicLanding {
-  id: number;
-  siteName: string;
-  /**
-   * 留空则与网站名称相同。
-   */
-  browserTitle?: string | null;
-  tagline?: string | null;
-  loggedInTitle?: string | null;
-  loggedInSubtitle?: string | null;
-  footerLine?: string | null;
-  adminCtaLabel?: string | null;
-  backgroundColor?: string | null;
-  textColor?: string | null;
-  mutedTextColor?: string | null;
-  ctaBackgroundColor?: string | null;
-  ctaTextColor?: string | null;
-  fontPreset?: ('system' | 'serif' | 'noto_sans_sc') | null;
-  blogPrimaryColor?: string | null;
-  blogAccentColor?: string | null;
-  blogContentBgColor?: string | null;
-  blogCardBgColor?: string | null;
-  blogHeaderTextColor?: string | null;
-  blogHeadingColor?: string | null;
-  blogBodyColor?: string | null;
-  aboutTitle?: string | null;
-  aboutBio?: string | null;
-  aboutImage?: (number | null) | Media;
-  aboutCtaLabel?: string | null;
-  aboutCtaHref?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -3759,31 +3759,6 @@ export interface CommissionRulesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "quota-rules_select".
- */
-export interface QuotaRulesSelect<T extends boolean = true> {
-  rules?: T;
-  notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "admin-branding_select".
- */
-export interface AdminBrandingSelect<T extends boolean = true> {
-  brandName?: T;
-  logo?: T;
-  primaryColor?: T;
-  supportEmail?: T;
-  notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "public-landing_select".
  */
 export interface PublicLandingSelect<T extends boolean = true> {
@@ -3812,6 +3787,31 @@ export interface PublicLandingSelect<T extends boolean = true> {
   aboutImage?: T;
   aboutCtaLabel?: T;
   aboutCtaHref?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quota-rules_select".
+ */
+export interface QuotaRulesSelect<T extends boolean = true> {
+  rules?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-branding_select".
+ */
+export interface AdminBrandingSelect<T extends boolean = true> {
+  brandName?: T;
+  logo?: T;
+  primaryColor?: T;
+  supportEmail?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

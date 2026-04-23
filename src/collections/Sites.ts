@@ -66,7 +66,7 @@ export const Sites: CollectionConfig = {
       name: 'landingTemplate',
       type: 'relationship',
       relationTo: 'landing-templates',
-      label: '落地页模版',
+      label: '站点模版',
       admin: {
         description: '公开首页预设主题与配文；换模版仅在此处。设计里可微调字体/配色/文案。',
       },

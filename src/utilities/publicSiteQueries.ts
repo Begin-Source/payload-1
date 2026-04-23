@@ -77,6 +77,64 @@ export const getCategoryBySlugForSite = cache(
   },
 )
 
+/**
+ * Related posts: same site + locale, exclude current. Prefer any shared category, then
+ * backfill with latest published on the same site.
+ */
+export const getRelatedArticlesForSite = cache(
+  async (
+    siteId: number,
+    locale: string,
+    args: { excludeId: number; categoryIds: number[]; limit?: number },
+  ): Promise<Article[]> => {
+    const limit = args.limit ?? 3
+    const payload = await getPayload({ config: await config })
+    const base = [
+      { status: { equals: 'published' } },
+      { site: { equals: siteId } },
+      { locale: { equals: locale } },
+      { id: { not_equals: args.excludeId } },
+    ] as const
+
+    const seen = new Set<number>([args.excludeId])
+    const out: Article[] = []
+
+    if (args.categoryIds.length > 0) {
+      const orConds = args.categoryIds.map((id) => ({ categories: { contains: id } }))
+      const res = await payload.find({
+        collection: 'articles',
+        where: { and: [...base, { or: orConds }] },
+        sort: '-publishedAt',
+        limit: 24,
+        depth: 2,
+        overrideAccess: true,
+      })
+      for (const doc of res.docs as Article[]) {
+        if (seen.has(doc.id)) continue
+        seen.add(doc.id)
+        out.push(doc)
+        if (out.length >= limit) return out
+      }
+    }
+
+    const res2 = await payload.find({
+      collection: 'articles',
+      where: { and: [...base] },
+      sort: '-publishedAt',
+      limit: 24,
+      depth: 2,
+      overrideAccess: true,
+    })
+    for (const doc of res2.docs as Article[]) {
+      if (seen.has(doc.id)) continue
+      seen.add(doc.id)
+      out.push(doc)
+      if (out.length >= limit) break
+    }
+    return out
+  },
+)
+
 export const getArticleBySlugForSite = cache(
   async (siteId: number, slug: string, locale: string): Promise<Article | null> => {
     const payload = await getPayload({ config: await config })

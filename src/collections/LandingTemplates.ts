@@ -79,15 +79,15 @@ const landingPresetFields: CollectionConfig['fields'] = [
   },
 ]
 
-/** Reusable landing theme presets; sites pick one via `Sites.landingTemplate`. */
+/** Reusable site theme presets; sites pick one via `Sites.landingTemplate`. */
 export const LandingTemplates: CollectionConfig = {
   slug: 'landing-templates',
-  labels: { singular: '落地页模版', plural: '落地页模版' },
+  labels: { singular: '站点模版', plural: '站点模版' },
   admin: {
     group: adminGroups.website,
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'previewUrl', 'updatedAt'],
-    description: '站点选用的预设主题与配文；具体微调在「设计」中覆盖。',
+    description: '站点前台预设主题与配文；在「设计」中可微调。',
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),

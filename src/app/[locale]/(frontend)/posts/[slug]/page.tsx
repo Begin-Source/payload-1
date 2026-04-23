@@ -3,12 +3,18 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import React from 'react'
 
+import { ArticleBreadcrumbs } from '@/components/blog/ArticleBreadcrumbs'
+import { ArticleRelated } from '@/components/blog/ArticleRelated'
+import { blogPostingJsonLdString } from '@/components/blog/blogPostingJsonLd'
+import { categoryIdsFromArticle, firstCategoryFromArticle } from '@/components/blog/articleHelpers'
 import type { Media } from '@/payload-types'
+import type { AppLocale } from '@/i18n/config'
 import { isAppLocale } from '@/i18n/config'
 import { lexicalStateToHtml } from '@/utilities/lexicalToHtml'
+import { estimateReadingTimeMinutesFromHtml } from '@/utilities/readingTime'
 import { getPublicBaseUrlFromHeaders, seoMetaForDocument } from '@/utilities/seoDocumentMeta'
 import { getPublicSiteContext } from '@/utilities/publicLandingTheme'
-import { getArticleBySlugForSite } from '@/utilities/publicSiteQueries'
+import { getArticleBySlugForSite, getRelatedArticlesForSite } from '@/utilities/publicSiteQueries'
 
 type Props = { params: Promise<{ locale: string; slug: string }> }
 
@@ -43,18 +49,38 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   })
 }
 
+const breadcrumbHome: Record<AppLocale, string> = {
+  zh: '首页',
+  en: 'Home',
+}
+
+const relatedTitle: Record<AppLocale, string> = {
+  zh: '继续阅读',
+  en: 'Read next',
+}
+
+const readTimeLabel: Record<AppLocale, (n: number) => string> = {
+  zh: (n) => `约 ${n} 分钟阅读`,
+  en: (n) => `${n} min read`,
+}
+
 export default async function PostPage(props: Props) {
   const { locale: loc, slug: raw } = await props.params
   if (!isAppLocale(loc)) notFound()
   const locale = loc
   const slug = decodeURIComponent(raw)
   const headersList = await headers()
-  const { site } = await getPublicSiteContext(headersList)
+  const { site, theme } = await getPublicSiteContext(headersList)
   if (!site) notFound()
   const article = await getArticleBySlugForSite(site.id, slug, locale)
   if (!article) notFound()
 
+  const baseUrl = getPublicBaseUrlFromHeaders(headersList)
+  const pagePath = `/${locale}/posts/${encodeURIComponent(slug)}`
+  const pageUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}${pagePath}` : pagePath
+
   const html = lexicalStateToHtml(article.body)
+  const readMinutes = estimateReadingTimeMinutesFromHtml(html, locale)
   const img =
     article.featuredImage != null &&
     typeof article.featuredImage === 'object' &&
@@ -70,18 +96,49 @@ export default async function PostPage(props: Props) {
           day: 'numeric',
         })
       : null
+  const titleAlt = article.title?.trim() || theme.siteName
+  const firstCat = firstCategoryFromArticle(article)
+  const related = await getRelatedArticlesForSite(site.id, locale, {
+    excludeId: article.id,
+    categoryIds: categoryIdsFromArticle(article),
+    limit: 3,
+  })
+
+  const jsonLd = blogPostingJsonLdString({ article, pageUrl, featuredImageUrl: img })
 
   return (
-    <article className="blogArticle">
-      <h1>{article.title}</h1>
-      {date ? (
-        <p style={{ color: 'var(--blog-muted)', fontSize: '0.9rem', marginTop: '-0.5rem' }}>{date}</p>
-      ) : null}
-      {img ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={img} alt="" style={{ width: '100%', borderRadius: 6, marginBottom: '1.5rem' }} />
-      ) : null}
-      <div className="blogArticleBody" dangerouslySetInnerHTML={{ __html: html }} />
-    </article>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd }}
+        suppressHydrationWarning
+      />
+      <article className="blogArticle">
+        <ArticleBreadcrumbs
+          locale={locale}
+          homeLabel={breadcrumbHome[locale]}
+          category={firstCat}
+          currentTitle={article.title}
+        />
+        <h1 className="blogArticleH1">{article.title}</h1>
+        <div className="blogArticleMeta">
+          {date ? <time dateTime={article.publishedAt ?? undefined}>{date}</time> : null}
+          {date ? <span className="blogArticleMetaSep" aria-hidden /> : null}
+          <span className="blogArticleReadTime">{readTimeLabel[locale](readMinutes)}</span>
+        </div>
+        {img ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            className="blogArticleHero"
+            src={img}
+            alt={titleAlt}
+            width={1200}
+            height={630}
+          />
+        ) : null}
+        <div className="blogArticleBody" dangerouslySetInnerHTML={{ __html: html }} />
+        <ArticleRelated articles={related} locale={locale} title={relatedTitle[locale]} />
+      </article>
+    </>
   )
 }
