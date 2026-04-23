@@ -132,9 +132,14 @@ const UI: Record<
   },
 }
 
+type ArticleQuickMode = 'single' | 'batch'
+
 function WorkflowQuickActionModal({ kind }: { kind: WorkflowQuickKind }): React.ReactElement {
   const ui = UI[kind]
+  const isArticles = kind === 'articles'
   const [open, setOpen] = useState(false)
+  const [articleMode, setArticleMode] = useState<ArticleQuickMode>('single')
+  const [batchLimitInput, setBatchLimitInput] = useState('')
   const [siteQuery, setSiteQuery] = useState('')
   const [sites, setSites] = useState<SiteOption[]>([])
   const [sitesLoading, setSitesLoading] = useState(false)
@@ -261,6 +266,8 @@ function WorkflowQuickActionModal({ kind }: { kind: WorkflowQuickKind }): React.
     setTopic('')
     setError(null)
     setSuccess(null)
+    setArticleMode('single')
+    setBatchLimitInput('')
   }
 
   const pickSite = (s: SiteOption): void => {
@@ -292,6 +299,50 @@ function WorkflowQuickActionModal({ kind }: { kind: WorkflowQuickKind }): React.
     setError(null)
     setSuccess(null)
     try {
+      if (isArticles && articleMode === 'batch') {
+        const lim = batchLimitInput.trim()
+        let limit: number | undefined
+        if (lim !== '') {
+          const n = Number(lim)
+          if (!Number.isFinite(n) || n < 1) {
+            setError('本批上限须为 ≥1 的整数，或留空使用默认')
+            setSubmitting(false)
+            return
+          }
+          limit = Math.min(100, Math.floor(n))
+        }
+        const res = await fetch('/api/admin/articles/batch-enqueue', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            siteId: selectedSiteId,
+            ...(limit != null ? { limit } : {}),
+          }),
+        })
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string
+          enqueued?: number
+          skipped?: number
+          usedKeywordFallback?: boolean
+          errorsSample?: string[]
+        }
+        if (!res.ok) {
+          throw new Error(typeof data.error === 'string' ? data.error : '批量入队失败')
+        }
+        const extra =
+          (data.enqueued === 0 && (data.errorsSample?.length ?? 0) > 0
+            ? ` · ${(data.errorsSample ?? []).join(' ')}`
+            : '') + (data.usedKeywordFallback ? '（本批使用 draft 关键词：站点无 active 词）' : '')
+        setSuccess(
+          `已入队 ${data.enqueued ?? 0} 条 · 跳过 ${data.skipped ?? 0} 条${extra}`,
+        )
+        window.setTimeout(() => {
+          close()
+        }, 2000)
+        return
+      }
+
       const res = await fetch('/api/admin/workflow-quick-action', {
         method: 'POST',
         credentials: 'include',
@@ -350,6 +401,51 @@ function WorkflowQuickActionModal({ kind }: { kind: WorkflowQuickKind }): React.
             <p style={{ margin: '0 0 1rem', fontSize: '0.8125rem', opacity: 0.85, lineHeight: 1.5 }}>
               {ui.description}
             </p>
+
+            {isArticles ? (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  marginBottom: '1rem',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <Button
+                  buttonStyle={articleMode === 'single' ? 'primary' : 'secondary'}
+                  size="small"
+                  type="button"
+                  onClick={() => setArticleMode('single')}
+                >
+                  单次快捷
+                </Button>
+                <Button
+                  buttonStyle={articleMode === 'batch' ? 'primary' : 'secondary'}
+                  size="small"
+                  type="button"
+                  onClick={() => setArticleMode('batch')}
+                >
+                  批量排产
+                </Button>
+              </div>
+            ) : null}
+
+            {isArticles && articleMode === 'single' ? (
+              <div
+                style={{
+                  marginBottom: '1rem',
+                  padding: '0.65rem 0.75rem',
+                  borderRadius: 6,
+                  border: '1px solid var(--theme-warning-500, #b45309)',
+                  background: 'var(--theme-warning-50, rgba(250, 204, 21, 0.12))',
+                  fontSize: '0.8125rem',
+                  lineHeight: 1.5,
+                }}
+              >
+                <p style={{ margin: '0 0 0.35rem' }}>单次入队为 ai_generate，执行器未接线，不会产文。</p>
+                <p style={{ margin: 0 }}>请改用「批量排产」或到「关键词」用快捷操作。</p>
+              </div>
+            ) : null}
 
             {error ? (
               <p style={{ color: 'var(--theme-error-500)', fontSize: '0.8125rem', marginBottom: '0.75rem' }}>
@@ -498,7 +594,7 @@ function WorkflowQuickActionModal({ kind }: { kind: WorkflowQuickKind }): React.
               ) : null}
             </div>
 
-            {ui.showCategories ? (
+            {ui.showCategories && !(isArticles && articleMode === 'batch') ? (
               <div style={{ marginBottom: '1rem' }}>
                 <span style={fieldLabel}>分类（可选）</span>
                 {selectedSiteId == null ? (
@@ -544,23 +640,40 @@ function WorkflowQuickActionModal({ kind }: { kind: WorkflowQuickKind }): React.
               </div>
             ) : null}
 
-            <div style={{ marginBottom: '1.25rem' }}>
-              <span style={fieldLabel}>{ui.topicLabel}</span>
-              <textarea
-                placeholder={ui.topicPlaceholder}
-                rows={3}
-                style={{ ...inputStyle, resize: 'vertical', minHeight: 72 }}
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-              />
-            </div>
+            {isArticles && articleMode === 'batch' ? (
+              <div style={{ marginBottom: '1.25rem' }}>
+                <span style={fieldLabel}>本批最大篇数（可选）</span>
+                <input
+                  inputMode="numeric"
+                  placeholder="留空则按站点日 cap×7，且不超过 100"
+                  style={inputStyle}
+                  type="text"
+                  value={batchLimitInput}
+                  onChange={(e) => setBatchLimitInput(e.target.value)}
+                />
+                <p style={{ margin: '0.35rem 0 0', fontSize: '0.75rem', opacity: 0.75 }}>
+                  按关键词 <code>opportunityScore</code> 优先；已排队或进行中的词会跳过。由「工作流任务」+ pipeline tick 异步执行。
+                </p>
+              </div>
+            ) : (
+              <div style={{ marginBottom: '1.25rem' }}>
+                <span style={fieldLabel}>{ui.topicLabel}</span>
+                <textarea
+                  placeholder={ui.topicPlaceholder}
+                  rows={3}
+                  style={{ ...inputStyle, resize: 'vertical', minHeight: 72 }}
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                />
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               <Button buttonStyle="secondary" disabled={submitting} onClick={close}>
                 关闭
               </Button>
               <Button disabled={submitting || selectedSiteId == null} onClick={() => void submit()}>
-                {ui.submitLabel}
+                {isArticles && articleMode === 'batch' ? '执行批量排产' : ui.submitLabel}
               </Button>
             </div>
           </div>

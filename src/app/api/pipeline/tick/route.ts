@@ -2,6 +2,7 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 
 import { isPipelineUnauthorized, requirePipelineJson } from '@/app/api/pipeline/lib/auth'
+import { enqueueDraftSkeletonAfterBriefGenerate } from '@/app/api/pipeline/lib/enqueueDraftSkeletonAfterBrief'
 import { enqueueHandoffFollowUp } from '@/app/api/pipeline/lib/enqueueHandoffFollowUp'
 import {
   dispatchWorkflowJob,
@@ -164,6 +165,28 @@ export async function POST(request: Request): Promise<Response> {
       })
     } catch {
       // follow-up enqueue is best-effort
+    }
+    if (doc.jobType === 'brief_generate') {
+      const bid = outputDoc.id
+      if (bid != null) {
+        const s = doc.site
+        const siteNum =
+          typeof s === 'number' && Number.isFinite(s)
+            ? s
+            : typeof s === 'object' && s !== null && 'id' in s
+              ? Number((s as { id: unknown }).id)
+              : null
+        const siteNumeric = siteNum != null && Number.isFinite(siteNum) ? siteNum : null
+        try {
+          await enqueueDraftSkeletonAfterBriefGenerate(payload, {
+            completedBriefJobId: jobId,
+            briefId: typeof bid === 'string' || typeof bid === 'number' ? bid : String(bid),
+            siteNumeric,
+          })
+        } catch {
+          // chain enqueue is best-effort
+        }
+      }
     }
     return Response.json({
       ok: true,
