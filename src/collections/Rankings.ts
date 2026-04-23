@@ -52,5 +52,8 @@ export const Rankings: CollectionConfig = {
       admin: { date: { pickerAppearance: 'dayAndTime' } },
     },
     { name: 'notes', type: 'textarea' },
+    { name: 'rawSerp', type: 'json' },
+    { name: 'change', type: 'number' },
+    { name: 'isAiOverviewHit', type: 'checkbox', defaultValue: false },
   ],
 }

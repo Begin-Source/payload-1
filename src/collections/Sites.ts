@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { siteTrustPagesInstantiate } from '@/collections/hooks/siteTrustPagesInstantiate'
 import { blogChromeSiteFields } from '@/collections/shared/blogPublicFields'
 import { adminGroups } from '@/constants/adminGroups'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
@@ -17,6 +18,9 @@ export const Sites: CollectionConfig = {
     create: superAdminPasses(({ req: { user } }) => Boolean(user)),
     update: superAdminPasses(({ req: { user } }) => Boolean(user)),
     delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
+  },
+  hooks: {
+    afterChange: [siteTrustPagesInstantiate],
   },
   fields: [
     {

@@ -33,5 +33,11 @@ export const PromptLibrary: GlobalConfig = {
         },
       ],
     },
+    {
+      name: 'skillOverrides',
+      type: 'json',
+      label: 'Skill prompt overrides',
+      admin: { description: 'Map skillId -> partial system prompt override (used by skillPrompts.get)' },
+    },
   ],
 }

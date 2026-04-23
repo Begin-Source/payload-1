@@ -45,6 +45,15 @@ export const Media: CollectionConfig = {
       required: true,
     },
     siteScopedSiteField,
+    {
+      name: 'assetClass',
+      type: 'select',
+      defaultValue: 'decorative',
+      options: [
+        { label: 'Decorative (AI/hero)', value: 'decorative' },
+        { label: 'Evidence (test/screenshot)', value: 'evidence' },
+      ],
+    },
   ],
   upload: {
     // These are not supported on Workers yet due to lack of sharp

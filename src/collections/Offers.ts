@@ -67,5 +67,21 @@ export const Offers: CollectionConfig = {
       type: 'textarea',
       label: 'Commission terms (free text)',
     },
+    {
+      type: 'group',
+      name: 'amazon',
+      label: 'Amazon / merchant',
+      fields: [
+        { name: 'asin', type: 'text', index: true },
+        { name: 'priceCents', type: 'number' },
+        { name: 'currency', type: 'text', defaultValue: 'USD' },
+        { name: 'ratingAvg', type: 'number' },
+        { name: 'reviewCount', type: 'number' },
+        { name: 'imageUrl', type: 'text' },
+        { name: 'primeEligible', type: 'checkbox', defaultValue: false },
+        { name: 'merchantLastSyncedAt', type: 'date', admin: { date: { pickerAppearance: 'dayAndTime' } } },
+        { name: 'merchantRaw', type: 'json' },
+      ],
+    },
   ],
 }

@@ -147,5 +147,14 @@ export const SiteBlueprints: CollectionConfig = {
       admin: { description: '覆盖模版中的博客壳与侧栏。', initCollapsed: true },
       fields: blogChromeDesignFields,
     },
+    {
+      name: 'trustAssetsTemplate',
+      type: 'json',
+      label: 'Trust 页种子',
+      admin: { description: 'Lexical or JSON template for /about, /affiliate-disclosure, etc.' },
+    },
+    { name: 'mainNavTemplate', type: 'json' },
+    { name: 'footerTemplate', type: 'json' },
+    { name: 'showBreadcrumb', type: 'checkbox', defaultValue: true },
   ],
 }

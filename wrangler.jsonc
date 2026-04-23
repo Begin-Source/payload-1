@@ -30,6 +30,21 @@
     //   "service": "my-app"
     // },
   ],
+  // Cron triggers require a Worker `scheduled` handler. OpenNext does not emit one yet —
+  // use POST /api/pipeline/cron-dispatch (e.g. GitHub Actions + PAYLOAD_SECRET) for nightly triage.
+  "triggers": {
+    "crons": [
+      "*/5 * * * *",
+      "0 2 * * *",
+      "0 3 * * *",
+      "0 4 * * 1",
+      "0 5 * * 1",
+      "0 6 * * 1",
+      "0 4 * * 0",
+      "0 5 1 * *",
+      "0 6 15 * *"
+    ]
+  },
   "r2_buckets": [
     {
       "binding": "R2",

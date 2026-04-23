@@ -34,7 +34,12 @@ import { ClickEvents } from './collections/ClickEvents'
 import { Commissions } from './collections/Commissions'
 import { Categories } from './collections/Categories'
 import { Keywords } from './collections/Keywords'
+import { ContentBriefs } from './collections/ContentBriefs'
+import { SerpSnapshots } from './collections/SerpSnapshots'
+import { Authors } from './collections/Authors'
 import { Articles } from './collections/Articles'
+import { OriginalEvidence } from './collections/OriginalEvidence'
+import { PageLinkGraph } from './collections/PageLinkGraph'
 import { Pages } from './collections/Pages'
 import { Redirects } from './collections/Redirects'
 import { WorkflowJobs } from './collections/WorkflowJobs'
@@ -50,6 +55,7 @@ import { AdminBranding } from './globals/AdminBranding'
 import { LlmPrompts } from './globals/LlmPrompts'
 import { PromptLibrary } from './globals/PromptLibrary'
 import { PublicLanding } from './globals/PublicLanding'
+import { PipelineSettings } from './globals/PipelineSettings'
 import { Announcements } from './collections/Announcements'
 import type { GenerationModel } from '@ai-stack/payloadcms/types'
 import type { Config } from './payload-types'
@@ -77,6 +83,11 @@ const mcpCollectionSlugs = [
   'workflow-jobs',
   'knowledge-base',
   'rankings',
+  'content-briefs',
+  'authors',
+  'original-evidence',
+  'page-link-graph',
+  'serp-snapshots',
 ] as const
 
 const filename = fileURLToPath(import.meta.url)
@@ -170,13 +181,16 @@ export default buildConfig({
     Sites,
     SiteBlueprints,
     Categories,
-    Articles,
     Pages,
     Redirects,
     SocialPlatforms,
     SocialAccounts,
     Media,
     Keywords,
+    ContentBriefs,
+    SerpSnapshots,
+    Authors,
+    Articles,
     Rankings,
     WorkflowJobs,
     SiteQuotas,
@@ -188,8 +202,18 @@ export default buildConfig({
     KnowledgeBase,
     AuditLogs,
     Tenants,
+    OriginalEvidence,
+    PageLinkGraph,
   ],
-  globals: [CommissionRules, QuotaRules, AdminBranding, PublicLanding, LlmPrompts, PromptLibrary],
+  globals: [
+    CommissionRules,
+    QuotaRules,
+    AdminBranding,
+    PublicLanding,
+    LlmPrompts,
+    PromptLibrary,
+    PipelineSettings,
+  ],
   editor: lexicalEditorWithAi(),
   secret: payloadSecret,
   typescript: {
@@ -227,6 +251,11 @@ export default buildConfig({
         pages: {},
         redirects: {},
         keywords: {},
+        'content-briefs': {},
+        'serp-snapshots': {},
+        authors: {},
+        'original-evidence': {},
+        'page-link-graph': {},
         'workflow-jobs': {},
         'knowledge-base': {},
         rankings: {},

@@ -44,6 +44,16 @@ export const SiteQuotas: CollectionConfig = {
       defaultValue: 0,
     },
     {
+      name: 'dailyPostCap',
+      type: 'number',
+      defaultValue: 3,
+      admin: { description: 'Max new posts per day (content calendar).' },
+    },
+    { name: 'monthlyTokenBudgetUsd', type: 'number', defaultValue: 50 },
+    { name: 'monthlyImagesBudgetUsd', type: 'number', defaultValue: 30 },
+    { name: 'monthlyDfsCreditBudget', type: 'number', defaultValue: 100 },
+    { name: 'usageYtd', type: 'json', admin: { description: 'Optional counters: dfs, tavily, openrouter, images' } },
+    {
       name: 'notes',
       type: 'textarea',
     },

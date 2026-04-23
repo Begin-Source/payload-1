@@ -18,6 +18,9 @@ import * as migration_20260426_100000_locale_and_redirects from './20260426_1000
 import * as migration_20260427_120000_landing_template_preview_url from './20260427_120000_landing_template_preview_url';
 import * as migration_20260428_120000_plugin_ai_instructions from './20260428_120000_plugin_ai_instructions';
 import * as migration_20260429_120000_payload_automation from './20260429_120000_payload_automation';
+import * as migration_20260430_120000_seo_pipeline_foundation from './20260430_120000_seo_pipeline_foundation';
+import * as migration_20260430_130000_fix_locked_docs_rels from './20260430_130000_fix_locked_docs_rels';
+import * as migration_20260430_140000_article_link_budget_warnings from './20260430_140000_article_link_budget_warnings';
 
 export const migrations = [
   {
@@ -119,5 +122,20 @@ export const migrations = [
     up: migration_20260429_120000_payload_automation.up,
     down: migration_20260429_120000_payload_automation.down,
     name: '20260429_120000_payload_automation',
+  },
+  {
+    up: migration_20260430_120000_seo_pipeline_foundation.up,
+    down: migration_20260430_120000_seo_pipeline_foundation.down,
+    name: '20260430_120000_seo_pipeline_foundation',
+  },
+  {
+    up: migration_20260430_130000_fix_locked_docs_rels.up,
+    down: migration_20260430_130000_fix_locked_docs_rels.down,
+    name: '20260430_130000_fix_locked_docs_rels',
+  },
+  {
+    up: migration_20260430_140000_article_link_budget_warnings.up,
+    down: migration_20260430_140000_article_link_budget_warnings.down,
+    name: '20260430_140000_article_link_budget_warnings',
   },
 ];

@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from 'react'
 
+import { ContentCalendarBoard } from '@/components/ContentCalendarBoard'
+import { ContentLifecycleBoard } from '@/components/ContentLifecycleBoard'
+
 type DashboardStats = {
   sites: number
   sitesActive: number
@@ -107,6 +110,8 @@ export function BeforeDashboardMilestone(): React.ReactElement {
           <StatCard label="排名快照" value={data.rankings} />
         </div>
       )}
+      <ContentLifecycleBoard />
+      <ContentCalendarBoard />
     </div>
   )
 }

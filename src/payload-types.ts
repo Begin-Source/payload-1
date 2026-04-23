@@ -73,13 +73,16 @@ export interface Config {
     sites: Site;
     'site-blueprints': SiteBlueprint;
     categories: Category;
-    articles: Article;
     pages: Page;
     redirects: Redirect;
     'social-platforms': SocialPlatform;
     'social-accounts': SocialAccount;
     media: Media;
     keywords: Keyword;
+    'content-briefs': ContentBrief;
+    'serp-snapshots': SerpSnapshot;
+    authors: Author;
+    articles: Article;
     rankings: Ranking;
     'workflow-jobs': WorkflowJob;
     'site-quotas': SiteQuota;
@@ -91,6 +94,8 @@ export interface Config {
     'knowledge-base': KnowledgeBase;
     'audit-logs': AuditLog;
     tenants: Tenant;
+    'original-evidence': OriginalEvidence;
+    'page-link-graph': PageLinkGraph;
     'plugin-ai-instructions': PluginAiInstruction;
     'automation-triggers': AutomationTrigger;
     'automation-steps': AutomationStep;
@@ -110,13 +115,16 @@ export interface Config {
     sites: SitesSelect<false> | SitesSelect<true>;
     'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
-    articles: ArticlesSelect<false> | ArticlesSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     'social-platforms': SocialPlatformsSelect<false> | SocialPlatformsSelect<true>;
     'social-accounts': SocialAccountsSelect<false> | SocialAccountsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     keywords: KeywordsSelect<false> | KeywordsSelect<true>;
+    'content-briefs': ContentBriefsSelect<false> | ContentBriefsSelect<true>;
+    'serp-snapshots': SerpSnapshotsSelect<false> | SerpSnapshotsSelect<true>;
+    authors: AuthorsSelect<false> | AuthorsSelect<true>;
+    articles: ArticlesSelect<false> | ArticlesSelect<true>;
     rankings: RankingsSelect<false> | RankingsSelect<true>;
     'workflow-jobs': WorkflowJobsSelect<false> | WorkflowJobsSelect<true>;
     'site-quotas': SiteQuotasSelect<false> | SiteQuotasSelect<true>;
@@ -128,6 +136,8 @@ export interface Config {
     'knowledge-base': KnowledgeBaseSelect<false> | KnowledgeBaseSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
+    'original-evidence': OriginalEvidenceSelect<false> | OriginalEvidenceSelect<true>;
+    'page-link-graph': PageLinkGraphSelect<false> | PageLinkGraphSelect<true>;
     'plugin-ai-instructions': PluginAiInstructionsSelect<false> | PluginAiInstructionsSelect<true>;
     'automation-triggers': AutomationTriggersSelect<false> | AutomationTriggersSelect<true>;
     'automation-steps': AutomationStepsSelect<false> | AutomationStepsSelect<true>;
@@ -151,6 +161,7 @@ export interface Config {
     'public-landing': PublicLanding;
     'llm-prompts': LlmPrompt;
     'prompt-library': PromptLibrary;
+    'pipeline-settings': PipelineSetting;
   };
   globalsSelect: {
     'commission-rules': CommissionRulesSelect<false> | CommissionRulesSelect<true>;
@@ -159,6 +170,7 @@ export interface Config {
     'public-landing': PublicLandingSelect<false> | PublicLandingSelect<true>;
     'llm-prompts': LlmPromptsSelect<false> | LlmPromptsSelect<true>;
     'prompt-library': PromptLibrarySelect<false> | PromptLibrarySelect<true>;
+    'pipeline-settings': PipelineSettingsSelect<false> | PipelineSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -387,6 +399,7 @@ export interface Media {
    * 新建必填；旧数据可暂为空后再补全。
    */
   site?: (number | null) | Site;
+  assetClass?: ('decorative' | 'evidence') | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -506,6 +519,37 @@ export interface SiteBlueprint {
   designAboutImage?: (number | null) | Media;
   designAboutCtaLabel?: string | null;
   designAboutCtaHref?: string | null;
+  /**
+   * Lexical or JSON template for /about, /affiliate-disclosure, etc.
+   */
+  trustAssetsTemplate?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  mainNavTemplate?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  footerTemplate?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  showBreadcrumb?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -523,54 +567,6 @@ export interface Category {
    */
   site?: (number | null) | Site;
   description?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "articles".
- */
-export interface Article {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  title: string;
-  slug?: string | null;
-  /**
-   * URL prefix /zh/ or /en/; must be unique per site + slug.
-   */
-  locale: 'zh' | 'en';
-  /**
-   * Owning site (optional while migrating legacy content).
-   */
-  site?: (number | null) | Site;
-  categories?: (number | Category)[] | null;
-  featuredImage?: (number | null) | Media;
-  body?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  status: 'draft' | 'published' | 'archived';
-  publishedAt?: string | null;
-  excerpt?: string | null;
-  meta?: {
-    title?: string | null;
-    description?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (number | null) | Media;
-  };
   updatedAt: string;
   createdAt: string;
 }
@@ -694,6 +690,420 @@ export interface Keyword {
   site?: (number | null) | Site;
   status: 'draft' | 'active' | 'archived';
   notes?: string | null;
+  /**
+   * Monthly search volume
+   */
+  volume?: number | null;
+  keywordDifficulty?: number | null;
+  cpc?: number | null;
+  trend?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  intent?: ('informational' | 'navigational' | 'commercial' | 'transactional') | null;
+  geoFriendly?: boolean | null;
+  /**
+   * Cluster keyword: points to pillar keyword
+   */
+  pillar?: (number | null) | Keyword;
+  serpFeatures?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  lastRefreshedAt?: string | null;
+  opportunityScore?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-briefs".
+ */
+export interface ContentBrief {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  primaryKeyword?: (number | null) | Keyword;
+  site?: (number | null) | Site;
+  intentSummary?: string | null;
+  /**
+   * Structured sections[] + globalContext (H2/H3, wordBudget, inject)
+   */
+  outline:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  sources?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  targetWordCount?: number | null;
+  competitors?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  peopleAlsoAsk?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  schemaHints?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  status: 'draft' | 'approved' | 'used';
+  skillId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serp-snapshots".
+ */
+export interface SerpSnapshot {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  searchQuery?: string | null;
+  keyword?: (number | null) | Keyword;
+  site?: (number | null) | Site;
+  engine?: ('google' | 'bing') | null;
+  location?: string | null;
+  device?: ('desktop' | 'mobile') | null;
+  capturedAt: string;
+  /**
+   * DataForSEO raw (optionally zstd+base64)
+   */
+  raw?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors".
+ */
+export interface Author {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  displayName: string;
+  slug?: string | null;
+  role?: ('editor' | 'reviewer' | 'expert' | 'contributor') | null;
+  headshot?: (number | null) | Media;
+  bioLexical?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * [{ title, issuer?, year?, verifyUrl? }] — json for simpler D1 migrations
+   */
+  credentials?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  expertiseAreas?: (number | Category)[] | null;
+  /**
+   * [{ url }]
+   */
+  sameAs?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  schemaPersonJsonLd?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  gdprLawfulBasis?: ('consent' | 'legitimate_interest' | 'contract' | 'other' | 'not_applicable') | null;
+  gdprRegion?: ('eu' | 'eea' | 'uk' | 'us' | 'other') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articles".
+ */
+export interface Article {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  slug?: string | null;
+  /**
+   * URL prefix /zh/ or /en/; must be unique per site + slug.
+   */
+  locale: 'zh' | 'en';
+  /**
+   * Owning site (optional while migrating legacy content).
+   */
+  site?: (number | null) | Site;
+  categories?: (number | Category)[] | null;
+  featuredImage?: (number | null) | Media;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  status: 'draft' | 'published' | 'archived';
+  publishedAt?: string | null;
+  excerpt?: string | null;
+  primaryKeyword?: (number | null) | Keyword;
+  secondaryKeywords?: (number | Keyword)[] | null;
+  contentTemplate?: ('review' | 'comparison' | 'howto' | 'listicle' | 'buyingGuide' | 'pillar') | null;
+  qualityScore?: number | null;
+  eeatCheck?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  schemaJsonLd?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  vetoCodes?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  featuredOffers?: (number | Offer)[] | null;
+  /**
+   * Required when status is Published (enforced in hook)
+   */
+  author?: (number | null) | Author;
+  reviewedBy?: (number | null) | Author;
+  originalEvidence?: (number | OriginalEvidence)[] | null;
+  sourceBrief?: (number | null) | ContentBrief;
+  mergedInto?: (number | null) | Article;
+  sectionSummaries?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  metaVariants?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  lifecycleStage?:
+    | (
+        | 'n_a'
+        | 'probation'
+        | 'winner'
+        | 'borderline'
+        | 'loser'
+        | 'stable_watch'
+        | 'repaired'
+        | 'dying'
+        | 'merged'
+        | 'archived'
+      )
+    | null;
+  probationEndsAt?: string | null;
+  bestPosition?: number | null;
+  currentPosition?: number | null;
+  impressions30d?: number | null;
+  clicks30d?: number | null;
+  nextActionAt?: string | null;
+  optimizationHistory?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Populated when body outlink count is in the warn band (see link budget hook).
+   */
+  linkBudgetWarnings?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  skipLinkBudgetCheck?: boolean | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers".
+ */
+export interface Offer {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  slug?: string | null;
+  network: number | AffiliateNetwork;
+  /**
+   * Sites allowed to promote this offer (optional).
+   */
+  sites?: (number | Site)[] | null;
+  status: 'draft' | 'active' | 'paused';
+  externalId?: string | null;
+  targetUrl?: string | null;
+  commissionNotes?: string | null;
+  amazon?: {
+    asin?: string | null;
+    priceCents?: number | null;
+    currency?: string | null;
+    ratingAvg?: number | null;
+    reviewCount?: number | null;
+    imageUrl?: string | null;
+    primeEligible?: boolean | null;
+    merchantLastSyncedAt?: string | null;
+    merchantRaw?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "affiliate-networks".
+ */
+export interface AffiliateNetwork {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug: string;
+  websiteUrl?: string | null;
+  status: 'active' | 'paused';
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "original-evidence".
+ */
+export interface OriginalEvidence {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  kind: 'receipt' | 'unboxing' | 'benchmark' | 'hands_on_photo' | 'screenshot' | 'video_frame';
+  product?: (number | null) | Offer;
+  article?: (number | null) | Article;
+  capturedAt?: string | null;
+  capturedBy?: (number | null) | User;
+  media: number | Media;
+  watermarkApplied?: boolean | null;
+  exifPreserved?: boolean | null;
+  notes?: string | null;
+  verifiedBy?: (number | null) | User;
   updatedAt: string;
   createdAt: string;
 }
@@ -711,6 +1121,17 @@ export interface Ranking {
   serpUrl?: string | null;
   capturedAt: string;
   notes?: string | null;
+  rawSerp?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  change?: number | null;
+  isAiOverviewHit?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -722,8 +1143,51 @@ export interface WorkflowJob {
   id: number;
   tenant?: (number | null) | Tenant;
   label: string;
-  jobType: 'publish' | 'sync' | 'ai_generate' | 'custom';
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  jobType:
+    | 'publish'
+    | 'sync'
+    | 'ai_generate'
+    | 'custom'
+    | 'keyword_discover'
+    | 'serp_audit'
+    | 'brief_generate'
+    | 'draft_skeleton'
+    | 'draft_section'
+    | 'draft_finalize'
+    | 'image_generate'
+    | 'amazon_sync'
+    | 'backlink_scan'
+    | 'rank_track'
+    | 'alert_eval'
+    | 'triage'
+    | 'content_audit'
+    | 'content_refresh'
+    | 'content_merge'
+    | 'content_archive'
+    | 'meta_ab_optimize'
+    | 'internal_link_inject'
+    | 'internal_link_rewrite'
+    | 'internal_link_reinforce'
+    | 'anchor_rewrite'
+    | 'competitor_gap'
+    | 'domain_audit';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'needs_input' | 'failed_partial';
+  parentJob?: (number | null) | WorkflowJob;
+  skillId?: string | null;
+  contentBrief?: (number | null) | ContentBrief;
+  pipelineKeyword?: (number | null) | Keyword;
+  /**
+   * Handoff: status, objective, keyFindings, evidence, openLoops, recommendedNextSkill, capApplied, scores…
+   */
+  handoff?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   site?: (number | null) | Site;
   /**
    * Optional target article for publish/AI jobs.
@@ -774,43 +1238,26 @@ export interface SiteQuota {
    * Cap on automated/AI job runs per month (0 = unlimited).
    */
   maxMonthlyAiRuns?: number | null;
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "affiliate-networks".
- */
-export interface AffiliateNetwork {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  name: string;
-  slug: string;
-  websiteUrl?: string | null;
-  status: 'active' | 'paused';
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "offers".
- */
-export interface Offer {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  title: string;
-  slug?: string | null;
-  network: number | AffiliateNetwork;
   /**
-   * Sites allowed to promote this offer (optional).
+   * Max new posts per day (content calendar).
    */
-  sites?: (number | Site)[] | null;
-  status: 'draft' | 'active' | 'paused';
-  externalId?: string | null;
-  targetUrl?: string | null;
-  commissionNotes?: string | null;
+  dailyPostCap?: number | null;
+  monthlyTokenBudgetUsd?: number | null;
+  monthlyImagesBudgetUsd?: number | null;
+  monthlyDfsCreditBudget?: number | null;
+  /**
+   * Optional counters: dfs, tavily, openrouter, images
+   */
+  usageYtd?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -893,6 +1340,22 @@ export interface KnowledgeBase {
   } | null;
   status: 'draft' | 'published' | 'archived';
   notes?: string | null;
+  entryType?: ('research' | 'audit' | 'monitoring' | 'decision' | 'open_loop' | 'hot_cache') | null;
+  skillId?: string | null;
+  subject?: string | null;
+  summary?: string | null;
+  payload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  severity?: ('info' | 'warn' | 'veto') | null;
+  expiresAt?: string | null;
+  artifactClass?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -917,6 +1380,29 @@ export interface AuditLog {
     | number
     | boolean
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-link-graph".
+ */
+export interface PageLinkGraph {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  site?: (number | null) | Site;
+  fromCollection: string;
+  fromId: string;
+  toCollection: string;
+  toId: string;
+  toExternal?: string | null;
+  anchorText?: string | null;
+  anchorType?: ('exact' | 'partial' | 'brand' | 'generic' | 'naked_url' | 'image') | null;
+  location?: ('body' | 'main_nav' | 'footer' | 'sidebar' | 'related_block' | 'breadcrumb' | 'author_bio') | null;
+  contextSnippet?: string | null;
+  rel?: string | null;
+  createdBy?: string | null;
+  lastSeenAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1876,10 +2362,6 @@ export interface PayloadLockedDocument {
         value: number | Category;
       } | null)
     | ({
-        relationTo: 'articles';
-        value: number | Article;
-      } | null)
-    | ({
         relationTo: 'pages';
         value: number | Page;
       } | null)
@@ -1902,6 +2384,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'keywords';
         value: number | Keyword;
+      } | null)
+    | ({
+        relationTo: 'content-briefs';
+        value: number | ContentBrief;
+      } | null)
+    | ({
+        relationTo: 'serp-snapshots';
+        value: number | SerpSnapshot;
+      } | null)
+    | ({
+        relationTo: 'authors';
+        value: number | Author;
+      } | null)
+    | ({
+        relationTo: 'articles';
+        value: number | Article;
       } | null)
     | ({
         relationTo: 'rankings';
@@ -1946,6 +2444,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tenants';
         value: number | Tenant;
+      } | null)
+    | ({
+        relationTo: 'original-evidence';
+        value: number | OriginalEvidence;
+      } | null)
+    | ({
+        relationTo: 'page-link-graph';
+        value: number | PageLinkGraph;
       } | null)
     | ({
         relationTo: 'plugin-ai-instructions';
@@ -2157,6 +2663,10 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   designAboutImage?: T;
   designAboutCtaLabel?: T;
   designAboutCtaHref?: T;
+  trustAssetsTemplate?: T;
+  mainNavTemplate?: T;
+  footerTemplate?: T;
+  showBreadcrumb?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2170,32 +2680,6 @@ export interface CategoriesSelect<T extends boolean = true> {
   slug?: T;
   site?: T;
   description?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "articles_select".
- */
-export interface ArticlesSelect<T extends boolean = true> {
-  tenant?: T;
-  title?: T;
-  slug?: T;
-  locale?: T;
-  site?: T;
-  categories?: T;
-  featuredImage?: T;
-  body?: T;
-  status?: T;
-  publishedAt?: T;
-  excerpt?: T;
-  meta?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2275,6 +2759,7 @@ export interface MediaSelect<T extends boolean = true> {
   tenant?: T;
   alt?: T;
   site?: T;
+  assetClass?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -2296,6 +2781,125 @@ export interface KeywordsSelect<T extends boolean = true> {
   site?: T;
   status?: T;
   notes?: T;
+  volume?: T;
+  keywordDifficulty?: T;
+  cpc?: T;
+  trend?: T;
+  intent?: T;
+  geoFriendly?: T;
+  pillar?: T;
+  serpFeatures?: T;
+  lastRefreshedAt?: T;
+  opportunityScore?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-briefs_select".
+ */
+export interface ContentBriefsSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  primaryKeyword?: T;
+  site?: T;
+  intentSummary?: T;
+  outline?: T;
+  sources?: T;
+  targetWordCount?: T;
+  competitors?: T;
+  peopleAlsoAsk?: T;
+  schemaHints?: T;
+  status?: T;
+  skillId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serp-snapshots_select".
+ */
+export interface SerpSnapshotsSelect<T extends boolean = true> {
+  tenant?: T;
+  searchQuery?: T;
+  keyword?: T;
+  site?: T;
+  engine?: T;
+  location?: T;
+  device?: T;
+  capturedAt?: T;
+  raw?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors_select".
+ */
+export interface AuthorsSelect<T extends boolean = true> {
+  tenant?: T;
+  displayName?: T;
+  slug?: T;
+  role?: T;
+  headshot?: T;
+  bioLexical?: T;
+  credentials?: T;
+  expertiseAreas?: T;
+  sameAs?: T;
+  schemaPersonJsonLd?: T;
+  gdprLawfulBasis?: T;
+  gdprRegion?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articles_select".
+ */
+export interface ArticlesSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  locale?: T;
+  site?: T;
+  categories?: T;
+  featuredImage?: T;
+  body?: T;
+  status?: T;
+  publishedAt?: T;
+  excerpt?: T;
+  primaryKeyword?: T;
+  secondaryKeywords?: T;
+  contentTemplate?: T;
+  qualityScore?: T;
+  eeatCheck?: T;
+  schemaJsonLd?: T;
+  vetoCodes?: T;
+  featuredOffers?: T;
+  author?: T;
+  reviewedBy?: T;
+  originalEvidence?: T;
+  sourceBrief?: T;
+  mergedInto?: T;
+  sectionSummaries?: T;
+  metaVariants?: T;
+  lifecycleStage?: T;
+  probationEndsAt?: T;
+  bestPosition?: T;
+  currentPosition?: T;
+  impressions30d?: T;
+  clicks30d?: T;
+  nextActionAt?: T;
+  optimizationHistory?: T;
+  linkBudgetWarnings?: T;
+  skipLinkBudgetCheck?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2312,6 +2916,9 @@ export interface RankingsSelect<T extends boolean = true> {
   serpUrl?: T;
   capturedAt?: T;
   notes?: T;
+  rawSerp?: T;
+  change?: T;
+  isAiOverviewHit?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2324,6 +2931,11 @@ export interface WorkflowJobsSelect<T extends boolean = true> {
   label?: T;
   jobType?: T;
   status?: T;
+  parentJob?: T;
+  skillId?: T;
+  contentBrief?: T;
+  pipelineKeyword?: T;
+  handoff?: T;
   site?: T;
   article?: T;
   page?: T;
@@ -2345,6 +2957,11 @@ export interface SiteQuotasSelect<T extends boolean = true> {
   site?: T;
   maxPublishedPages?: T;
   maxMonthlyAiRuns?: T;
+  dailyPostCap?: T;
+  monthlyTokenBudgetUsd?: T;
+  monthlyImagesBudgetUsd?: T;
+  monthlyDfsCreditBudget?: T;
+  usageYtd?: T;
   notes?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -2377,6 +2994,19 @@ export interface OffersSelect<T extends boolean = true> {
   externalId?: T;
   targetUrl?: T;
   commissionNotes?: T;
+  amazon?:
+    | T
+    | {
+        asin?: T;
+        priceCents?: T;
+        currency?: T;
+        ratingAvg?: T;
+        reviewCount?: T;
+        imageUrl?: T;
+        primeEligible?: T;
+        merchantLastSyncedAt?: T;
+        merchantRaw?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2458,6 +3088,14 @@ export interface KnowledgeBaseSelect<T extends boolean = true> {
   body?: T;
   status?: T;
   notes?: T;
+  entryType?: T;
+  skillId?: T;
+  subject?: T;
+  summary?: T;
+  payload?: T;
+  severity?: T;
+  expiresAt?: T;
+  artifactClass?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2484,6 +3122,47 @@ export interface TenantsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   domain?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "original-evidence_select".
+ */
+export interface OriginalEvidenceSelect<T extends boolean = true> {
+  tenant?: T;
+  kind?: T;
+  product?: T;
+  article?: T;
+  capturedAt?: T;
+  capturedBy?: T;
+  media?: T;
+  watermarkApplied?: T;
+  exifPreserved?: T;
+  notes?: T;
+  verifiedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-link-graph_select".
+ */
+export interface PageLinkGraphSelect<T extends boolean = true> {
+  tenant?: T;
+  site?: T;
+  fromCollection?: T;
+  fromId?: T;
+  toCollection?: T;
+  toId?: T;
+  toExternal?: T;
+  anchorText?: T;
+  anchorType?: T;
+  location?: T;
+  contextSnippet?: T;
+  rel?: T;
+  createdBy?: T;
+  lastSeenAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2999,6 +3678,71 @@ export interface PromptLibrary {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Map skillId -> partial system prompt override (used by skillPrompts.get)
+   */
+  skillOverrides?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pipeline-settings".
+ */
+export interface PipelineSetting {
+  id: number;
+  tavilyEnabled?: boolean | null;
+  dataForSeoEnabled?: boolean | null;
+  togetherImageEnabled?: boolean | null;
+  /**
+   * OpenRouter model id
+   */
+  defaultLlmModel?: string | null;
+  defaultImageModel?: string | null;
+  amazonMarketplace?: string | null;
+  defaultLocale?: string | null;
+  defaultRegion?: string | null;
+  frugalMode?: boolean | null;
+  /**
+   * Per contentType 8-dimension weights (C,O,R,E,Exp,Ept,A,T) sum=100
+   */
+  eeatWeights?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  llmModelsBySection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  sectionParallelism?: number | null;
+  sectionParallelWhitelist?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  sectionMaxRetry?: number | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -3097,6 +3841,30 @@ export interface PromptLibrarySelect<T extends boolean = true> {
         body?: T;
         id?: T;
       };
+  skillOverrides?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pipeline-settings_select".
+ */
+export interface PipelineSettingsSelect<T extends boolean = true> {
+  tavilyEnabled?: T;
+  dataForSeoEnabled?: T;
+  togetherImageEnabled?: T;
+  defaultLlmModel?: T;
+  defaultImageModel?: T;
+  amazonMarketplace?: T;
+  defaultLocale?: T;
+  defaultRegion?: T;
+  frugalMode?: T;
+  eeatWeights?: T;
+  llmModelsBySection?: T;
+  sectionParallelism?: T;
+  sectionParallelWhitelist?: T;
+  sectionMaxRetry?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

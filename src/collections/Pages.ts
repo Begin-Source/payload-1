@@ -4,6 +4,7 @@ import { adminGroups } from '@/constants/adminGroups'
 import { postLikeFields } from '@/collections/shared/postLikeFields'
 import { validateSlugLocaleUnique } from '@/collections/shared/validateSlugLocaleUnique'
 import { validateCategoriesMatchSite } from '@/collections/shared/validateCategoriesMatchSite'
+import { pageLinkGraphSync } from '@/collections/hooks/pageLinkGraphSync'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Pages: CollectionConfig = {
@@ -31,6 +32,7 @@ export const Pages: CollectionConfig = {
   },
   hooks: {
     beforeChange: [validateCategoriesMatchSite, validateSlugLocaleUnique('pages')],
+    afterChange: [pageLinkGraphSync],
   },
   access: {
     read: superAdminPasses(({ req: { user } }) => Boolean(user)),
