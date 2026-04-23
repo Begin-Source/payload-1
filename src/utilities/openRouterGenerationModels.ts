@@ -21,6 +21,8 @@ type FetchArgs = {
   isCli: boolean
 }
 
+const OPENROUTER_MODEL_LIST_TIMEOUT_MS = 3_000
+
 /**
  * When `OPENAI_BASE_URL` points at OpenRouter, fetches the public model list (same key as
  * `OPENAI_API_KEY` — your OpenRouter key). Used to populate Payload AI plugin text model selects.
@@ -43,7 +45,7 @@ export async function fetchOpenRouterModelOptions(
   try {
     const res = await fetch(OPENROUTER_MODELS_URL, {
       headers: { Authorization: `Bearer ${key}` },
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(OPENROUTER_MODEL_LIST_TIMEOUT_MS),
     })
     if (!res.ok) {
       console.warn(
@@ -65,6 +67,29 @@ export async function fetchOpenRouterModelOptions(
   } catch (e) {
     console.warn('[openRouter] Failed to fetch OpenRouter model list; using plugin defaults.', e)
     return null
+  }
+}
+
+export type SafeFetchOpenRouterModelOptionsArgs = FetchArgs & { isProduction: boolean }
+
+/**
+ * Cloudflare: never let OpenRouter /models failures reject module init. In production, any
+ * unexpected throw is swallowed and returns null so a bad isolate does not 500 all routes.
+ */
+export async function safeFetchOpenRouterModelOptions(
+  args: SafeFetchOpenRouterModelOptionsArgs,
+): Promise<OpenRouterModelOption[] | null> {
+  try {
+    return await fetchOpenRouterModelOptions(args)
+  } catch (e) {
+    if (args.isProduction) {
+      console.warn(
+        '[openRouter] safeFetchOpenRouterModelOptions: non-fatal in production; using plugin default model lists.',
+        e,
+      )
+      return null
+    }
+    throw e
   }
 }
 

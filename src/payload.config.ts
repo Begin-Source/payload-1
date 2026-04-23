@@ -64,7 +64,7 @@ import { userHasAllTenantAccess } from './utilities/superAdmin'
 import { aiPluginSeedPrompts } from './utilities/aiPluginSeedPrompts'
 import {
   applyOpenRouterToGenerationModels,
-  fetchOpenRouterModelOptions,
+  safeFetchOpenRouterModelOptions,
 } from './utilities/openRouterGenerationModels'
 import { lexicalEditorWithAi } from './utilities/lexicalEditorWithAi'
 
@@ -147,9 +147,35 @@ const serverURL =
         '')
     : ''
 
-const openRouterModelOptions = await fetchOpenRouterModelOptions({
+/**
+ * Without `plugin_ai_instructions` (migration `20260428_120000_plugin_ai_instructions`), onInit
+ * seed would throw `no such table` and 500 the whole Admin. Skip seed until migrations apply.
+ */
+let hasPluginAiInstructionsTable = true
+try {
+  const d1 = cloudflare.env.D1
+  if (d1) {
+    const row = await d1
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='plugin_ai_instructions'")
+      .first<{ name: string }>()
+    hasPluginAiInstructionsTable = Boolean(row?.name)
+  } else {
+    hasPluginAiInstructionsTable = false
+  }
+} catch {
+  hasPluginAiInstructionsTable = false
+}
+
+if (!hasPluginAiInstructionsTable && isProduction && !isNextBuild && !isCLI) {
+  console.warn(
+    '[payload] plugin_ai_instructions table missing (run `pnpm run deploy:database` or `payload migrate`). Skipping Payload AI generatePromptOnInit until migrations apply.',
+  )
+}
+
+const openRouterModelOptions = await safeFetchOpenRouterModelOptions({
   isNextBuild,
   isCli: isCLI,
+  isProduction,
 })
 
 export default buildConfig({
@@ -284,8 +310,15 @@ export default buildConfig({
        */
       generationModels: (defaults: GenerationModel[]) =>
         applyOpenRouterToGenerationModels(defaults, openRouterModelOptions),
-      /** When true, onInit seeds `plugin-ai-instructions` so Lexical/Compose has instruction ids. */
-      generatePromptOnInit: true,
+      /**
+       * Seeds `plugin-ai-instructions` on init so Lexical/Compose has instruction ids.
+       * - **Development:** on (same as `NODE_ENV !== 'production'`).
+       * - **Production:** off unless `PAYLOAD_SEED_AI_PROMPTS=true` (set in Cloudflare, deploy once to seed, then remove).
+       * - **If D1 lacks `plugin_ai_instructions`:** always off; run migrations first.
+       */
+      generatePromptOnInit:
+        hasPluginAiInstructionsTable &&
+        (process.env.NODE_ENV !== 'production' || process.env.PAYLOAD_SEED_AI_PROMPTS === 'true'),
       /** Static seeds only (no top-level `prompt`/`system`) → no `systemGenerate` / OpenAI call on boot. */
       seedPrompts: aiPluginSeedPrompts,
       debugging: process.env.NODE_ENV !== 'production',
