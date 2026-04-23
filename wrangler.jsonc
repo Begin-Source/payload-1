@@ -32,6 +32,7 @@
   ],
   // Cron triggers require a Worker `scheduled` handler. OpenNext does not emit one yet —
   // use POST /api/pipeline/cron-dispatch (e.g. GitHub Actions + PAYLOAD_SECRET) for nightly triage.
+  // Cloudflare weekdays: 1-7 (1=Sun … 7=Sat); "0" in the DOW field is invalid—do not use Unix 0=Sun.
   "triggers": {
     "crons": [
       "*/5 * * * *",
@@ -40,7 +41,6 @@
       "0 4 * * 1",
       "0 5 * * 1",
       "0 6 * * 1",
-      "0 4 * * 0",
       "0 5 1 * *",
       "0 6 15 * *"
     ]
