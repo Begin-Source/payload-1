@@ -14,3 +14,14 @@ export function isSuperAdminLikeUser(user: unknown): boolean {
   const roles = (user as { roles?: unknown }).roles
   return Array.isArray(roles) && roles.includes('super-admin')
 }
+
+/**
+ * 系统类 Global 侧栏（非白标）：真超管或 `system-admin`。
+ * **不要**用于 `admin-branding`；该处仍用 `isSuperAdminLikeUser`。
+ */
+export function isSystemConfigNavVisible(user: unknown): boolean {
+  if (isSuperAdminLikeUser(user)) return true
+  if (!user || typeof user !== 'object') return false
+  const roles = (user as { roles?: unknown }).roles
+  return Array.isArray(roles) && roles.includes('system-admin')
+}

@@ -3,7 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { adminGroups } from '@/constants/adminGroups'
 import type { User } from '@/payload-types'
 import { denyPortalAndFinanceCollection } from '@/utilities/userAccessTiers'
-import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
+import { isSystemConfigNavVisible } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminOrTenantGMPasses } from '@/utilities/superAdminPasses'
 import { userHasTenantGeneralManagerRole } from '@/utilities/userRoles'
 
@@ -15,7 +15,7 @@ export const SiteQuotas: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'site', 'updatedAt'],
     hidden: ({ user }) =>
-      !isSuperAdminLikeUser(user) && !userHasTenantGeneralManagerRole(user as User),
+      !isSystemConfigNavVisible(user) && !userHasTenantGeneralManagerRole(user as User),
   },
   access: {
     read: denyPortalAndFinanceCollection('site-quotas', superAdminOrTenantGMPasses(() => false)),

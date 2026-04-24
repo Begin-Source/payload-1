@@ -3,7 +3,7 @@ import type { GlobalConfig } from 'payload'
 import { adminGroups } from '@/constants/adminGroups'
 import { financeOnlyBlocksGlobal } from '@/utilities/financeRoleAccess'
 import { announcementsPortalBlocksGlobal } from '@/utilities/userAccessTiers'
-import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
+import { isSystemConfigNavVisible } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const LlmPrompts: GlobalConfig = {
@@ -11,7 +11,7 @@ export const LlmPrompts: GlobalConfig = {
   label: 'LLM 配置',
   admin: {
     group: adminGroups.operations,
-    hidden: ({ user }) => !isSuperAdminLikeUser(user),
+    hidden: ({ user }) => !isSystemConfigNavVisible(user),
   },
   access: {
     read: (args) => {

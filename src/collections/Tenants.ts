@@ -3,7 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { adminGroups } from '@/constants/adminGroups'
 import { isUsersCollection } from '@/utilities/announcementAccess'
 import { financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 import { getTenantIdsForUser } from '@/utilities/tenantScope'
 import { announcementsPortalBlocksCollection } from '@/utilities/userAccessTiers'
@@ -20,7 +20,7 @@ export const Tenants: CollectionConfig = {
     read: ({ req: { user } }) => {
       if (announcementsPortalBlocksCollection(user, 'tenants')) return false
       if (financeOnlyBlocksCollection(user, 'tenants')) return false
-      if (userHasAllTenantAccess(user)) return true
+      if (userHasUnscopedAdminAccess(user)) return true
       if (!isUsersCollection(user)) return false
       const ids = getTenantIdsForUser(user)
       if (ids.length === 0) return false

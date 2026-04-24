@@ -1,15 +1,15 @@
 import type { Access } from 'payload'
 
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 import { userHasTenantGeneralManagerRole } from '@/utilities/userRoles'
 
 /**
- * Super admins (`super-admin` role or `PAYLOAD_SUPER_ADMIN_EMAILS`) get full `true` for this operation.
+ * 真超管、env 超管邮件，或 `system-admin`；白标 Global 处勿用，见 `userHasAllTenantAccess`。
  * Everyone else uses `otherwise` (must return boolean / Where per Payload).
  */
 export function superAdminPasses(otherwise: Access): Access {
   return (args) => {
-    if (userHasAllTenantAccess(args.req.user)) return true
+    if (userHasUnscopedAdminAccess(args.req.user)) return true
     return otherwise(args)
   }
 }
@@ -20,7 +20,7 @@ export function superAdminPasses(otherwise: Access): Access {
  */
 export function superAdminOrTenantGMPasses(otherwise: Access): Access {
   return (args) => {
-    if (userHasAllTenantAccess(args.req.user)) return true
+    if (userHasUnscopedAdminAccess(args.req.user)) return true
     if (userHasTenantGeneralManagerRole(args.req.user)) return true
     return otherwise(args)
   }

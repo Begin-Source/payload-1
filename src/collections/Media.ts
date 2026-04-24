@@ -7,7 +7,7 @@ import {
 } from '@/collections/shared/siteScopedSiteField'
 import { isUsersCollection } from '@/utilities/announcementAccess'
 import { financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 import { superAdminOrTenantGMPasses } from '@/utilities/superAdminPasses'
 import { getTenantScopeForStats } from '@/utilities/tenantScope'
 import {
@@ -45,7 +45,7 @@ export const Media: CollectionConfig = {
       if (announcementsPortalBlocksCollection(req.user, 'media')) return false
       if (financeOnlyBlocksCollection(req.user, 'media')) return false
       if (!req.user) return true
-      if (userHasAllTenantAccess(req.user)) return true
+      if (userHasUnscopedAdminAccess(req.user)) return true
       if (!isUsersCollection(req.user)) return false
       const scope = getTenantScopeForStats(req.user)
       if (scope.mode === 'all') return true

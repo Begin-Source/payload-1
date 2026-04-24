@@ -4,12 +4,13 @@ import { isUsersCollection } from '@/utilities/announcementAccess'
 /** Values stored on `users.roles` (kebab-case). */
 export const APP_USER_ROLES = [
   'user',
-  'super-admin',
-  'finance',
-  'ops-manager',
-  'team-lead',
   'site-manager',
+  'team-lead',
+  'ops-manager',
+  'finance',
   'general-manager',
+  'system-admin',
+  'super-admin',
 ] as const
 
 export type AppUserRole = (typeof APP_USER_ROLES)[number]

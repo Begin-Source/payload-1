@@ -4,7 +4,7 @@ import type { Config } from '@/payload-types'
 import { adminGroups } from '@/constants/adminGroups'
 import { isUsersCollection } from '@/utilities/announcementAccess'
 import { financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasAllTenantAccess, userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 import { getTenantIdsForUser } from '@/utilities/tenantScope'
 import {
@@ -52,6 +52,11 @@ const enforceUserTenantAndRoles: CollectionBeforeChangeHook = ({
     const withoutSuperAdmin = roles.filter((r: string) => r !== 'super-admin')
     next = { ...next, roles: withoutSuperAdmin.length > 0 ? withoutSuperAdmin : ['user'] }
   }
+  const rolesAfter = next.roles
+  if (Array.isArray(rolesAfter) && rolesAfter.includes('system-admin') && !userHasUnscopedAdminAccess(req.user)) {
+    const without = rolesAfter.filter((r: string) => r !== 'system-admin')
+    next = { ...next, roles: without.length > 0 ? without : ['user'] }
+  }
 
   if (!isUsersCollection(req.user)) return next
 
@@ -60,12 +65,19 @@ const enforceUserTenantAndRoles: CollectionBeforeChangeHook = ({
     if (origRoles.includes('super-admin') && !userHasAllTenantAccess(req.user)) {
       throw new Error('不能修改超级管理员账户')
     }
+    if (origRoles.includes('system-admin') && !userHasUnscopedAdminAccess(req.user)) {
+      throw new Error('不能修改系统管理员账户')
+    }
   }
 
   const actor = req.user
   if (!userHasAllTenantAccess(actor) && isUsersCollection(actor)) {
     const nextRoles = normalizeRoles(next.roles)
-    if (!userHasTenantGeneralManagerRole(actor) && userHasRole(actor, 'ops-manager')) {
+    if (
+      !userHasTenantGeneralManagerRole(actor) &&
+      !userHasRole(actor, 'system-admin') &&
+      userHasRole(actor, 'ops-manager')
+    ) {
       for (const r of nextRoles) {
         if (!OPS_CREATABLE_ROLES.has(r)) {
           throw new Error('运营经理仅可将用户角色设为组长或站长')
@@ -76,6 +88,7 @@ const enforceUserTenantAndRoles: CollectionBeforeChangeHook = ({
       }
     } else if (
       !userHasTenantGeneralManagerRole(actor) &&
+      !userHasRole(actor, 'system-admin') &&
       userHasRole(actor, 'team-lead') &&
       !userHasRole(actor, 'ops-manager')
     ) {
@@ -155,7 +168,7 @@ export const Users: CollectionConfig = {
       if (announcementsPortalBlocksCollection(user, 'users')) return false
       if (userIsPureSiteManagerWithoutTeamOrOps(user)) return false
       if (financeOnlyBlocksCollection(user, 'users')) return false
-      if (userHasAllTenantAccess(user)) return true
+      if (userHasUnscopedAdminAccess(user)) return true
       if (!user) return true
       if (isUsersCollection(user) && userHasRole(user, 'ops-manager')) return true
       if (isUsersCollection(user) && userHasTenantGeneralManagerRole(user)) return true
@@ -190,16 +203,17 @@ export const Users: CollectionConfig = {
       required: true,
       options: [
         { label: 'User', value: 'user' },
-        { label: 'Super Admin', value: 'super-admin' },
-        { label: '财务经理', value: 'finance' },
-        { label: '运营经理', value: 'ops-manager' },
-        { label: '组长', value: 'team-lead' },
         { label: '站长', value: 'site-manager' },
+        { label: '组长', value: 'team-lead' },
+        { label: '运营经理', value: 'ops-manager' },
+        { label: '财务经理', value: 'finance' },
         { label: '总经理', value: 'general-manager' },
+        { label: '系统管理员', value: 'system-admin' },
+        { label: 'Super Admin', value: 'super-admin' },
       ],
       access: {
         update: ({ req: { user } }) =>
-          userHasAllTenantAccess(user) ||
+          userHasUnscopedAdminAccess(user) ||
           (isUsersCollection(user) &&
             (userHasRole(user, 'ops-manager') ||
               userHasTenantGeneralManagerRole(user) ||

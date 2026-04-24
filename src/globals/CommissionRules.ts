@@ -5,7 +5,7 @@ import {
   canReadCommissionRulesGlobal,
   canUpdateCommissionRulesGlobal,
 } from '@/utilities/financeRoleAccess'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 import { announcementsPortalBlocksGlobal } from '@/utilities/userAccessTiers'
 
 export const CommissionRules: GlobalConfig = {
@@ -18,7 +18,7 @@ export const CommissionRules: GlobalConfig = {
   access: {
     read: ({ req: { user } }) => {
       if (announcementsPortalBlocksGlobal(user, 'commission-rules')) return false
-      return userHasAllTenantAccess(user) || canReadCommissionRulesGlobal(user)
+      return userHasUnscopedAdminAccess(user) || canReadCommissionRulesGlobal(user)
     },
     update: ({ req: { user } }) => {
       if (announcementsPortalBlocksGlobal(user, 'commission-rules')) return false

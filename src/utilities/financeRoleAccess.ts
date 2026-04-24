@@ -2,7 +2,7 @@ import type { Access } from 'payload'
 
 import type { Config } from '@/payload-types'
 import { isUsersCollection } from '@/utilities/announcementAccess'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 import { getUserRoles, userHasRole, userHasTenantGeneralManagerRole } from '@/utilities/userRoles'
 
 /** Collections a finance-only admin may access (sidebar group 财务 + tenant plugin). */
@@ -17,7 +17,7 @@ export const FINANCE_GLOBAL_SLUGS = ['commission-rules'] as const
  */
 export function userIsFinanceManagerOnly(user: Config['user'] | null | undefined): boolean {
   if (!isUsersCollection(user)) return false
-  if (userHasAllTenantAccess(user)) return false
+  if (userHasUnscopedAdminAccess(user)) return false
   if (userHasTenantGeneralManagerRole(user)) return false
   const roles = getUserRoles(user)
   if (!roles.includes('finance')) return false
@@ -52,7 +52,7 @@ export function denyFinanceOnlyUnlessWhitelisted(collectionSlug: string, inner: 
 /** Commissions writes: super-admin / env, `finance`, or tenant 总经理. */
 export function userMayWriteCommissions(user: Config['user'] | null | undefined): boolean {
   if (!user) return false
-  if (userHasAllTenantAccess(user)) return true
+  if (userHasUnscopedAdminAccess(user)) return true
   if (isUsersCollection(user) && userHasRole(user, 'finance')) return true
   if (userHasTenantGeneralManagerRole(user)) return true
   return false
@@ -69,7 +69,7 @@ const COMMISSION_RULES_READ_ROLES = [
 /** Global `commission-rules`: read for super, finance-only, finance+ops, and team/site roles. */
 export function canReadCommissionRulesGlobal(user: Config['user'] | null | undefined): boolean {
   if (!user) return false
-  if (userHasAllTenantAccess(user)) return true
+  if (userHasUnscopedAdminAccess(user)) return true
   if (!isUsersCollection(user)) return false
   if (userIsFinanceManagerOnly(user)) return true
   const roles = getUserRoles(user)
@@ -79,7 +79,7 @@ export function canReadCommissionRulesGlobal(user: Config['user'] | null | undef
 /** Global `commission-rules`: update only super-admin-like or finance manager. */
 export function canUpdateCommissionRulesGlobal(user: Config['user'] | null | undefined): boolean {
   if (!user) return false
-  if (userHasAllTenantAccess(user)) return true
+  if (userHasUnscopedAdminAccess(user)) return true
   if (!isUsersCollection(user)) return false
   return userHasRole(user, 'finance')
 }

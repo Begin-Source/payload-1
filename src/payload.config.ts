@@ -60,7 +60,7 @@ import { Announcements } from './collections/Announcements'
 import { OpenAIConfig } from './utilities/aiOpenAIConfigImport'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
-import { userHasAllTenantAccess } from './utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from './utilities/superAdmin'
 import { aiPluginSeedPrompts } from './utilities/aiPluginSeedPrompts'
 import {
   applyOpenRouterToGenerationModels,
@@ -309,7 +309,7 @@ export default buildConfig({
          */
         media: { useTenantAccess: false },
       },
-      userHasAccessToAllTenants: (user) => userHasAllTenantAccess(user),
+      userHasAccessToAllTenants: (user) => userHasUnscopedAdminAccess(user),
     }),
     // @ai-stack plugin typings recurse deeply with `Config`; `opts: any` avoids `tsc` stack overflow in this repo.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- cast only
@@ -480,7 +480,7 @@ export default buildConfig({
       }),
       overrideAuth: async (_req, getDefaultMcpAccessSettings) => {
         const settings = await getDefaultMcpAccessSettings()
-        if (!userHasAllTenantAccess(settings.user)) {
+        if (!userHasUnscopedAdminAccess(settings.user)) {
           return settings
         }
         return expandMcpAccessForSuperAdmin(settings, mcpCollectionSlugs)

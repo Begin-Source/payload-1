@@ -287,7 +287,16 @@ export interface User {
   /**
    * Super Admin：全租户。仅 Super Admin 可修改本字段。其它角色（财务 / 运营 / 组长 / 站长）的具体权限在代码与各集合 access 中逐步收紧。
    */
-  roles: ('user' | 'super-admin' | 'finance' | 'ops-manager' | 'team-lead' | 'site-manager' | 'general-manager')[];
+  roles: (
+    | 'user'
+    | 'site-manager'
+    | 'team-lead'
+    | 'ops-manager'
+    | 'finance'
+    | 'general-manager'
+    | 'system-admin'
+    | 'super-admin'
+  )[];
   tenants?:
     | {
         tenant: number | Tenant;

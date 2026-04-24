@@ -4,7 +4,7 @@ import { adminGroups } from '@/constants/adminGroups'
 import { financeOnlyBlocksGlobal } from '@/utilities/financeRoleAccess'
 import { announcementsPortalBlocksGlobal } from '@/utilities/userAccessTiers'
 import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 
 export const AdminBranding: GlobalConfig = {
   slug: 'admin-branding',
@@ -17,12 +17,12 @@ export const AdminBranding: GlobalConfig = {
     read: (args) => {
       if (announcementsPortalBlocksGlobal(args.req.user, 'admin-branding')) return false
       if (financeOnlyBlocksGlobal(args.req.user, 'admin-branding')) return false
-      return superAdminPasses(() => false)(args)
+      return userHasAllTenantAccess(args.req.user)
     },
     update: (args) => {
       if (announcementsPortalBlocksGlobal(args.req.user, 'admin-branding')) return false
       if (financeOnlyBlocksGlobal(args.req.user, 'admin-branding')) return false
-      return superAdminPasses(() => false)(args)
+      return userHasAllTenantAccess(args.req.user)
     },
   },
   fields: [

@@ -4,7 +4,7 @@ import { blogChromeGlobalFields } from '@/collections/shared/blogPublicFields'
 import { adminGroups } from '@/constants/adminGroups'
 import { financeOnlyBlocksGlobal } from '@/utilities/financeRoleAccess'
 import { announcementsPortalBlocksGlobal } from '@/utilities/userAccessTiers'
-import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
+import { isSystemConfigNavVisible } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 /** App-wide fallback when no `sites` row matches Host / dev slug. */
@@ -14,7 +14,7 @@ export const PublicLanding: GlobalConfig = {
   admin: {
     group: adminGroups.system,
     description: '未匹配到具体站点域名时使用；各站点可在「站点」里覆盖。',
-    hidden: ({ user }) => !isSuperAdminLikeUser(user),
+    hidden: ({ user }) => !isSystemConfigNavVisible(user),
   },
   access: {
     read: ({ req: { user } }) => {

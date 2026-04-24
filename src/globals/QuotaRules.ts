@@ -3,7 +3,7 @@ import type { GlobalConfig } from 'payload'
 import { adminGroups } from '@/constants/adminGroups'
 import { financeOnlyBlocksGlobal } from '@/utilities/financeRoleAccess'
 import { announcementsPortalBlocksGlobal } from '@/utilities/userAccessTiers'
-import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
+import { isSystemConfigNavVisible } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const QuotaRules: GlobalConfig = {
@@ -11,7 +11,7 @@ export const QuotaRules: GlobalConfig = {
   label: '配额规则',
   admin: {
     group: adminGroups.system,
-    hidden: ({ user }) => !isSuperAdminLikeUser(user),
+    hidden: ({ user }) => !isSystemConfigNavVisible(user),
   },
   access: {
     read: (args) => {

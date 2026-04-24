@@ -20,3 +20,14 @@ export function userHasAllTenantAccess(user: Config['user'] | null | undefined):
   const roles = user.roles
   return Array.isArray(roles) && roles.includes('super-admin')
 }
+
+/**
+ * 全站无租户范围能力：真超管（见 `userHasAllTenantAccess`）或 `system-admin`。
+ * 白标 Global 仍只用 `userHasAllTenantAccess`，系统管理员不可改。
+ */
+export function userHasUnscopedAdminAccess(user: Config['user'] | null | undefined): boolean {
+  if (userHasAllTenantAccess(user)) return true
+  if (!user || user.collection !== 'users' || !user.email) return false
+  const roles = user.roles
+  return Array.isArray(roles) && roles.includes('system-admin')
+}

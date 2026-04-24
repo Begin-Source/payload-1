@@ -3,13 +3,14 @@ import type { Access } from 'payload'
 import type { Config } from '@/payload-types'
 import { denyFinanceOnlyUnlessWhitelisted } from '@/utilities/financeRoleAccess'
 import { isUsersCollection } from '@/utilities/announcementAccess'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 import type { AppUserRole } from '@/utilities/userRoles'
 import { getUserRoles, userHasRole } from '@/utilities/userRoles'
 
 /** Any role that grants more than the plain 公告-only portal. */
 const PRIVILEGED_ROLES = new Set<AppUserRole | string>([
   'super-admin',
+  'system-admin',
   'finance',
   'ops-manager',
   'team-lead',
@@ -28,14 +29,14 @@ export function userHasPrivilegedRole(user: Config['user'] | null | undefined): 
  */
 export function userIsAnnouncementsPortalOnly(user: Config['user'] | null | undefined): boolean {
   if (!isUsersCollection(user) || !user) return false
-  if (userHasAllTenantAccess(user)) return false
+  if (userHasUnscopedAdminAccess(user)) return false
   return !getUserRoles(user as never).some((r) => PRIVILEGED_ROLES.has(r))
 }
 
 /** 含 `finance` 且无全租户超管能力 — 不得创建 `users`（含与 ops 并存）。 */
 export function userHasFinanceRoleNonSuper(user: Config['user'] | null | undefined): boolean {
   if (!isUsersCollection(user) || !user) return false
-  if (userHasAllTenantAccess(user)) return false
+  if (userHasUnscopedAdminAccess(user)) return false
   return userHasRole(user as never, 'finance')
 }
 
@@ -46,7 +47,7 @@ export function userIsPureSiteManagerWithoutTeamOrOps(
   user: Config['user'] | null | undefined,
 ): boolean {
   if (!isUsersCollection(user) || !user) return false
-  if (userHasAllTenantAccess(user)) return false
+  if (userHasUnscopedAdminAccess(user)) return false
   if (userHasRole(user as never, 'general-manager')) return false
   if (!userHasRole(user as never, 'site-manager')) return false
   if (userHasRole(user as never, 'team-lead') || userHasRole(user as never, 'ops-manager')) {

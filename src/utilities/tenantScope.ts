@@ -1,7 +1,7 @@
 import type { Where } from 'payload'
 
 import type { Config } from '@/payload-types'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 
 export type TenantScope =
   | { mode: 'all' }
@@ -33,7 +33,7 @@ export function getTenantIdsForUser(
 export function getTenantScopeForStats(
   user: Config['user'] & { collection: 'users' },
 ): TenantScope {
-  if (userHasAllTenantAccess(user)) return { mode: 'all' }
+  if (userHasUnscopedAdminAccess(user)) return { mode: 'all' }
   const tenantIds = getTenantIdsForUser(user)
   if (tenantIds.length === 0) return { mode: 'none' }
   return { mode: 'tenants', tenantIds }

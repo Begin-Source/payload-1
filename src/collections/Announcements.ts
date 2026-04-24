@@ -7,7 +7,7 @@ import {
   isUsersCollection,
 } from '@/utilities/announcementAccess'
 import { financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 import { superAdminOrTenantGMPasses, superAdminPasses } from '@/utilities/superAdminPasses'
 import { denyPortalAndFinanceCollection } from '@/utilities/userAccessTiers'
 import { userHasTenantGeneralManagerRole } from '@/utilities/userRoles'
@@ -34,7 +34,7 @@ export const Announcements: CollectionConfig = {
   access: {
     read: denyPortalAndFinanceCollection('announcements', (args) => {
       const u = args.req.user
-      if (userHasAllTenantAccess(u)) return true
+      if (userHasUnscopedAdminAccess(u)) return true
       if (userHasTenantGeneralManagerRole(u)) {
         return announcementsReadWhere(u)
       }
@@ -43,7 +43,7 @@ export const Announcements: CollectionConfig = {
     create: async ({ req: { user, payload } }) => {
       if (financeOnlyBlocksCollection(user, 'announcements')) return false
       if (!isUsersCollection(user)) return false
-      if (userHasAllTenantAccess(user) || userHasTenantGeneralManagerRole(user)) return true
+      if (userHasUnscopedAdminAccess(user) || userHasTenantGeneralManagerRole(user)) return true
       const subs = await payload.count({
         collection: 'users',
         where: { teamLead: { equals: user.id } },
@@ -83,7 +83,7 @@ export const Announcements: CollectionConfig = {
         if (!isUsersCollection(req.user)) return data
 
         const kind = data.kind as 'system' | 'team' | undefined
-        const isElevated = userHasAllTenantAccess(req.user) || userHasTenantGeneralManagerRole(req.user)
+        const isElevated = userHasUnscopedAdminAccess(req.user) || userHasTenantGeneralManagerRole(req.user)
 
         if (operation === 'create') {
           data.author = req.user.id
@@ -91,7 +91,7 @@ export const Announcements: CollectionConfig = {
 
         if (!isElevated) {
           if (kind !== 'team') {
-            throw new Error('仅超级管理员或总经理可发布系统公告')
+            throw new Error('仅超级管理员、系统管理员或总经理可发布系统公告')
           }
           data.teamLead = req.user.id
         } else if (kind === 'system') {
@@ -120,7 +120,7 @@ export const Announcements: CollectionConfig = {
       ],
       access: {
         update: ({ req: { user } }) =>
-          userHasAllTenantAccess(user) || userHasTenantGeneralManagerRole(user),
+          userHasUnscopedAdminAccess(user) || userHasTenantGeneralManagerRole(user),
       },
       admin: {
         description: '组长仅可创建「团队公告」。系统公告：超级管理员或本租户总经理。',
@@ -136,7 +136,7 @@ export const Announcements: CollectionConfig = {
       },
       access: {
         update: ({ req: { user } }) =>
-          userHasAllTenantAccess(user) || userHasTenantGeneralManagerRole(user),
+          userHasUnscopedAdminAccess(user) || userHasTenantGeneralManagerRole(user),
       },
     },
     {

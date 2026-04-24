@@ -2,7 +2,7 @@ import type { Where } from 'payload'
 
 import type { Config } from '@/payload-types'
 import { getTenantIdsForUser } from '@/utilities/tenantScope'
-import { userHasAllTenantAccess } from '@/utilities/superAdmin'
+import { userHasUnscopedAdminAccess } from '@/utilities/superAdmin'
 
 export function isUsersCollection(
   user: Config['user'] | null | undefined,
@@ -23,7 +23,7 @@ export function announcementsReadWhere(
   user: Config['user'] | null | undefined,
 ): boolean | Where {
   if (!isUsersCollection(user)) return false
-  if (userHasAllTenantAccess(user)) return true
+  if (userHasUnscopedAdminAccess(user)) return true
 
   const tenantIds = getTenantIdsForUser(user)
   if (tenantIds.length === 0) return false
@@ -58,7 +58,7 @@ export function canTeamLeadManageDoc(
   user: Config['user'] & { collection: 'users' },
   teamLeadOnDoc: number | null | undefined,
 ): boolean {
-  if (userHasAllTenantAccess(user)) return true
+  if (userHasUnscopedAdminAccess(user)) return true
   if (teamLeadOnDoc !== user.id) return false
   return true
 }

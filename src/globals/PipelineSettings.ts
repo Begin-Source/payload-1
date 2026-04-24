@@ -3,7 +3,7 @@ import type { GlobalConfig } from 'payload'
 import { adminGroups } from '@/constants/adminGroups'
 import { financeOnlyBlocksGlobal } from '@/utilities/financeRoleAccess'
 import { announcementsPortalBlocksGlobal } from '@/utilities/userAccessTiers'
-import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
+import { isSystemConfigNavVisible } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 const defaultEeatWeights = [
@@ -69,7 +69,7 @@ export const PipelineSettings: GlobalConfig = {
   label: 'SEO 流水线',
   admin: {
     group: adminGroups.operations,
-    hidden: ({ user }) => !isSuperAdminLikeUser(user),
+    hidden: ({ user }) => !isSystemConfigNavVisible(user),
   },
   access: {
     read: (args) => {

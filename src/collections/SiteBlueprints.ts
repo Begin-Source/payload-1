@@ -8,7 +8,7 @@ import {
   siteScopedSiteField,
 } from '@/collections/shared/siteScopedSiteField'
 import { denyPortalAndFinanceCollection } from '@/utilities/userAccessTiers'
-import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
+import { isSystemConfigNavVisible } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminOrTenantGMPasses } from '@/utilities/superAdminPasses'
 import { userHasTenantGeneralManagerRole } from '@/utilities/userRoles'
 
@@ -20,7 +20,7 @@ export const SiteBlueprints: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'site', 'updatedAt'],
     hidden: ({ user }) =>
-      !isSuperAdminLikeUser(user) && !userHasTenantGeneralManagerRole(user as User),
+      !isSystemConfigNavVisible(user) && !userHasTenantGeneralManagerRole(user as User),
     components: {
       beforeListTable: ['./components/ArticleCsvImportExport#CsvImportExportPanel'],
       listMenuItems: ['./components/ArticleCsvImportExport#CsvImportExportListMenuItem'],
