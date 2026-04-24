@@ -5,7 +5,8 @@ type NavItem = { href: string; label: string }
 
 const navItems: NavItem[] = [
   { href: '/admin', label: '管理后台' },
-  { href: '/admin/collections/knowledge-base', label: '知识库' },
+  { href: '/portal/knowledge', label: '知识库阅读' },
+  { href: '/admin/collections/knowledge-base', label: '知识库（管理）' },
 ]
 
 /** Static system entry at `/` — not tied to `landing-templates` or site theme. */

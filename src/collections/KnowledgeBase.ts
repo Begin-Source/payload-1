@@ -7,14 +7,20 @@ import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperA
 
 export const KnowledgeBase: CollectionConfig = {
   slug: 'knowledge-base',
-  labels: { singular: '知识库文档', plural: '知识库文档' },
+  labels: { singular: '编辑文档', plural: '编辑文档' },
   admin: {
     group: adminGroups.knowledge,
     useAsTitle: 'title',
     defaultColumns: ['title', 'site', 'status', 'updatedAt'],
     components: {
-      beforeListTable: ['./components/ArticleFindReplacePanel#FindReplacePanel'],
-      listMenuItems: ['./components/ArticleFindReplacePanel#FindReplaceListMenuItem'],
+      beforeListTable: [
+        './components/ArticleFindReplacePanel#FindReplacePanel',
+        './components/ArticleCsvImportExport#CsvImportExportPanel',
+      ],
+      listMenuItems: [
+        './components/ArticleFindReplacePanel#FindReplaceListMenuItem',
+        './components/ArticleCsvImportExport#CsvImportExportListMenuItem',
+      ],
     },
   },
   access: loggedInSuperAdminAccessFor('knowledge-base'),

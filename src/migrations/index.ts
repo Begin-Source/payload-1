@@ -23,6 +23,7 @@ import * as migration_20260430_130000_fix_locked_docs_rels from './20260430_1300
 import * as migration_20260430_140000_article_link_budget_warnings from './20260430_140000_article_link_budget_warnings';
 import * as migration_20260501_120000_team_home_global from './20260501_120000_team_home_global';
 import * as migration_20260501_130000_teams_collection from './20260501_130000_teams_collection';
+import * as migration_20260502_120000_operation_manuals from './20260502_120000_operation_manuals';
 
 export const migrations = [
   {
@@ -149,5 +150,10 @@ export const migrations = [
     up: migration_20260501_130000_teams_collection.up,
     down: migration_20260501_130000_teams_collection.down,
     name: '20260501_130000_teams_collection',
+  },
+  {
+    up: migration_20260502_120000_operation_manuals.up,
+    down: migration_20260502_120000_operation_manuals.down,
+    name: '20260502_120000_operation_manuals',
   },
 ];

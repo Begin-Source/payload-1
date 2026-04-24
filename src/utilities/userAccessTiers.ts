@@ -56,7 +56,11 @@ export function userIsPureSiteManagerWithoutTeamOrOps(
   return true
 }
 
-export const ANNOUNCEMENTS_PORTAL_COLLECTION_SLUGS = ['announcements'] as const
+/** 仅公告类账号在 Admin 中除自身业务外可读的集合。 */
+export const ANNOUNCEMENTS_PORTAL_COLLECTION_SLUGS = [
+  'announcements',
+  'operation-manuals',
+] as const
 
 export function announcementsPortalBlocksCollection(
   user: Config['user'] | null | undefined,

@@ -6,7 +6,7 @@ import { hostNameLabel } from '@/utilities/normalizeRequestHost'
 
 const LOCAL_LABELS = new Set(['localhost', '127.0.0.1', '::1'])
 
-const SKIP_LOCALE_PREFIXES = ['/admin', '/api', '/_next', '/favicon.ico', '/my-route']
+const SKIP_LOCALE_PREFIXES = ['/admin', '/api', '/_next', '/favicon.ico', '/my-route', '/portal']
 
 function shouldSkipLocale(pathname: string): boolean {
   if (pathname.startsWith('/_next')) return true

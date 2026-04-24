@@ -48,6 +48,7 @@ import { SocialAccounts } from './collections/SocialAccounts'
 import { Rankings } from './collections/Rankings'
 import { AuditLogs } from './collections/AuditLogs'
 import { KnowledgeBase } from './collections/KnowledgeBase'
+import { OperationManuals } from './collections/OperationManuals'
 import { adminGroups } from './constants/adminGroups'
 import { CommissionRules } from './globals/CommissionRules'
 import { QuotaRules } from './globals/QuotaRules'
@@ -204,6 +205,7 @@ export default buildConfig({
     },
     components: {
       providers: ['./components/AdminBrandingProvider#AdminBrandingProvider'],
+      beforeNavLinks: ['./components/KnowledgeReadNavLink#KnowledgeReadNavLink'],
       beforeDashboard: ['./components/BeforeDashboardMilestone#BeforeDashboardMilestone'],
       graphics: {
         Icon: './components/AdminBrandingIcon#AdminBrandingIcon',
@@ -241,6 +243,7 @@ export default buildConfig({
     Commissions,
     Teams,
     KnowledgeBase,
+    OperationManuals,
     AuditLogs,
     Tenants,
     Users,
@@ -301,6 +304,7 @@ export default buildConfig({
         'page-link-graph': {},
         'workflow-jobs': {},
         'knowledge-base': {},
+        'operation-manuals': {},
         rankings: {},
         'audit-logs': {},
         teams: {},

@@ -23,6 +23,8 @@ const CSV_COLLECTION_SLUGS = [
   'pages',
   'categories',
   'site-blueprints',
+  'knowledge-base',
+  'operation-manuals',
 ] as const
 
 type CsvCollection = (typeof CSV_COLLECTION_SLUGS)[number]
@@ -247,11 +249,15 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
         ? '列：id, slug, title, excerpt, status, publishedAt, body_json。不含分类与头图。'
         : slug === 'keywords'
           ? '列：id, term, slug, notes, status, site_id。'
-          : slug === 'media'
-            ? '列：id, alt, filename, mimeType, filesize, site_id。导入仅更新 alt；无 site 的旧媒体会写入所选站点。'
-            : slug === 'categories'
-              ? '列：id, name, slug, description, tenant_id, site_id。导入需先选站点；新建行写入该站点。'
-              : '列：id, name, slug, description, templateConfig_json, tenant_id, site_id。导入需先选站点；新建行写入该站点。'
+          : slug === 'knowledge-base'
+            ? '列：id, slug, title, status, notes, site_id, body_json, entry_type, skill_id, subject, summary, payload_json, severity, expires_at, artifact_class。不含分类。导出所选=仅该站点；导出全部=租户范围内全部（含无站点）。'
+            : slug === 'operation-manuals'
+              ? '列：id, slug, title, level, status, summary, search_keywords, body_json, sort_order。无 site；level 为 intro/standard/advanced；导出所选与导出全部为当前租户内全部；导入前选站点仅作权限校验。'
+              : slug === 'media'
+                ? '列：id, alt, filename, mimeType, filesize, site_id。导入仅更新 alt；无 site 的旧媒体会写入所选站点。'
+                : slug === 'categories'
+                  ? '列：id, name, slug, description, tenant_id, site_id。导入需先选站点；新建行写入该站点。'
+                  : '列：id, name, slug, description, templateConfig_json, tenant_id, site_id。导入需先选站点；新建行写入该站点。'
 
   if (!expanded) {
     return null

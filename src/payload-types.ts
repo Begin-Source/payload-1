@@ -91,6 +91,7 @@ export interface Config {
     commissions: Commission;
     teams: Team;
     'knowledge-base': KnowledgeBase;
+    'operation-manuals': OperationManual;
     'audit-logs': AuditLog;
     tenants: Tenant;
     users: User;
@@ -134,6 +135,7 @@ export interface Config {
     commissions: CommissionsSelect<false> | CommissionsSelect<true>;
     teams: TeamsSelect<false> | TeamsSelect<true>;
     'knowledge-base': KnowledgeBaseSelect<false> | KnowledgeBaseSelect<true>;
+    'operation-manuals': OperationManualsSelect<false> | OperationManualsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -1397,6 +1399,55 @@ export interface KnowledgeBase {
   createdAt: string;
 }
 /**
+ * 系统操作说明；一线员工可阅读，仅管理员与指定角色可编辑。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "operation-manuals".
+ */
+export interface OperationManual {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  /**
+   * 可选，用于稳定链接与检索。
+   */
+  slug?: string | null;
+  /**
+   * 操作难度 / 受众级别。
+   */
+  level: 'intro' | 'standard' | 'advanced';
+  status: 'draft' | 'published';
+  /**
+   * 列表展示与搜索摘要。
+   */
+  summary?: string | null;
+  /**
+   * 可选；逗号或空格分隔，补充列表搜索（正文不在默认搜索范围内）。
+   */
+  searchKeywords?: string | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * 同级别内排序，数字越小越靠前。
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "audit-logs".
  */
@@ -2471,6 +2522,10 @@ export interface PayloadLockedDocument {
         value: number | KnowledgeBase;
       } | null)
     | ({
+        relationTo: 'operation-manuals';
+        value: number | OperationManual;
+      } | null)
+    | ({
         relationTo: 'audit-logs';
         value: number | AuditLog;
       } | null)
@@ -3083,6 +3138,23 @@ export interface KnowledgeBaseSelect<T extends boolean = true> {
   severity?: T;
   expiresAt?: T;
   artifactClass?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "operation-manuals_select".
+ */
+export interface OperationManualsSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  level?: T;
+  status?: T;
+  summary?: T;
+  searchKeywords?: T;
+  body?: T;
+  sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;
 }

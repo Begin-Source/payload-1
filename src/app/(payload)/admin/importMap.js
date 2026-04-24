@@ -52,6 +52,7 @@ import { AdminBrandingIcon as AdminBrandingIcon_b1627480a7b1ea44a480239cce60653d
 import { AdminBrandingLogo as AdminBrandingLogo_ffcd50864d34f341cef09ccb08501192 } from '../../../components/AdminBrandingLogo'
 import { BeforeDashboardMilestone as BeforeDashboardMilestone_3719a54b7b6993337f9eb099b70f0f9b } from '../../../components/BeforeDashboardMilestone'
 import { TenantSelector as TenantSelector_d6d5f193a167989e2ee7d14202901e62 } from '@payloadcms/plugin-multi-tenant/rsc'
+import { KnowledgeReadNavLink as KnowledgeReadNavLink_101990354097f86fa59616ae4a98e808 } from '../../../components/KnowledgeReadNavLink'
 import { AdminBrandingProvider as AdminBrandingProvider_44ab57c43dcee8db134a3e5db338ce23 } from '../../../components/AdminBrandingProvider'
 import { TenantSelectionProvider as TenantSelectionProvider_d6d5f193a167989e2ee7d14202901e62 } from '@payloadcms/plugin-multi-tenant/rsc'
 import { InstructionsProvider as InstructionsProvider_4490b89d4413c1ffaecdacfe72efaf73 } from '@ai-stack/payloadcms/client'
@@ -114,6 +115,7 @@ export const importMap = {
   "./components/AdminBrandingLogo#AdminBrandingLogo": AdminBrandingLogo_ffcd50864d34f341cef09ccb08501192,
   "./components/BeforeDashboardMilestone#BeforeDashboardMilestone": BeforeDashboardMilestone_3719a54b7b6993337f9eb099b70f0f9b,
   "@payloadcms/plugin-multi-tenant/rsc#TenantSelector": TenantSelector_d6d5f193a167989e2ee7d14202901e62,
+  "./components/KnowledgeReadNavLink#KnowledgeReadNavLink": KnowledgeReadNavLink_101990354097f86fa59616ae4a98e808,
   "./components/AdminBrandingProvider#AdminBrandingProvider": AdminBrandingProvider_44ab57c43dcee8db134a3e5db338ce23,
   "@payloadcms/plugin-multi-tenant/rsc#TenantSelectionProvider": TenantSelectionProvider_d6d5f193a167989e2ee7d14202901e62,
   "@ai-stack/payloadcms/client#InstructionsProvider": InstructionsProvider_4490b89d4413c1ffaecdacfe72efaf73,
