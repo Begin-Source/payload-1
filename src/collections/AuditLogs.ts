@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const AuditLogs: CollectionConfig = {
   slug: 'audit-logs',
@@ -11,12 +11,7 @@ export const AuditLogs: CollectionConfig = {
     useAsTitle: 'id',
     defaultColumns: ['action', 'collectionSlug', 'actor', 'occurredAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('audit-logs'),
   fields: [
     {
       name: 'action',

@@ -4,7 +4,7 @@ import { lexicalEditorWithAi } from '@/utilities/lexicalEditorWithAi'
 
 import { authorsGdprValidate } from '@/collections/hooks/authorsGdprValidate'
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const Authors: CollectionConfig = {
   slug: 'authors',
@@ -14,12 +14,7 @@ export const Authors: CollectionConfig = {
     useAsTitle: 'displayName',
     defaultColumns: ['displayName', 'role', 'updatedAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('authors'),
   hooks: {
     beforeValidate: [authorsGdprValidate],
   },

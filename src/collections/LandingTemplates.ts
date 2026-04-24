@@ -1,8 +1,8 @@
 import type { CollectionConfig } from 'payload'
 
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 import { blogChromeTemplateFields } from '@/collections/shared/blogPublicFields'
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 const landingPresetFields: CollectionConfig['fields'] = [
   {
@@ -89,12 +89,7 @@ export const LandingTemplates: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'previewUrl', 'updatedAt'],
     description: '站点前台预设主题与配文；在「设计」中可微调。',
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('landing-templates'),
   fields: [
     {
       name: 'name',

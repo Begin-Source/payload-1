@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Offers: CollectionConfig = {
   slug: 'offers',
@@ -11,12 +11,7 @@ export const Offers: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'network', 'status', 'updatedAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('offers'),
   fields: [
     {
       name: 'title',

@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const SocialPlatforms: CollectionConfig = {
   slug: 'social-platforms',
@@ -11,12 +11,7 @@ export const SocialPlatforms: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'status', 'updatedAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('social-platforms'),
   fields: [
     { name: 'name', type: 'text', required: true },
     { name: 'slug', type: 'text', required: true, index: true },

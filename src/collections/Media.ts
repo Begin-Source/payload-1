@@ -5,7 +5,11 @@ import {
   requireSiteOnCreate,
   siteScopedSiteField,
 } from '@/collections/shared/siteScopedSiteField'
+import { isUsersCollection } from '@/utilities/announcementAccess'
+import { denyFinanceOnlyUnlessWhitelisted, financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
+import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { getTenantScopeForStats } from '@/utilities/tenantScope'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -33,10 +37,37 @@ export const Media: CollectionConfig = {
     beforeChange: [requireSiteOnCreate],
   },
   access: {
-    read: () => true,
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
+    read: async ({ req }) => {
+      if (financeOnlyBlocksCollection(req.user, 'media')) return false
+      if (!req.user) return true
+      if (userHasAllTenantAccess(req.user)) return true
+      if (!isUsersCollection(req.user)) return false
+      const scope = getTenantScopeForStats(req.user)
+      if (scope.mode === 'all') return true
+      if (scope.mode === 'none') return { id: { equals: 0 } }
+      const sitesRes = await req.payload.find({
+        collection: 'sites',
+        depth: 0,
+        limit: 500,
+        pagination: false,
+        where: { tenant: { in: scope.tenantIds } },
+      })
+      const siteIds = sitesRes.docs.map((s: { id: number }) => s.id)
+      if (siteIds.length === 0) return { id: { equals: 0 } }
+      return { site: { in: siteIds } }
+    },
+    create: denyFinanceOnlyUnlessWhitelisted(
+      'media',
+      superAdminPasses(({ req: { user } }) => Boolean(user)),
+    ),
+    update: denyFinanceOnlyUnlessWhitelisted(
+      'media',
+      superAdminPasses(({ req: { user } }) => Boolean(user)),
+    ),
+    delete: denyFinanceOnlyUnlessWhitelisted(
+      'media',
+      superAdminPasses(({ req: { user } }) => Boolean(user)),
+    ),
   },
   fields: [
     {

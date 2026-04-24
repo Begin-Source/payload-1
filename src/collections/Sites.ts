@@ -2,8 +2,8 @@ import type { CollectionConfig } from 'payload'
 
 import { siteTrustPagesInstantiate } from '@/collections/hooks/siteTrustPagesInstantiate'
 import { blogChromeSiteFields } from '@/collections/shared/blogPublicFields'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Sites: CollectionConfig = {
   slug: 'sites',
@@ -13,12 +13,7 @@ export const Sites: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'status', 'primaryDomain', 'updatedAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('sites'),
   hooks: {
     afterChange: [siteTrustPagesInstantiate],
   },

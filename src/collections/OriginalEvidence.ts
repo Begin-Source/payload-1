@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const OriginalEvidence: CollectionConfig = {
   slug: 'original-evidence',
@@ -11,12 +11,7 @@ export const OriginalEvidence: CollectionConfig = {
     useAsTitle: 'id',
     defaultColumns: ['kind', 'article', 'capturedAt', 'updatedAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('original-evidence'),
   fields: [
     {
       name: 'kind',

@@ -1,8 +1,8 @@
 import type { CollectionConfig } from 'payload'
 
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 import { contentBriefOutlineValidate } from '@/collections/hooks/contentBriefOutlineValidate'
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const ContentBriefs: CollectionConfig = {
   slug: 'content-briefs',
@@ -12,12 +12,7 @@ export const ContentBriefs: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'site', 'status', 'updatedAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('content-briefs'),
   hooks: {
     beforeValidate: [contentBriefOutlineValidate],
   },

@@ -5,7 +5,7 @@ import { postLikeFields } from '@/collections/shared/postLikeFields'
 import { validateSlugLocaleUnique } from '@/collections/shared/validateSlugLocaleUnique'
 import { validateCategoriesMatchSite } from '@/collections/shared/validateCategoriesMatchSite'
 import { pageLinkGraphSync } from '@/collections/hooks/pageLinkGraphSync'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
@@ -34,11 +34,6 @@ export const Pages: CollectionConfig = {
     beforeChange: [validateCategoriesMatchSite, validateSlugLocaleUnique('pages')],
     afterChange: [pageLinkGraphSync],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('pages'),
   fields: postLikeFields,
 }

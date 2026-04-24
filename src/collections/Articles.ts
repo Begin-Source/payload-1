@@ -10,8 +10,8 @@ import { articleLinkBudget } from '@/collections/hooks/articleLinkBudget'
 import { pageLinkGraphSync } from '@/collections/hooks/pageLinkGraphSync'
 import { articleLifecycleOnPublish } from '@/collections/hooks/articleLifecycleOnPublish'
 import { articlePublishGate } from '@/collections/hooks/articlePublishGate'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 import { validateCategoriesMatchSite } from '@/collections/shared/validateCategoriesMatchSite'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
 
 export const Articles: CollectionConfig = {
   slug: 'articles',
@@ -47,11 +47,6 @@ export const Articles: CollectionConfig = {
     beforeRead: [articleBeforeReadAffiliate],
     afterChange: [articleAfterChangeWorkflow, pageLinkGraphSync],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('articles'),
   fields: [...postLikeFields, ...articleSeoFields],
 }

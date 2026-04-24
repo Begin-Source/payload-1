@@ -6,6 +6,10 @@ import {
   canTeamLeadManageDoc,
   isUsersCollection,
 } from '@/utilities/announcementAccess'
+import {
+  denyFinanceOnlyUnlessWhitelisted,
+  financeOnlyBlocksCollection,
+} from '@/utilities/financeRoleAccess'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
@@ -29,8 +33,12 @@ export const Announcements: CollectionConfig = {
     description: '系统公告（租户内广播）与团队公告（组长发布给本组）。',
   },
   access: {
-    read: superAdminPasses(({ req: { user } }) => announcementsReadWhere(user)),
+    read: denyFinanceOnlyUnlessWhitelisted(
+      'announcements',
+      superAdminPasses(({ req: { user } }) => announcementsReadWhere(user)),
+    ),
     create: async ({ req: { user, payload } }) => {
+      if (financeOnlyBlocksCollection(user, 'announcements')) return false
       if (!isUsersCollection(user)) return false
       if (userHasAllTenantAccess(user)) return true
       const subs = await payload.count({
@@ -39,7 +47,9 @@ export const Announcements: CollectionConfig = {
       })
       return subs.totalDocs > 0
     },
-    update: superAdminPasses(async ({ req, id }) => {
+    update: denyFinanceOnlyUnlessWhitelisted(
+      'announcements',
+      superAdminPasses(async ({ req, id }) => {
       if (!isUsersCollection(req.user) || !id) return false
       const doc = (await req.payload.findByID({
         collection: 'announcements',
@@ -49,7 +59,10 @@ export const Announcements: CollectionConfig = {
       if (doc.kind === 'system') return false
       return canTeamLeadManageDoc(req.user, teamLeadIdFromDoc(doc))
     }),
-    delete: superAdminPasses(async ({ req, id }) => {
+    ),
+    delete: denyFinanceOnlyUnlessWhitelisted(
+      'announcements',
+      superAdminPasses(async ({ req, id }) => {
       if (!isUsersCollection(req.user) || !id) return false
       const doc = (await req.payload.findByID({
         collection: 'announcements',
@@ -59,6 +72,7 @@ export const Announcements: CollectionConfig = {
       if (doc.kind === 'system') return false
       return canTeamLeadManageDoc(req.user, teamLeadIdFromDoc(doc))
     }),
+    ),
   },
   hooks: {
     beforeChange: [

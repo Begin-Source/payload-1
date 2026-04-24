@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
+import { financeOnlyBlocksGlobal } from '@/utilities/financeRoleAccess'
 import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
@@ -70,8 +71,14 @@ export const PipelineSettings: GlobalConfig = {
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
   },
   access: {
-    read: superAdminPasses(() => true),
-    update: superAdminPasses(() => true),
+    read: (args) => {
+      if (financeOnlyBlocksGlobal(args.req.user, 'pipeline-settings')) return false
+      return superAdminPasses(() => true)(args)
+    },
+    update: (args) => {
+      if (financeOnlyBlocksGlobal(args.req.user, 'pipeline-settings')) return false
+      return superAdminPasses(() => true)(args)
+    },
   },
   fields: [
     {

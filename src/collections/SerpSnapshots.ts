@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const SerpSnapshots: CollectionConfig = {
   slug: 'serp-snapshots',
@@ -11,12 +11,7 @@ export const SerpSnapshots: CollectionConfig = {
     useAsTitle: 'searchQuery',
     defaultColumns: ['searchQuery', 'keyword', 'engine', 'capturedAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('serp-snapshots'),
   fields: [
     { name: 'searchQuery', type: 'text', label: 'Query' },
     { name: 'keyword', type: 'relationship', relationTo: 'keywords' },

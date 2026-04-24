@@ -1,7 +1,13 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
+import {
+  denyFinanceOnlyUnlessWhitelisted,
+  userMayWriteCommissions,
+} from '@/utilities/financeRoleAccess'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
+
+const loggedInRead = superAdminPasses(({ req: { user } }) => Boolean(user))
 
 export const Commissions: CollectionConfig = {
   slug: 'commissions',
@@ -12,10 +18,19 @@ export const Commissions: CollectionConfig = {
     defaultColumns: ['amount', 'currency', 'status', 'recipient', 'offer', 'updatedAt'],
   },
   access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
+    read: denyFinanceOnlyUnlessWhitelisted('commissions', loggedInRead),
+    create: denyFinanceOnlyUnlessWhitelisted(
+      'commissions',
+      superAdminPasses(({ req: { user } }) => userMayWriteCommissions(user)),
+    ),
+    update: denyFinanceOnlyUnlessWhitelisted(
+      'commissions',
+      superAdminPasses(({ req: { user } }) => userMayWriteCommissions(user)),
+    ),
+    delete: denyFinanceOnlyUnlessWhitelisted(
+      'commissions',
+      superAdminPasses(({ req: { user } }) => userMayWriteCommissions(user)),
+    ),
   },
   fields: [
     {

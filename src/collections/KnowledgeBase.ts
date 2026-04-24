@@ -3,7 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { lexicalEditorWithAi } from '@/utilities/lexicalEditorWithAi'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const KnowledgeBase: CollectionConfig = {
   slug: 'knowledge-base',
@@ -17,12 +17,7 @@ export const KnowledgeBase: CollectionConfig = {
       listMenuItems: ['./components/ArticleFindReplacePanel#FindReplaceListMenuItem'],
     },
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('knowledge-base'),
   fields: [
     { name: 'title', type: 'text', required: true },
     { name: 'slug', type: 'text', index: true },

@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
+import { denyFinanceOnlyUnlessWhitelisted } from '@/utilities/financeRoleAccess'
 import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
@@ -14,10 +15,10 @@ export const SiteQuotas: CollectionConfig = {
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
   },
   access: {
-    read: superAdminPasses(() => false),
-    create: superAdminPasses(() => false),
-    update: superAdminPasses(() => false),
-    delete: superAdminPasses(() => false),
+    read: denyFinanceOnlyUnlessWhitelisted('site-quotas', superAdminPasses(() => false)),
+    create: denyFinanceOnlyUnlessWhitelisted('site-quotas', superAdminPasses(() => false)),
+    update: denyFinanceOnlyUnlessWhitelisted('site-quotas', superAdminPasses(() => false)),
+    delete: denyFinanceOnlyUnlessWhitelisted('site-quotas', superAdminPasses(() => false)),
   },
   fields: [
     {

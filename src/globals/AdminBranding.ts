@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
+import { financeOnlyBlocksGlobal } from '@/utilities/financeRoleAccess'
 import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
@@ -12,8 +13,14 @@ export const AdminBranding: GlobalConfig = {
     hidden: ({ user }) => !isSuperAdminLikeUser(user),
   },
   access: {
-    read: superAdminPasses(() => false),
-    update: superAdminPasses(() => false),
+    read: (args) => {
+      if (financeOnlyBlocksGlobal(args.req.user, 'admin-branding')) return false
+      return superAdminPasses(() => false)(args)
+    },
+    update: (args) => {
+      if (financeOnlyBlocksGlobal(args.req.user, 'admin-branding')) return false
+      return superAdminPasses(() => false)(args)
+    },
   },
   fields: [
     {

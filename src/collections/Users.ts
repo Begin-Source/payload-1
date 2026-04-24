@@ -1,8 +1,69 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionBeforeChangeHook, CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
+import { isUsersCollection } from '@/utilities/announcementAccess'
+import { financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { getTenantIdsForUser } from '@/utilities/tenantScope'
+import { userHasRole } from '@/utilities/userRoles'
+import { usersReadWhere, usersUpdateWhere } from '@/utilities/usersAccess'
+
+function tenantIdsFromIncomingTenants(data: Record<string, unknown>): number[] {
+  const rows = data.tenants
+  if (!Array.isArray(rows)) return []
+  const ids: number[] = []
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue
+    const t = (row as { tenant?: unknown }).tenant
+    const id =
+      typeof t === 'object' && t !== null && 'id' in t
+        ? Number((t as { id: unknown }).id)
+        : typeof t === 'number'
+          ? t
+          : null
+    if (typeof id === 'number' && Number.isFinite(id)) ids.push(id)
+  }
+  return ids
+}
+
+const enforceUserTenantAndRoles: CollectionBeforeChangeHook = ({
+  data,
+  req,
+  operation,
+  originalDoc,
+}) => {
+  let next = { ...data }
+  const roles = next.roles
+  if (Array.isArray(roles) && roles.includes('super-admin') && !userHasAllTenantAccess(req.user)) {
+    const withoutSuperAdmin = roles.filter((r: string) => r !== 'super-admin')
+    next = { ...next, roles: withoutSuperAdmin.length > 0 ? withoutSuperAdmin : ['user'] }
+  }
+
+  if (!isUsersCollection(req.user)) return next
+
+  if (operation === 'update' && originalDoc && Array.isArray((originalDoc as { roles?: unknown }).roles)) {
+    const origRoles = (originalDoc as { roles: string[] }).roles
+    if (origRoles.includes('super-admin') && !userHasAllTenantAccess(req.user)) {
+      throw new Error('不能修改超级管理员账户')
+    }
+  }
+
+  if (userHasRole(req.user, 'ops-manager') && !userHasAllTenantAccess(req.user)) {
+    const allowed = new Set(getTenantIdsForUser(req.user))
+    const incoming = tenantIdsFromIncomingTenants(next as Record<string, unknown>)
+    if (incoming.length === 0 && operation === 'create') {
+      throw new Error('新建用户必须分配至少一个所属租户')
+    }
+    for (const tid of incoming) {
+      if (!allowed.has(tid)) {
+        throw new Error('只能将用户分配到您已拥有的租户')
+      }
+    }
+  }
+
+  return next
+}
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -15,29 +76,25 @@ export const Users: CollectionConfig = {
   access: {
     admin: ({ req: { user } }) => Boolean(user),
     create: ({ req: { user } }) => {
+      if (financeOnlyBlocksCollection(user, 'users')) return false
       if (userHasAllTenantAccess(user)) return true
-      return !user
+      if (!user) return true
+      if (isUsersCollection(user) && userHasRole(user, 'ops-manager')) return true
+      return false
     },
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
+    read: (args) => {
+      if (financeOnlyBlocksCollection(args.req.user, 'users')) return false
+      return superAdminPasses(({ req: { user } }) => usersReadWhere(user))(args)
+    },
+    update: (args) => {
+      if (financeOnlyBlocksCollection(args.req.user, 'users')) return false
+      return superAdminPasses(({ req: { user } }) => usersUpdateWhere(user))(args)
+    },
     delete: superAdminPasses(() => false),
     unlock: superAdminPasses(() => false),
   },
   hooks: {
-    beforeChange: [
-      ({ data, req }) => {
-        const roles = data.roles
-        if (!Array.isArray(roles) || !roles.includes('super-admin')) {
-          return data
-        }
-        if (userHasAllTenantAccess(req.user)) {
-          return data
-        }
-        const withoutSuperAdmin = roles.filter((r: string) => r !== 'super-admin')
-        const nextRoles = withoutSuperAdmin.length > 0 ? withoutSuperAdmin : ['user']
-        return { ...data, roles: nextRoles }
-      },
-    ],
+    beforeChange: [enforceUserTenantAndRoles],
   },
   fields: [
     {
@@ -64,7 +121,9 @@ export const Users: CollectionConfig = {
         { label: '站长', value: 'site-manager' },
       ],
       access: {
-        update: ({ req: { user } }) => userHasAllTenantAccess(user),
+        update: ({ req: { user } }) =>
+          userHasAllTenantAccess(user) ||
+          (isUsersCollection(user) && userHasRole(user, 'ops-manager')),
       },
       admin: {
         description:

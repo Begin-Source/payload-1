@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const PageLinkGraph: CollectionConfig = {
   slug: 'page-link-graph',
@@ -11,12 +11,7 @@ export const PageLinkGraph: CollectionConfig = {
     useAsTitle: 'anchorText',
     defaultColumns: ['site', 'fromCollection', 'toCollection', 'location', 'lastSeenAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('page-link-graph'),
   fields: [
     { name: 'site', type: 'relationship', relationTo: 'sites' },
     { name: 'fromCollection', type: 'text', required: true, index: true },

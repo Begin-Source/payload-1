@@ -6,6 +6,7 @@ import {
   requireSiteOnCreate,
   siteScopedSiteField,
 } from '@/collections/shared/siteScopedSiteField'
+import { denyFinanceOnlyUnlessWhitelisted } from '@/utilities/financeRoleAccess'
 import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
@@ -31,10 +32,10 @@ export const SiteBlueprints: CollectionConfig = {
     beforeChange: [requireSiteOnCreate],
   },
   access: {
-    read: superAdminPasses(() => false),
-    create: superAdminPasses(() => false),
-    update: superAdminPasses(() => false),
-    delete: superAdminPasses(() => false),
+    read: denyFinanceOnlyUnlessWhitelisted('site-blueprints', superAdminPasses(() => false)),
+    create: denyFinanceOnlyUnlessWhitelisted('site-blueprints', superAdminPasses(() => false)),
+    update: denyFinanceOnlyUnlessWhitelisted('site-blueprints', superAdminPasses(() => false)),
+    delete: denyFinanceOnlyUnlessWhitelisted('site-blueprints', superAdminPasses(() => false)),
   },
   fields: [
     {

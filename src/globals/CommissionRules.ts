@@ -1,19 +1,22 @@
 import type { GlobalConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import {
+  canReadCommissionRulesGlobal,
+  canUpdateCommissionRulesGlobal,
+} from '@/utilities/financeRoleAccess'
+import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 
 export const CommissionRules: GlobalConfig = {
   slug: 'commission-rules',
   label: '佣金规则',
   admin: {
     group: adminGroups.finance,
-    hidden: ({ user }) => !isSuperAdminLikeUser(user),
+    hidden: ({ user }) => !canReadCommissionRulesGlobal(user),
   },
   access: {
-    read: superAdminPasses(() => false),
-    update: superAdminPasses(() => false),
+    read: ({ req: { user } }) => userHasAllTenantAccess(user) || canReadCommissionRulesGlobal(user),
+    update: ({ req: { user } }) => canUpdateCommissionRulesGlobal(user),
   },
   fields: [
     {

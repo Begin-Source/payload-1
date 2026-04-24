@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const Rankings: CollectionConfig = {
   slug: 'rankings',
@@ -11,12 +11,7 @@ export const Rankings: CollectionConfig = {
     useAsTitle: 'searchQuery',
     defaultColumns: ['searchQuery', 'site', 'serpPosition', 'capturedAt', 'updatedAt'],
   },
-  access: {
-    read: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    create: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    update: superAdminPasses(({ req: { user } }) => Boolean(user)),
-    delete: superAdminPasses(({ req: { user } }) => Boolean(user)),
-  },
+  access: loggedInSuperAdminAccessFor('rankings'),
   fields: [
     {
       name: 'keyword',
