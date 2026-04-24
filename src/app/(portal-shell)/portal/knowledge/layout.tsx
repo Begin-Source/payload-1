@@ -13,6 +13,9 @@ import type { Config } from '@/payload-types'
 import '@/components/blog/blog.css'
 import './knowledge-portal.css'
 
+/** Logged-in + D1: avoid static prerender during `next build` (no session / fewer SQLITE races). */
+export const dynamic = 'force-dynamic'
+
 type Props = {
   children: React.ReactNode
 }

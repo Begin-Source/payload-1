@@ -8,6 +8,8 @@ import { lexicalStateToHtml } from '@/utilities/lexicalToHtml'
 import { findOperationManualBySlug } from '@/utilities/knowledgePortalQueries'
 import type { Config } from '@/payload-types'
 
+export const dynamic = 'force-dynamic'
+
 type Props = { params: Promise<{ slug: string }> }
 
 function levelLabel(level: string | null | undefined): string {

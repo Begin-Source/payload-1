@@ -6,6 +6,8 @@ import React from 'react'
 import { getKnowledgePortalNavData } from '@/utilities/knowledgePortalQueries'
 import type { Config } from '@/payload-types'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: '知识库阅读',
 }

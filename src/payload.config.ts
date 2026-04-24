@@ -150,6 +150,17 @@ const payloadSecret =
   (typeof payloadSecretFromBinding === 'string' ? payloadSecretFromBinding.trim() : '') ||
   ''
 
+/**
+ * `getPayload` rejects an empty `secret`. CI / `next build` often has no PAYLOAD_SECRET in
+ * `process.env` (Worker runtime secrets are not the same as the Git build environment).
+ * Use a non-empty placeholder only for the build phase; real deployments still require
+ * `payloadSecret` (see check below) or Worker bindings.
+ */
+const payloadSecretForConfig =
+  isNextBuild && !payloadSecret
+    ? '__PAYLOAD_NEXT_BUILD_PLACEHOLDER_NOT_USED_AT_RUNTIME__'
+    : payloadSecret
+
 if (isProduction && !isNextBuild && !isCLI && !payloadSecret) {
   throw new Error(
     'PAYLOAD_SECRET is required in production. Set a Worker secret (e.g. wrangler secret put PAYLOAD_SECRET) or Variables in the Cloudflare dashboard. The value used only for CI migrate is not available to the deployed Worker.',
@@ -261,7 +272,7 @@ export default buildConfig({
     PipelineSettings,
   ],
   editor: lexicalEditorWithAi(),
-  secret: payloadSecret,
+  secret: payloadSecretForConfig,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

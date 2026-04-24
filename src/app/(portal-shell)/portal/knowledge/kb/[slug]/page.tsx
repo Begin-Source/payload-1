@@ -8,6 +8,8 @@ import { lexicalStateToHtml } from '@/utilities/lexicalToHtml'
 import { findKnowledgeBySlug } from '@/utilities/knowledgePortalQueries'
 import type { Config } from '@/payload-types'
 
+export const dynamic = 'force-dynamic'
+
 type Props = { params: Promise<{ slug: string }> }
 
 export async function generateMetadata(props: Props) {
