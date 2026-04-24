@@ -1,13 +1,21 @@
-import type { CollectionBeforeChangeHook, CollectionConfig } from 'payload'
+import type { Access, CollectionBeforeChangeHook, CollectionConfig } from 'payload'
 
+import type { Config } from '@/payload-types'
 import { adminGroups } from '@/constants/adminGroups'
 import { isUsersCollection } from '@/utilities/announcementAccess'
 import { financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 import { getTenantIdsForUser } from '@/utilities/tenantScope'
-import { userHasRole } from '@/utilities/userRoles'
+import {
+  announcementsPortalBlocksCollection,
+  userHasFinanceRoleNonSuper,
+  userIsPureSiteManagerWithoutTeamOrOps,
+} from '@/utilities/userAccessTiers'
+import { userHasRole, userHasTenantGeneralManagerRole } from '@/utilities/userRoles'
 import { usersReadWhere, usersUpdateWhere } from '@/utilities/usersAccess'
+
+const OPS_CREATABLE_ROLES = new Set(['team-lead', 'site-manager'])
 
 function tenantIdsFromIncomingTenants(data: Record<string, unknown>): number[] {
   const rows = data.tenants
@@ -25,6 +33,11 @@ function tenantIdsFromIncomingTenants(data: Record<string, unknown>): number[] {
     if (typeof id === 'number' && Number.isFinite(id)) ids.push(id)
   }
   return ids
+}
+
+function normalizeRoles(roles: unknown): string[] {
+  if (!Array.isArray(roles)) return []
+  return roles.map((r) => String(r))
 }
 
 const enforceUserTenantAndRoles: CollectionBeforeChangeHook = ({
@@ -49,7 +62,51 @@ const enforceUserTenantAndRoles: CollectionBeforeChangeHook = ({
     }
   }
 
-  if (userHasRole(req.user, 'ops-manager') && !userHasAllTenantAccess(req.user)) {
+  const actor = req.user
+  if (!userHasAllTenantAccess(actor) && isUsersCollection(actor)) {
+    const nextRoles = normalizeRoles(next.roles)
+    if (!userHasTenantGeneralManagerRole(actor) && userHasRole(actor, 'ops-manager')) {
+      for (const r of nextRoles) {
+        if (!OPS_CREATABLE_ROLES.has(r)) {
+          throw new Error('运营经理仅可将用户角色设为组长或站长')
+        }
+      }
+      if (nextRoles.length === 0) {
+        throw new Error('请至少为账户指定组长或站长角色')
+      }
+    } else if (
+      !userHasTenantGeneralManagerRole(actor) &&
+      userHasRole(actor, 'team-lead') &&
+      !userHasRole(actor, 'ops-manager')
+    ) {
+      const unique = [...new Set(nextRoles)].sort()
+      if (unique.length !== 1 || unique[0] !== 'site-manager') {
+        throw new Error('组长仅可创建或维护「站长」角色用户')
+      }
+    }
+  }
+
+  if (
+    (userHasRole(req.user, 'ops-manager') || userHasTenantGeneralManagerRole(req.user)) &&
+    !userHasAllTenantAccess(req.user)
+  ) {
+    const allowed = new Set(getTenantIdsForUser(req.user))
+    const incoming = tenantIdsFromIncomingTenants(next as Record<string, unknown>)
+    if (incoming.length === 0 && operation === 'create') {
+      throw new Error('新建用户必须分配至少一个所属租户')
+    }
+    for (const tid of incoming) {
+      if (!allowed.has(tid)) {
+        throw new Error('只能将用户分配到您已拥有的租户')
+      }
+    }
+  }
+
+  if (
+    userHasRole(req.user, 'team-lead') &&
+    !userHasRole(req.user, 'ops-manager') &&
+    !userHasAllTenantAccess(req.user)
+  ) {
     const allowed = new Set(getTenantIdsForUser(req.user))
     const incoming = tenantIdsFromIncomingTenants(next as Record<string, unknown>)
     if (incoming.length === 0 && operation === 'create') {
@@ -65,31 +122,50 @@ const enforceUserTenantAndRoles: CollectionBeforeChangeHook = ({
   return next
 }
 
+const usersReadAccess: Access = (args) => {
+  const { user } = args.req
+  if (announcementsPortalBlocksCollection(user, 'users')) return false
+  if (financeOnlyBlocksCollection(user, 'users')) return false
+  if (userIsPureSiteManagerWithoutTeamOrOps(user)) return false
+  return superAdminPasses(({ req: { user: u } }) => usersReadWhere(u))(args)
+}
+
+const usersUpdateAccess: Access = (args) => {
+  const { user } = args.req
+  if (announcementsPortalBlocksCollection(user, 'users')) return false
+  if (financeOnlyBlocksCollection(user, 'users')) return false
+  if (userIsPureSiteManagerWithoutTeamOrOps(user)) return false
+  return superAdminPasses(({ req: { user: u } }) => usersUpdateWhere(u))(args)
+}
+
 export const Users: CollectionConfig = {
   slug: 'users',
   labels: { singular: '用户', plural: '用户' },
   admin: {
     group: adminGroups.team,
     useAsTitle: 'email',
+    hidden: ({ user }) =>
+      Boolean(user && userIsPureSiteManagerWithoutTeamOrOps(user as Config['user'])),
   },
   auth: true,
   access: {
     admin: ({ req: { user } }) => Boolean(user),
     create: ({ req: { user } }) => {
+      if (userHasFinanceRoleNonSuper(user)) return false
+      if (announcementsPortalBlocksCollection(user, 'users')) return false
+      if (userIsPureSiteManagerWithoutTeamOrOps(user)) return false
       if (financeOnlyBlocksCollection(user, 'users')) return false
       if (userHasAllTenantAccess(user)) return true
       if (!user) return true
       if (isUsersCollection(user) && userHasRole(user, 'ops-manager')) return true
+      if (isUsersCollection(user) && userHasTenantGeneralManagerRole(user)) return true
+      if (isUsersCollection(user) && userHasRole(user, 'team-lead') && !userHasRole(user, 'ops-manager')) {
+        return true
+      }
       return false
     },
-    read: (args) => {
-      if (financeOnlyBlocksCollection(args.req.user, 'users')) return false
-      return superAdminPasses(({ req: { user } }) => usersReadWhere(user))(args)
-    },
-    update: (args) => {
-      if (financeOnlyBlocksCollection(args.req.user, 'users')) return false
-      return superAdminPasses(({ req: { user } }) => usersUpdateWhere(user))(args)
-    },
+    read: usersReadAccess,
+    update: usersUpdateAccess,
     delete: superAdminPasses(() => false),
     unlock: superAdminPasses(() => false),
   },
@@ -119,11 +195,15 @@ export const Users: CollectionConfig = {
         { label: '运营经理', value: 'ops-manager' },
         { label: '组长', value: 'team-lead' },
         { label: '站长', value: 'site-manager' },
+        { label: '总经理', value: 'general-manager' },
       ],
       access: {
         update: ({ req: { user } }) =>
           userHasAllTenantAccess(user) ||
-          (isUsersCollection(user) && userHasRole(user, 'ops-manager')),
+          (isUsersCollection(user) &&
+            (userHasRole(user, 'ops-manager') ||
+              userHasTenantGeneralManagerRole(user) ||
+              (userHasRole(user, 'team-lead') && !userHasRole(user, 'ops-manager')))),
       },
       admin: {
         description:

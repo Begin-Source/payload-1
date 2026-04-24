@@ -1,16 +1,16 @@
 import type { Access } from 'payload'
 
-import { denyFinanceOnlyUnlessWhitelisted } from '@/utilities/financeRoleAccess'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { superAdminOrTenantGMPasses } from '@/utilities/superAdminPasses'
+import { denyPortalAndFinanceCollection } from '@/utilities/userAccessTiers'
 
 const loggedIn: Access = ({ req: { user } }) => Boolean(user)
 
-/** `superAdminPasses(loggedIn)` with finance-only collection whitelist. */
+/** `superAdminOrTenantGMPasses(loggedIn)` with finance + 仅公告 portal 白名单。 */
 export function loggedInSuperAdminAccessFor(collectionSlug: string) {
   return {
-    read: denyFinanceOnlyUnlessWhitelisted(collectionSlug, superAdminPasses(loggedIn)),
-    create: denyFinanceOnlyUnlessWhitelisted(collectionSlug, superAdminPasses(loggedIn)),
-    update: denyFinanceOnlyUnlessWhitelisted(collectionSlug, superAdminPasses(loggedIn)),
-    delete: denyFinanceOnlyUnlessWhitelisted(collectionSlug, superAdminPasses(loggedIn)),
+    read: denyPortalAndFinanceCollection(collectionSlug, superAdminOrTenantGMPasses(loggedIn)),
+    create: denyPortalAndFinanceCollection(collectionSlug, superAdminOrTenantGMPasses(loggedIn)),
+    update: denyPortalAndFinanceCollection(collectionSlug, superAdminOrTenantGMPasses(loggedIn)),
+    delete: denyPortalAndFinanceCollection(collectionSlug, superAdminOrTenantGMPasses(loggedIn)),
   }
 }

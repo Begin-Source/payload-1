@@ -1,9 +1,11 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminGroups } from '@/constants/adminGroups'
-import { denyFinanceOnlyUnlessWhitelisted } from '@/utilities/financeRoleAccess'
+import type { User } from '@/payload-types'
+import { denyPortalAndFinanceCollection } from '@/utilities/userAccessTiers'
 import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { superAdminOrTenantGMPasses } from '@/utilities/superAdminPasses'
+import { userHasTenantGeneralManagerRole } from '@/utilities/userRoles'
 
 export const SiteQuotas: CollectionConfig = {
   slug: 'site-quotas',
@@ -12,13 +14,14 @@ export const SiteQuotas: CollectionConfig = {
     group: adminGroups.operations,
     useAsTitle: 'name',
     defaultColumns: ['name', 'site', 'updatedAt'],
-    hidden: ({ user }) => !isSuperAdminLikeUser(user),
+    hidden: ({ user }) =>
+      !isSuperAdminLikeUser(user) && !userHasTenantGeneralManagerRole(user as User),
   },
   access: {
-    read: denyFinanceOnlyUnlessWhitelisted('site-quotas', superAdminPasses(() => false)),
-    create: denyFinanceOnlyUnlessWhitelisted('site-quotas', superAdminPasses(() => false)),
-    update: denyFinanceOnlyUnlessWhitelisted('site-quotas', superAdminPasses(() => false)),
-    delete: denyFinanceOnlyUnlessWhitelisted('site-quotas', superAdminPasses(() => false)),
+    read: denyPortalAndFinanceCollection('site-quotas', superAdminOrTenantGMPasses(() => false)),
+    create: denyPortalAndFinanceCollection('site-quotas', superAdminOrTenantGMPasses(() => false)),
+    update: denyPortalAndFinanceCollection('site-quotas', superAdminOrTenantGMPasses(() => false)),
+    delete: denyPortalAndFinanceCollection('site-quotas', superAdminOrTenantGMPasses(() => false)),
   },
   fields: [
     {

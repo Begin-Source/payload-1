@@ -3,6 +3,7 @@ import type { GlobalConfig } from 'payload'
 import { blogChromeGlobalFields } from '@/collections/shared/blogPublicFields'
 import { adminGroups } from '@/constants/adminGroups'
 import { financeOnlyBlocksGlobal } from '@/utilities/financeRoleAccess'
+import { announcementsPortalBlocksGlobal } from '@/utilities/userAccessTiers'
 import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 
@@ -17,10 +18,12 @@ export const PublicLanding: GlobalConfig = {
   },
   access: {
     read: ({ req: { user } }) => {
+      if (announcementsPortalBlocksGlobal(user, 'public-landing')) return false
       if (financeOnlyBlocksGlobal(user, 'public-landing')) return false
       return true
     },
     update: (args) => {
+      if (announcementsPortalBlocksGlobal(args.req.user, 'public-landing')) return false
       if (financeOnlyBlocksGlobal(args.req.user, 'public-landing')) return false
       return superAdminPasses(() => false)(args)
     },

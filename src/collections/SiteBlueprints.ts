@@ -1,14 +1,16 @@
 import type { CollectionConfig } from 'payload'
 
 import { blogChromeDesignFields } from '@/collections/shared/blogPublicFields'
+import type { User } from '@/payload-types'
 import { adminGroups } from '@/constants/adminGroups'
 import {
   requireSiteOnCreate,
   siteScopedSiteField,
 } from '@/collections/shared/siteScopedSiteField'
-import { denyFinanceOnlyUnlessWhitelisted } from '@/utilities/financeRoleAccess'
+import { denyPortalAndFinanceCollection } from '@/utilities/userAccessTiers'
 import { isSuperAdminLikeUser } from '@/utilities/isSuperAdminLikeUser'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { superAdminOrTenantGMPasses } from '@/utilities/superAdminPasses'
+import { userHasTenantGeneralManagerRole } from '@/utilities/userRoles'
 
 export const SiteBlueprints: CollectionConfig = {
   slug: 'site-blueprints',
@@ -17,7 +19,8 @@ export const SiteBlueprints: CollectionConfig = {
     group: adminGroups.website,
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'site', 'updatedAt'],
-    hidden: ({ user }) => !isSuperAdminLikeUser(user),
+    hidden: ({ user }) =>
+      !isSuperAdminLikeUser(user) && !userHasTenantGeneralManagerRole(user as User),
     components: {
       beforeListTable: ['./components/ArticleCsvImportExport#CsvImportExportPanel'],
       listMenuItems: ['./components/ArticleCsvImportExport#CsvImportExportListMenuItem'],
@@ -32,10 +35,10 @@ export const SiteBlueprints: CollectionConfig = {
     beforeChange: [requireSiteOnCreate],
   },
   access: {
-    read: denyFinanceOnlyUnlessWhitelisted('site-blueprints', superAdminPasses(() => false)),
-    create: denyFinanceOnlyUnlessWhitelisted('site-blueprints', superAdminPasses(() => false)),
-    update: denyFinanceOnlyUnlessWhitelisted('site-blueprints', superAdminPasses(() => false)),
-    delete: denyFinanceOnlyUnlessWhitelisted('site-blueprints', superAdminPasses(() => false)),
+    read: denyPortalAndFinanceCollection('site-blueprints', superAdminOrTenantGMPasses(() => false)),
+    create: denyPortalAndFinanceCollection('site-blueprints', superAdminOrTenantGMPasses(() => false)),
+    update: denyPortalAndFinanceCollection('site-blueprints', superAdminOrTenantGMPasses(() => false)),
+    delete: denyPortalAndFinanceCollection('site-blueprints', superAdminOrTenantGMPasses(() => false)),
   },
   fields: [
     {

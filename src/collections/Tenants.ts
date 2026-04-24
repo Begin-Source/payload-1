@@ -6,6 +6,7 @@ import { financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
 import { superAdminPasses } from '@/utilities/superAdminPasses'
 import { getTenantIdsForUser } from '@/utilities/tenantScope'
+import { announcementsPortalBlocksCollection } from '@/utilities/userAccessTiers'
 
 export const Tenants: CollectionConfig = {
   slug: 'tenants',
@@ -17,6 +18,7 @@ export const Tenants: CollectionConfig = {
   },
   access: {
     read: ({ req: { user } }) => {
+      if (announcementsPortalBlocksCollection(user, 'tenants')) return false
       if (financeOnlyBlocksCollection(user, 'tenants')) return false
       if (userHasAllTenantAccess(user)) return true
       if (!isUsersCollection(user)) return false

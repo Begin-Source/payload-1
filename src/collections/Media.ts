@@ -6,10 +6,14 @@ import {
   siteScopedSiteField,
 } from '@/collections/shared/siteScopedSiteField'
 import { isUsersCollection } from '@/utilities/announcementAccess'
-import { denyFinanceOnlyUnlessWhitelisted, financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
+import { financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { superAdminOrTenantGMPasses } from '@/utilities/superAdminPasses'
 import { getTenantScopeForStats } from '@/utilities/tenantScope'
+import {
+  announcementsPortalBlocksCollection,
+  denyPortalAndFinanceCollection,
+} from '@/utilities/userAccessTiers'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -38,6 +42,7 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: async ({ req }) => {
+      if (announcementsPortalBlocksCollection(req.user, 'media')) return false
       if (financeOnlyBlocksCollection(req.user, 'media')) return false
       if (!req.user) return true
       if (userHasAllTenantAccess(req.user)) return true
@@ -56,17 +61,17 @@ export const Media: CollectionConfig = {
       if (siteIds.length === 0) return { id: { equals: 0 } }
       return { site: { in: siteIds } }
     },
-    create: denyFinanceOnlyUnlessWhitelisted(
+    create: denyPortalAndFinanceCollection(
       'media',
-      superAdminPasses(({ req: { user } }) => Boolean(user)),
+      superAdminOrTenantGMPasses(({ req: { user } }) => Boolean(user)),
     ),
-    update: denyFinanceOnlyUnlessWhitelisted(
+    update: denyPortalAndFinanceCollection(
       'media',
-      superAdminPasses(({ req: { user } }) => Boolean(user)),
+      superAdminOrTenantGMPasses(({ req: { user } }) => Boolean(user)),
     ),
-    delete: denyFinanceOnlyUnlessWhitelisted(
+    delete: denyPortalAndFinanceCollection(
       'media',
-      superAdminPasses(({ req: { user } }) => Boolean(user)),
+      superAdminOrTenantGMPasses(({ req: { user } }) => Boolean(user)),
     ),
   },
   fields: [

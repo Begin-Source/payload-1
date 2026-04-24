@@ -6,12 +6,11 @@ import {
   canTeamLeadManageDoc,
   isUsersCollection,
 } from '@/utilities/announcementAccess'
-import {
-  denyFinanceOnlyUnlessWhitelisted,
-  financeOnlyBlocksCollection,
-} from '@/utilities/financeRoleAccess'
+import { financeOnlyBlocksCollection } from '@/utilities/financeRoleAccess'
 import { userHasAllTenantAccess } from '@/utilities/superAdmin'
-import { superAdminPasses } from '@/utilities/superAdminPasses'
+import { superAdminOrTenantGMPasses, superAdminPasses } from '@/utilities/superAdminPasses'
+import { denyPortalAndFinanceCollection } from '@/utilities/userAccessTiers'
+import { userHasTenantGeneralManagerRole } from '@/utilities/userRoles'
 
 type AnnouncementDoc = {
   kind?: 'system' | 'team'
@@ -33,45 +32,49 @@ export const Announcements: CollectionConfig = {
     description: '系统公告（租户内广播）与团队公告（组长发布给本组）。',
   },
   access: {
-    read: denyFinanceOnlyUnlessWhitelisted(
-      'announcements',
-      superAdminPasses(({ req: { user } }) => announcementsReadWhere(user)),
-    ),
+    read: denyPortalAndFinanceCollection('announcements', (args) => {
+      const u = args.req.user
+      if (userHasAllTenantAccess(u)) return true
+      if (userHasTenantGeneralManagerRole(u)) {
+        return announcementsReadWhere(u)
+      }
+      return superAdminPasses(({ req: { user: u2 } }) => announcementsReadWhere(u2))(args)
+    }),
     create: async ({ req: { user, payload } }) => {
       if (financeOnlyBlocksCollection(user, 'announcements')) return false
       if (!isUsersCollection(user)) return false
-      if (userHasAllTenantAccess(user)) return true
+      if (userHasAllTenantAccess(user) || userHasTenantGeneralManagerRole(user)) return true
       const subs = await payload.count({
         collection: 'users',
         where: { teamLead: { equals: user.id } },
       })
       return subs.totalDocs > 0
     },
-    update: denyFinanceOnlyUnlessWhitelisted(
+    update: denyPortalAndFinanceCollection(
       'announcements',
-      superAdminPasses(async ({ req, id }) => {
-      if (!isUsersCollection(req.user) || !id) return false
-      const doc = (await req.payload.findByID({
-        collection: 'announcements',
-        id,
-        depth: 0,
-      })) as AnnouncementDoc
-      if (doc.kind === 'system') return false
-      return canTeamLeadManageDoc(req.user, teamLeadIdFromDoc(doc))
-    }),
+      superAdminOrTenantGMPasses(async ({ req, id }) => {
+        if (!isUsersCollection(req.user) || !id) return false
+        const doc = (await req.payload.findByID({
+          collection: 'announcements',
+          id,
+          depth: 0,
+        })) as AnnouncementDoc
+        if (doc.kind === 'system') return false
+        return canTeamLeadManageDoc(req.user, teamLeadIdFromDoc(doc))
+      }),
     ),
-    delete: denyFinanceOnlyUnlessWhitelisted(
+    delete: denyPortalAndFinanceCollection(
       'announcements',
-      superAdminPasses(async ({ req, id }) => {
-      if (!isUsersCollection(req.user) || !id) return false
-      const doc = (await req.payload.findByID({
-        collection: 'announcements',
-        id,
-        depth: 0,
-      })) as AnnouncementDoc
-      if (doc.kind === 'system') return false
-      return canTeamLeadManageDoc(req.user, teamLeadIdFromDoc(doc))
-    }),
+      superAdminOrTenantGMPasses(async ({ req, id }) => {
+        if (!isUsersCollection(req.user) || !id) return false
+        const doc = (await req.payload.findByID({
+          collection: 'announcements',
+          id,
+          depth: 0,
+        })) as AnnouncementDoc
+        if (doc.kind === 'system') return false
+        return canTeamLeadManageDoc(req.user, teamLeadIdFromDoc(doc))
+      }),
     ),
   },
   hooks: {
@@ -80,15 +83,15 @@ export const Announcements: CollectionConfig = {
         if (!isUsersCollection(req.user)) return data
 
         const kind = data.kind as 'system' | 'team' | undefined
-        const isSuper = userHasAllTenantAccess(req.user)
+        const isElevated = userHasAllTenantAccess(req.user) || userHasTenantGeneralManagerRole(req.user)
 
         if (operation === 'create') {
           data.author = req.user.id
         }
 
-        if (!isSuper) {
+        if (!isElevated) {
           if (kind !== 'team') {
-            throw new Error('仅超级管理员可发布系统公告')
+            throw new Error('仅超级管理员或总经理可发布系统公告')
           }
           data.teamLead = req.user.id
         } else if (kind === 'system') {
@@ -116,10 +119,11 @@ export const Announcements: CollectionConfig = {
         { label: '团队公告', value: 'team' },
       ],
       access: {
-        update: ({ req: { user } }) => userHasAllTenantAccess(user),
+        update: ({ req: { user } }) =>
+          userHasAllTenantAccess(user) || userHasTenantGeneralManagerRole(user),
       },
       admin: {
-        description: '组长仅可创建「团队公告」。系统公告仅超级管理员可发布。',
+        description: '组长仅可创建「团队公告」。系统公告：超级管理员或本租户总经理。',
       },
     },
     {
@@ -131,7 +135,8 @@ export const Announcements: CollectionConfig = {
         condition: (_, siblingData) => siblingData?.kind === 'team',
       },
       access: {
-        update: ({ req: { user } }) => userHasAllTenantAccess(user),
+        update: ({ req: { user } }) =>
+          userHasAllTenantAccess(user) || userHasTenantGeneralManagerRole(user),
       },
     },
     {
