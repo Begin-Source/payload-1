@@ -57,6 +57,7 @@ import { PromptLibrary } from './globals/PromptLibrary'
 import { PublicLanding } from './globals/PublicLanding'
 import { PipelineSettings } from './globals/PipelineSettings'
 import { Announcements } from './collections/Announcements'
+import { Teams } from './collections/Teams'
 import { OpenAIConfig } from './utilities/aiOpenAIConfigImport'
 import type { Config } from './payload-types'
 import { expandMcpAccessForSuperAdmin } from './utilities/mcpSuperAdminAccess'
@@ -229,8 +230,8 @@ export default buildConfig({
     Keywords,
     ContentBriefs,
     SerpSnapshots,
-    Authors,
     Articles,
+    Authors,
     Rankings,
     WorkflowJobs,
     SiteQuotas,
@@ -238,10 +239,11 @@ export default buildConfig({
     Offers,
     ClickEvents,
     Commissions,
-    Users,
+    Teams,
     KnowledgeBase,
     AuditLogs,
     Tenants,
+    Users,
     OriginalEvidence,
     LandingTemplates,
     PageLinkGraph,
@@ -301,6 +303,7 @@ export default buildConfig({
         'knowledge-base': {},
         rankings: {},
         'audit-logs': {},
+        teams: {},
         'social-platforms': {},
         'social-accounts': {},
         /**

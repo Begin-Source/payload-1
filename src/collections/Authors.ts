@@ -10,7 +10,7 @@ export const Authors: CollectionConfig = {
   slug: 'authors',
   labels: { singular: '作者', plural: '作者' },
   admin: {
-    group: adminGroups.team,
+    group: adminGroups.website,
     useAsTitle: 'displayName',
     defaultColumns: ['displayName', 'role', 'updatedAt'],
   },

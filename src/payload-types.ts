@@ -80,8 +80,8 @@ export interface Config {
     keywords: Keyword;
     'content-briefs': ContentBrief;
     'serp-snapshots': SerpSnapshot;
-    authors: Author;
     articles: Article;
+    authors: Author;
     rankings: Ranking;
     'workflow-jobs': WorkflowJob;
     'site-quotas': SiteQuota;
@@ -89,10 +89,11 @@ export interface Config {
     offers: Offer;
     'click-events': ClickEvent;
     commissions: Commission;
-    users: User;
+    teams: Team;
     'knowledge-base': KnowledgeBase;
     'audit-logs': AuditLog;
     tenants: Tenant;
+    users: User;
     'original-evidence': OriginalEvidence;
     'landing-templates': LandingTemplate;
     'page-link-graph': PageLinkGraph;
@@ -122,8 +123,8 @@ export interface Config {
     keywords: KeywordsSelect<false> | KeywordsSelect<true>;
     'content-briefs': ContentBriefsSelect<false> | ContentBriefsSelect<true>;
     'serp-snapshots': SerpSnapshotsSelect<false> | SerpSnapshotsSelect<true>;
-    authors: AuthorsSelect<false> | AuthorsSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
+    authors: AuthorsSelect<false> | AuthorsSelect<true>;
     rankings: RankingsSelect<false> | RankingsSelect<true>;
     'workflow-jobs': WorkflowJobsSelect<false> | WorkflowJobsSelect<true>;
     'site-quotas': SiteQuotasSelect<false> | SiteQuotasSelect<true>;
@@ -131,10 +132,11 @@ export interface Config {
     offers: OffersSelect<false> | OffersSelect<true>;
     'click-events': ClickEventsSelect<false> | ClickEventsSelect<true>;
     commissions: CommissionsSelect<false> | CommissionsSelect<true>;
-    users: UsersSelect<false> | UsersSelect<true>;
+    teams: TeamsSelect<false> | TeamsSelect<true>;
     'knowledge-base': KnowledgeBaseSelect<false> | KnowledgeBaseSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'original-evidence': OriginalEvidenceSelect<false> | OriginalEvidenceSelect<true>;
     'landing-templates': LandingTemplatesSelect<false> | LandingTemplatesSelect<true>;
     'page-link-graph': PageLinkGraphSelect<false> | PageLinkGraphSelect<true>;
@@ -830,71 +832,6 @@ export interface SerpSnapshot {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "authors".
- */
-export interface Author {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  displayName: string;
-  slug?: string | null;
-  role?: ('editor' | 'reviewer' | 'expert' | 'contributor') | null;
-  headshot?: (number | null) | Media;
-  bioLexical?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * [{ title, issuer?, year?, verifyUrl? }] — json for simpler D1 migrations
-   */
-  credentials?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  expertiseAreas?: (number | Category)[] | null;
-  /**
-   * [{ url }]
-   */
-  sameAs?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  schemaPersonJsonLd?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  gdprLawfulBasis?: ('consent' | 'legitimate_interest' | 'contract' | 'other' | 'not_applicable') | null;
-  gdprRegion?: ('eu' | 'eea' | 'uk' | 'us' | 'other') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "articles".
  */
 export interface Article {
@@ -1093,6 +1030,71 @@ export interface AffiliateNetwork {
   websiteUrl?: string | null;
   status: 'active' | 'paused';
   notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors".
+ */
+export interface Author {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  displayName: string;
+  slug?: string | null;
+  role?: ('editor' | 'reviewer' | 'expert' | 'contributor') | null;
+  headshot?: (number | null) | Media;
+  bioLexical?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * [{ title, issuer?, year?, verifyUrl? }] — json for simpler D1 migrations
+   */
+  credentials?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  expertiseAreas?: (number | Category)[] | null;
+  /**
+   * [{ url }]
+   */
+  sameAs?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  schemaPersonJsonLd?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  gdprLawfulBasis?: ('consent' | 'legitimate_interest' | 'contract' | 'other' | 'not_applicable') | null;
+  gdprRegion?: ('eu' | 'eea' | 'uk' | 'us' | 'other') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1315,6 +1317,32 @@ export interface Commission {
   periodEnd?: string | null;
   paidAt?: string | null;
   notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * 每租户可有多条团队记录；组长与成员由角色与本租户共同限定，账号在「系统」中管理。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams".
+ */
+export interface Team {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  /**
+   * 选填。站内链接或唯一定位可与租户联合使用。
+   */
+  slug?: string | null;
+  notes?: string | null;
+  /**
+   * 须为「组长」角色，且已分配到本团队所属租户。
+   */
+  lead?: (number | null) | User;
+  /**
+   * 须为「站长」角色，且已分配到本团队所属租户。兼为组长时也可出现在此列表并可选。
+   */
+  members?: (number | User)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2399,12 +2427,12 @@ export interface PayloadLockedDocument {
         value: number | SerpSnapshot;
       } | null)
     | ({
-        relationTo: 'authors';
-        value: number | Author;
-      } | null)
-    | ({
         relationTo: 'articles';
         value: number | Article;
+      } | null)
+    | ({
+        relationTo: 'authors';
+        value: number | Author;
       } | null)
     | ({
         relationTo: 'rankings';
@@ -2435,8 +2463,8 @@ export interface PayloadLockedDocument {
         value: number | Commission;
       } | null)
     | ({
-        relationTo: 'users';
-        value: number | User;
+        relationTo: 'teams';
+        value: number | Team;
       } | null)
     | ({
         relationTo: 'knowledge-base';
@@ -2449,6 +2477,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tenants';
         value: number | Tenant;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null)
     | ({
         relationTo: 'original-evidence';
@@ -2805,26 +2837,6 @@ export interface SerpSnapshotsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "authors_select".
- */
-export interface AuthorsSelect<T extends boolean = true> {
-  tenant?: T;
-  displayName?: T;
-  slug?: T;
-  role?: T;
-  headshot?: T;
-  bioLexical?: T;
-  credentials?: T;
-  expertiseAreas?: T;
-  sameAs?: T;
-  schemaPersonJsonLd?: T;
-  gdprLawfulBasis?: T;
-  gdprRegion?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "articles_select".
  */
 export interface ArticlesSelect<T extends boolean = true> {
@@ -2871,6 +2883,26 @@ export interface ArticlesSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors_select".
+ */
+export interface AuthorsSelect<T extends boolean = true> {
+  tenant?: T;
+  displayName?: T;
+  slug?: T;
+  role?: T;
+  headshot?: T;
+  bioLexical?: T;
+  credentials?: T;
+  expertiseAreas?: T;
+  sameAs?: T;
+  schemaPersonJsonLd?: T;
+  gdprLawfulBasis?: T;
+  gdprRegion?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3018,33 +3050,17 @@ export interface CommissionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "teams_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  teamLead?: T;
-  roles?: T;
-  tenants?:
-    | T
-    | {
-        tenant?: T;
-        id?: T;
-      };
+export interface TeamsSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  notes?: T;
+  lead?: T;
+  members?: T;
   updatedAt?: T;
   createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -3095,6 +3111,36 @@ export interface TenantsSelect<T extends boolean = true> {
   domain?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  teamLead?: T;
+  roles?: T;
+  tenants?:
+    | T
+    | {
+        tenant?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

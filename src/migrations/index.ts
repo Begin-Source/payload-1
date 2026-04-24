@@ -21,6 +21,8 @@ import * as migration_20260429_120000_payload_automation from './20260429_120000
 import * as migration_20260430_120000_seo_pipeline_foundation from './20260430_120000_seo_pipeline_foundation';
 import * as migration_20260430_130000_fix_locked_docs_rels from './20260430_130000_fix_locked_docs_rels';
 import * as migration_20260430_140000_article_link_budget_warnings from './20260430_140000_article_link_budget_warnings';
+import * as migration_20260501_120000_team_home_global from './20260501_120000_team_home_global';
+import * as migration_20260501_130000_teams_collection from './20260501_130000_teams_collection';
 
 export const migrations = [
   {
@@ -137,5 +139,15 @@ export const migrations = [
     up: migration_20260430_140000_article_link_budget_warnings.up,
     down: migration_20260430_140000_article_link_budget_warnings.down,
     name: '20260430_140000_article_link_budget_warnings',
+  },
+  {
+    up: migration_20260501_120000_team_home_global.up,
+    down: migration_20260501_120000_team_home_global.down,
+    name: '20260501_120000_team_home_global',
+  },
+  {
+    up: migration_20260501_130000_teams_collection.up,
+    down: migration_20260501_130000_teams_collection.down,
+    name: '20260501_130000_teams_collection',
   },
 ];

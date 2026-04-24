@@ -155,7 +155,7 @@ export const Users: CollectionConfig = {
   slug: 'users',
   labels: { singular: '用户', plural: '用户' },
   admin: {
-    group: adminGroups.team,
+    group: adminGroups.system,
     useAsTitle: 'email',
     hidden: ({ user }) =>
       Boolean(user && userIsPureSiteManagerWithoutTeamOrOps(user as Config['user'])),
