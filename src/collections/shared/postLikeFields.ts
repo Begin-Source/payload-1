@@ -18,7 +18,7 @@ export const postLikeFields: Field[] = [
     name: 'locale',
     type: 'select',
     required: true,
-    defaultValue: 'zh',
+    defaultValue: 'en',
     index: true,
     options: [
       { label: '中文', value: 'zh' },

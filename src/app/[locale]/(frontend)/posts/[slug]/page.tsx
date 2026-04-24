@@ -9,7 +9,7 @@ import { blogPostingJsonLdString } from '@/components/blog/blogPostingJsonLd'
 import { categoryIdsFromArticle, firstCategoryFromArticle } from '@/components/blog/articleHelpers'
 import type { Media } from '@/payload-types'
 import type { AppLocale } from '@/i18n/config'
-import { isAppLocale } from '@/i18n/config'
+import { hreflangXDefaultUrl, isAppLocale } from '@/i18n/config'
 import { lexicalStateToHtml } from '@/utilities/lexicalToHtml'
 import { estimateReadingTimeMinutesFromHtml } from '@/utilities/readingTime'
 import { getPublicBaseUrlFromHeaders, seoMetaForDocument } from '@/utilities/seoDocumentMeta'
@@ -36,9 +36,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const alternateLanguages: Record<string, string> = {}
   if (altZh) alternateLanguages['zh-CN'] = `${baseUrl}/zh/posts/${enc}`
   if (altEn) alternateLanguages.en = `${baseUrl}/en/posts/${enc}`
-  if (altZh || altEn) {
-    alternateLanguages['x-default'] = `${baseUrl}/zh/posts/${enc}`
-  }
+  const xDefault = hreflangXDefaultUrl(baseUrl, `posts/${enc}`, Boolean(altZh), Boolean(altEn))
+  if (xDefault) alternateLanguages['x-default'] = xDefault
 
   return seoMetaForDocument(article, {
     siteName: theme.siteName,

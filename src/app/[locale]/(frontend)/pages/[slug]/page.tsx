@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import React from 'react'
 
-import { isAppLocale } from '@/i18n/config'
+import { hreflangXDefaultUrl, isAppLocale } from '@/i18n/config'
 import { lexicalStateToHtml } from '@/utilities/lexicalToHtml'
 import { getPublicBaseUrlFromHeaders, seoMetaForDocument } from '@/utilities/seoDocumentMeta'
 import { getPublicSiteContext } from '@/utilities/publicLandingTheme'
@@ -29,7 +29,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const alternateLanguages: Record<string, string> = {}
   if (pZh) alternateLanguages['zh-CN'] = `${baseUrl}/zh/pages/${enc}`
   if (pEn) alternateLanguages.en = `${baseUrl}/en/pages/${enc}`
-  if (pZh || pEn) alternateLanguages['x-default'] = `${baseUrl}/zh/pages/${enc}`
+  const xDefault = hreflangXDefaultUrl(baseUrl, `pages/${enc}`, Boolean(pZh), Boolean(pEn))
+  if (xDefault) alternateLanguages['x-default'] = xDefault
 
   return seoMetaForDocument(page, {
     siteName: theme.siteName,
