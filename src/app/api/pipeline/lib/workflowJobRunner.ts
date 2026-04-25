@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
 
 import { forwardPipelinePost, readJsonSafe } from '@/app/api/pipeline/lib/internalPipelineFetch'
+import { checkPipelineSpendForJob } from '@/utilities/siteQuotaCheck'
 
 export type WorkflowJobDoc = {
   id: string | number
@@ -95,6 +96,14 @@ export async function dispatchWorkflowJob(
   const siteId = siteIdFromJob(job)
   const input = jobInput(job)
 
+  const siteNum = siteId != null && /^\d+$/.test(String(siteId)) ? Number(siteId) : NaN
+  if (Number.isFinite(siteNum)) {
+    const gate = await checkPipelineSpendForJob(payload, siteNum, jt)
+    if (!gate.ok) {
+      return Response.json({ ok: false, error: 'quota_exceeded', message: gate.message })
+    }
+  }
+
   switch (jt) {
     case 'internal_link_inject': {
       if (!articleId) {
@@ -153,7 +162,13 @@ export async function dispatchWorkflowJob(
           { status: 400 },
         )
       }
-      return forwardPipelinePost(request, '/api/pipeline/rank-track', { keyword: term })
+      const kid = keywordIdFromJob(job)
+      const siteNum = numericIfDigits(siteId)
+      return forwardPipelinePost(request, '/api/pipeline/rank-track', {
+        keyword: term,
+        ...(kid ? { keywordId: numericIfDigits(kid) ?? kid } : {}),
+        ...(typeof siteNum === 'number' ? { siteId: siteNum } : {}),
+      })
     }
     case 'serp_audit': {
       const q =

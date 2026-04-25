@@ -1,0 +1,23 @@
+# Daily UTC 03:05 — `cron-dispatch` preset `daily_lifecycle` (triage).
+name: Pipeline daily
+on:
+  schedule:
+    - cron: '5 3 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: daily_lifecycle
+        env:
+          PIPELINE_BASE_URL: ${{ secrets.PIPELINE_BASE_URL }}
+          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "${PIPELINE_BASE_URL:-}"
+          test -n "${PAYLOAD_SECRET:-}"
+          curl -fsS -X POST "${PIPELINE_BASE_URL%/}/api/pipeline/cron-dispatch" \
+            -H "x-internal-token: ${PAYLOAD_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d '{"preset":"daily_lifecycle"}'

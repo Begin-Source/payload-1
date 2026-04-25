@@ -61,17 +61,17 @@ export const Sites: CollectionConfig = {
       name: 'landingTemplate',
       type: 'relationship',
       relationTo: 'landing-templates',
-      label: '站点模版',
+      label: '整站模版',
       admin: {
-        description: '公开首页预设主题与配文；换模版仅在此处。设计里可微调字体/配色/文案。',
+        description: '整站前台版式、文案、配色、导航/页脚等配置源；站点字段留空时使用此模版。',
       },
     },
     {
       name: 'siteLayout',
       type: 'select',
       label: '全站版式',
-      defaultValue: 'default',
       options: [
+        { label: '（使用整站模版）', value: '' },
         { label: '标准（与历史一致）', value: 'default' },
         { label: '宽版内容区', value: 'wide' },
         { label: '联盟测评站（BBF 风格壳 + 首页）', value: 'affiliate_reviews' },
@@ -79,7 +79,7 @@ export const Sites: CollectionConfig = {
       ],
       admin: {
         description:
-          '整站公开前台壳（顶栏 / 主内容宽度 / 页脚）。与单篇文章的 Affiliate 页布局不同；此处一处选择，全站路由生效。选 Template1 时，顶栏/首页/页脚等文案在侧边栏「站点 Template1 文案」集合中按站点维护（每站点一条）。',
+          '站点级覆盖。留空则使用「整站模版」中的版式；选 Template1 时，站点 Template1 文案可继续作为覆盖层。',
       },
     },
     {
@@ -177,7 +177,7 @@ export const Sites: CollectionConfig = {
           type: 'text',
           label: '测评站首页副标题',
           admin: {
-            description: '全站版式为「联盟测评站」时，首页大标题下展示；留空则使用落地页/全局副标题。',
+            description: '站点级覆盖；留空则使用整站模版或落地页副标题。',
           },
         },
         {
@@ -185,7 +185,7 @@ export const Sites: CollectionConfig = {
           type: 'textarea',
           label: '联盟声明（页脚上方）',
           admin: {
-            description: '灰条说明文案；留空则使用默认英文短句。',
+            description: '站点级覆盖；留空则使用整站模版或默认英文短句。',
           },
         },
         {
@@ -194,7 +194,7 @@ export const Sites: CollectionConfig = {
           label: 'Resources 链接（JSON 数组）',
           admin: {
             description:
-              '例: [{"label":"Privacy","href":"/en/pages/privacy"}]；href 可为相对路径。',
+              '站点级覆盖；留空则使用整站模版。例: [{"label":"Privacy","href":"/en/pages/privacy"}]。',
           },
         },
       ],

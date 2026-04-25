@@ -31,10 +31,10 @@
     // },
   ],
   // Cron triggers require a Worker `scheduled` handler. OpenNext does not emit one yet —
-  // use POST /api/pipeline/cron-dispatch (e.g. GitHub Actions + PAYLOAD_SECRET) for nightly triage.
+  // use GitHub Actions (`.github/workflows/pipeline-cron.yml` + `pipeline-daily.yml`) calling
+  // POST /api/pipeline/tick?execute=1 and POST /api/pipeline/cron-dispatch with `x-internal-token: PAYLOAD_SECRET`.
   // Cloudflare weekdays: 1=Sun … 7=Sat (not Unix 0–6; DOW "0" is invalid). Weekly slots below = Monday UTC.
-  // `crons` is intentionally empty: OpenNext worker only exports `fetch` (no `scheduled()`).
-  // For scheduled work use POST /api/pipeline/cron-dispatch (e.g. GitHub Actions + PAYLOAD_SECRET).
+  // `crons` stays empty until a dedicated cron Worker or OpenNext `scheduled()` exists.
   "triggers": {
     "crons": []
   },

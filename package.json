@@ -26,7 +26,8 @@
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
     "seed:dev": "cross-env NODE_OPTIONS=--no-deprecation --import=tsx/esm tsx scripts/seed-dev-data.ts",
     "seed:employee-manual": "cross-env NODE_OPTIONS=--no-deprecation --import=tsx/esm tsx scripts/seed-employee-manual.ts",
-    "seed:website-social-manual": "cross-env NODE_OPTIONS=--no-deprecation --import=tsx/esm tsx scripts/seed-website-social-manual.ts"
+    "seed:website-social-manual": "cross-env NODE_OPTIONS=--no-deprecation --import=tsx/esm tsx scripts/seed-website-social-manual.ts",
+    "seed:linkgraph": "cross-env NODE_OPTIONS=--no-deprecation --import=tsx/esm tsx scripts/seed-linkgraph.ts"
   },
   "dependencies": {
     "@ai-stack/payloadcms": "^3.2.27",

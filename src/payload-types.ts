@@ -347,13 +347,13 @@ export interface Site {
    */
   blueprint?: (number | null) | SiteBlueprint;
   /**
-   * 公开首页预设主题与配文；换模版仅在此处。设计里可微调字体/配色/文案。
+   * 整站前台版式、文案、配色、导航/页脚等配置源；站点字段留空时使用此模版。
    */
   landingTemplate?: (number | null) | LandingTemplate;
   /**
-   * 整站公开前台壳（顶栏 / 主内容宽度 / 页脚）。与单篇文章的 Affiliate 页布局不同；此处一处选择，全站路由生效。选 Template1 时，顶栏/首页/页脚等文案在侧边栏「站点 Template1 文案」集合中按站点维护（每站点一条）。
+   * 站点级覆盖。留空则使用「整站模版」中的版式；选 Template1 时，站点 Template1 文案可继续作为覆盖层。
    */
-  siteLayout?: ('default' | 'wide' | 'affiliate_reviews' | 'template1') | null;
+  siteLayout?: ('' | 'default' | 'wide' | 'affiliate_reviews' | 'template1') | null;
   /**
    * Users who operate this site (optional; tenant scoping still applies).
    */
@@ -376,15 +376,15 @@ export interface Site {
   landingCtaTextColor?: string | null;
   landingFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
   /**
-   * 全站版式为「联盟测评站」时，首页大标题下展示；留空则使用落地页/全局副标题。
+   * 站点级覆盖；留空则使用整站模版或落地页副标题。
    */
   reviewHubTagline?: string | null;
   /**
-   * 灰条说明文案；留空则使用默认英文短句。
+   * 站点级覆盖；留空则使用整站模版或默认英文短句。
    */
   affiliateDisclosureLine?: string | null;
   /**
-   * 例: [{"label":"Privacy","href":"/en/pages/privacy"}]；href 可为相对路径。
+   * 站点级覆盖；留空则使用整站模版。例: [{"label":"Privacy","href":"/en/pages/privacy"}]。
    */
   footerResourceLinks?:
     | {
@@ -519,7 +519,7 @@ export interface Media {
   height?: number | null;
 }
 /**
- * 站点前台预设主题与配文；在「设计」中可微调。
+ * 整站前台版式、首页文案、博客配色、导航/页脚与 Template1/ReviewHub 配置源。
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "landing-templates".
@@ -538,6 +538,10 @@ export interface LandingTemplate {
    */
   previewUrl?: string | null;
   /**
+   * 作为引用此模版的站点默认版式；站点自身「全站版式」留空时生效。
+   */
+  siteLayout?: ('default' | 'wide' | 'affiliate_reviews' | 'template1') | null;
+  /**
    * 留空则使用站点名称或全局兜底。
    */
   landingBrowserTitle?: string | null;
@@ -553,6 +557,26 @@ export interface LandingTemplate {
   landingCtaBgColor?: string | null;
   landingCtaTextColor?: string | null;
   landingFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
+  /**
+   * 整站版式为「联盟测评站」时，首页大标题下展示；站点可覆盖。
+   */
+  reviewHubTagline?: string | null;
+  /**
+   * 灰条说明文案；站点可覆盖；留空则使用系统默认英文短句。
+   */
+  affiliateDisclosureLine?: string | null;
+  /**
+   * 例: [{"label":"Privacy","href":"/en/pages/privacy"}]；href 可为相对路径。站点可覆盖。
+   */
+  footerResourceLinks?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   /**
    * CSS 颜色，如 #2d8659
    */
@@ -589,6 +613,18 @@ export interface LandingTemplate {
    * 相对路径如 /pages/about 或绝对 URL
    */
   aboutCtaHref?: string | null;
+  /**
+   * JSON 对象：键与历史独立字段一致（如 t1NavAllReviewsEn、t1HomeTitleZh、t1NavUsePageTitleForAbout 等）。整站模版作为基础层，站点 Template1 文案作为覆盖层；留空则用下一层或代码默认。可粘贴 `scripts/seed-dev-data.ts` 中 `SEED_ALPHA_TEMPLATE1_DEMO` 结构作参考。
+   */
+  t1LocaleJson?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -606,7 +642,7 @@ export interface SiteT1Locale {
    */
   site: number | Site;
   /**
-   * JSON 对象：键与历史独立字段一致（如 t1NavAllReviewsEn、t1HomeTitleZh、t1NavUsePageTitleForAbout 等）。留空则整段用代码默认。可粘贴 `scripts/seed-dev-data.ts` 中 `SEED_ALPHA_TEMPLATE1_DEMO` 结构作参考。
+   * JSON 对象：键与历史独立字段一致（如 t1NavAllReviewsEn、t1HomeTitleZh、t1NavUsePageTitleForAbout 等）。整站模版作为基础层，站点 Template1 文案作为覆盖层；留空则用下一层或代码默认。可粘贴 `scripts/seed-dev-data.ts` 中 `SEED_ALPHA_TEMPLATE1_DEMO` 结构作参考。
    */
   t1LocaleJson?:
     | {
@@ -3321,6 +3357,7 @@ export interface LandingTemplatesSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   previewUrl?: T;
+  siteLayout?: T;
   landingBrowserTitle?: T;
   landingSiteName?: T;
   landingTagline?: T;
@@ -3334,6 +3371,9 @@ export interface LandingTemplatesSelect<T extends boolean = true> {
   landingCtaBgColor?: T;
   landingCtaTextColor?: T;
   landingFontPreset?: T;
+  reviewHubTagline?: T;
+  affiliateDisclosureLine?: T;
+  footerResourceLinks?: T;
   blogPrimaryColor?: T;
   blogAccentColor?: T;
   blogContentBgColor?: T;
@@ -3346,6 +3386,7 @@ export interface LandingTemplatesSelect<T extends boolean = true> {
   aboutImage?: T;
   aboutCtaLabel?: T;
   aboutCtaHref?: T;
+  t1LocaleJson?: T;
   updatedAt?: T;
   createdAt?: T;
 }

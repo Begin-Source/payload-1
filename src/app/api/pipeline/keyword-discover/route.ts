@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import { isPipelineUnauthorized, requirePipelineJson } from '@/app/api/pipeline/lib/auth'
 import { dataForSeoPost, keywordDataLocationAndLanguage } from '@/services/integrations/dataforseo/client'
 import { computeOpportunityScore } from '@/utilities/keywordOpportunity'
+import { incrementSiteQuotaUsage } from '@/utilities/siteQuotaCheck'
 
 export const dynamic = 'force-dynamic'
 const PATH = '/api/pipeline/keyword-discover'
@@ -57,6 +58,7 @@ export async function POST(request: Request): Promise<Response> {
 
   let rows: SeedRow[] = [...FALLBACK_SEEDS]
   const loc = await keywordDataLocationAndLanguage('US')
+  let usedDfs = false
 
   try {
     const dfs = await dataForSeoPost<
@@ -84,9 +86,18 @@ export async function POST(request: Request): Promise<Response> {
         kd: Number(r.keyword_difficulty ?? 1),
         intent: normalizeIntent(r.search_intent),
       }))
+      usedDfs = true
     }
   } catch {
     // keep FALLBACK_SEEDS
+  }
+
+  if (usedDfs && siteRelation != null && Number.isFinite(siteRelation)) {
+    try {
+      await incrementSiteQuotaUsage(payload, siteRelation, { dfs: 2 })
+    } catch {
+      /* ignore */
+    }
   }
 
   const scored = rows.map((r) => {

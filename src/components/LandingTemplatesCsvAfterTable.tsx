@@ -12,7 +12,7 @@ import {
 const SLUG = 'landing-templates'
 
 const LANDING_HINT =
-  '列：id, name, slug, description, preview_url, tenant_id, 落地页/博客/侧栏等字段（与导出表头一致）, about_image_id。无站点；在列表勾选后点「导出」仅导出已选行，不勾选则导出当前可访问租户内全部模版。导入依赖左上角租户或请求 tenantId；新建写入该租户，有 id 则更新同租户下记录。'
+  '列：id, name, slug, description, preview_url, tenant_id, site_layout, 落地页/博客/侧栏字段, ReviewHub 字段, footer_resource_links_json, t1_locale_json。无站点；在列表勾选后点「导出」仅导出已选行，不勾选则导出当前可访问租户内全部整站模版。导入依赖左上角租户或请求 tenantId；新建写入该租户，有 id 则更新同租户下记录。'
 
 function downloadBlob(res: Response, fallbackName: string): void {
   const blob = res.blob()
@@ -138,7 +138,7 @@ export function LandingTemplatesCsvAfterTable(): React.ReactElement | null {
             gap: '0.5rem',
           }}
         >
-          <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>CSV 导入/导出</span>
+          <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>整站模版 CSV 导入/导出</span>
           <Button buttonStyle="transparent" onClick={closePanel} size="small" type="button">
             关闭 CSV 导入/导出
           </Button>
@@ -158,7 +158,12 @@ export function LandingTemplatesCsvAfterTable(): React.ReactElement | null {
             不选行则导出当前可访问租户内全部；勾选多行后导出仅含选中的行。
           </span>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
-            <Button buttonStyle="secondary" onClick={() => void runExport()} size="small" type="button">
+            <Button
+              buttonStyle="secondary"
+              onClick={() => void runExport()}
+              size="small"
+              type="button"
+            >
               导出
             </Button>
             <span style={{ fontSize: '0.8125rem', opacity: 0.85 }}>导入</span>

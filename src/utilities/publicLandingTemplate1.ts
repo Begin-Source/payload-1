@@ -72,7 +72,8 @@ const EN: Template1LocaleBlock = {
   footerCompanyHeading: 'Company',
   footerAffiliateLabel: 'Affiliate disclosure:',
   footerCopyright: '© {{year}} {{siteName}}. All rights reserved.',
-  footerBottom: 'This site may participate in affiliate programs; editorial content is independent.',
+  footerBottom:
+    'This site may participate in affiliate programs; editorial content is independent.',
 }
 
 const ZH: Template1LocaleBlock = {
@@ -257,16 +258,22 @@ const T1_STRING_KEYS: (keyof SiteT1)[] = [
 ]
 
 /** Build flat Template1 fields from `site-t1-locales.t1LocaleJson` (or any `{ t1LocaleJson }`). */
-export function siteT1FromLocaleJson(row: SiteT1Locale | { t1LocaleJson?: unknown } | null | undefined): SiteT1 {
+export function siteT1FromLocaleJson(
+  row: SiteT1Locale | { t1LocaleJson?: unknown } | null | undefined,
+): SiteT1 {
   const raw = row?.t1LocaleJson
-  const j = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {}
+  const j =
+    raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {}
   const str = (key: keyof SiteT1): string | null | undefined => {
     const v = j[key as string]
     return typeof v === 'string' ? v : undefined
   }
-  const out: SiteT1 = {
-    t1NavUsePageTitleForAbout: Boolean(j.t1NavUsePageTitleForAbout),
-    t1NavUsePageTitleForContact: Boolean(j.t1NavUsePageTitleForContact),
+  const out: SiteT1 = {}
+  if (typeof j.t1NavUsePageTitleForAbout === 'boolean') {
+    out.t1NavUsePageTitleForAbout = j.t1NavUsePageTitleForAbout
+  }
+  if (typeof j.t1NavUsePageTitleForContact === 'boolean') {
+    out.t1NavUsePageTitleForContact = j.t1NavUsePageTitleForContact
   }
   for (const k of T1_STRING_KEYS) {
     const v = str(k)
@@ -282,56 +289,152 @@ export type Template1Theme = {
   zh: Template1LocaleBlock
 }
 
-function blockFromSite(s: SiteT1, loc: 'en' | 'zh', def: Template1LocaleBlock): Template1LocaleBlock {
+function blockFromSite(
+  s: SiteT1,
+  loc: 'en' | 'zh',
+  def: Template1LocaleBlock,
+): Template1LocaleBlock {
   const e = loc === 'en'
   return {
-    navAllReviews: firstNonEmptyString(e ? s.t1NavAllReviewsEn : s.t1NavAllReviewsZh, def.navAllReviews) ?? def.navAllReviews,
-    navCategories: firstNonEmptyString(e ? s.t1NavCategoriesEn : s.t1NavCategoriesZh, def.navCategories) ?? def.navCategories,
-    navAbout: firstNonEmptyString(e ? s.t1NavAboutEn : s.t1NavAboutZh, def.navAbout) ?? def.navAbout,
-    navContact: firstNonEmptyString(e ? s.t1NavContactEn : s.t1NavContactZh, def.navContact) ?? def.navContact,
-    navPrivacy: firstNonEmptyString(e ? s.t1NavPrivacyEn : s.t1NavPrivacyZh, def.navPrivacy) ?? def.navPrivacy,
-    navSearchSr: firstNonEmptyString(e ? s.t1NavSearchSrEn : s.t1NavSearchSrZh, def.navSearchSr) ?? def.navSearchSr,
-    navMenuSr: firstNonEmptyString(e ? s.t1NavMenuSrEn : s.t1NavMenuSrZh, def.navMenuSr) ?? def.navMenuSr,
-    homeTitle: firstNonEmptyString(e ? s.t1HomeTitleEn : s.t1HomeTitleZh, def.homeTitle) ?? def.homeTitle,
-    homeSubtitle: firstNonEmptyString(e ? s.t1HomeSubtitleEn : s.t1HomeSubtitleZh, def.homeSubtitle) ?? def.homeSubtitle,
-    browseCategory: firstNonEmptyString(e ? s.t1BrowseCategoryEn : s.t1BrowseCategoryZh, def.browseCategory) ?? def.browseCategory,
-    aboutSidebarTitle: firstNonEmptyString(e ? s.t1AboutSidebarTitleEn : s.t1AboutSidebarTitleZh, def.aboutSidebarTitle) ?? def.aboutSidebarTitle,
-    fullStory: firstNonEmptyString(e ? s.t1FullStoryEn : s.t1FullStoryZh, def.fullStory) ?? def.fullStory,
-    topPicks: firstNonEmptyString(e ? s.t1TopPicksEn : s.t1TopPicksZh, def.topPicks) ?? def.topPicks,
+    navAllReviews:
+      firstNonEmptyString(e ? s.t1NavAllReviewsEn : s.t1NavAllReviewsZh, def.navAllReviews) ??
+      def.navAllReviews,
+    navCategories:
+      firstNonEmptyString(e ? s.t1NavCategoriesEn : s.t1NavCategoriesZh, def.navCategories) ??
+      def.navCategories,
+    navAbout:
+      firstNonEmptyString(e ? s.t1NavAboutEn : s.t1NavAboutZh, def.navAbout) ?? def.navAbout,
+    navContact:
+      firstNonEmptyString(e ? s.t1NavContactEn : s.t1NavContactZh, def.navContact) ??
+      def.navContact,
+    navPrivacy:
+      firstNonEmptyString(e ? s.t1NavPrivacyEn : s.t1NavPrivacyZh, def.navPrivacy) ??
+      def.navPrivacy,
+    navSearchSr:
+      firstNonEmptyString(e ? s.t1NavSearchSrEn : s.t1NavSearchSrZh, def.navSearchSr) ??
+      def.navSearchSr,
+    navMenuSr:
+      firstNonEmptyString(e ? s.t1NavMenuSrEn : s.t1NavMenuSrZh, def.navMenuSr) ?? def.navMenuSr,
+    homeTitle:
+      firstNonEmptyString(e ? s.t1HomeTitleEn : s.t1HomeTitleZh, def.homeTitle) ?? def.homeTitle,
+    homeSubtitle:
+      firstNonEmptyString(e ? s.t1HomeSubtitleEn : s.t1HomeSubtitleZh, def.homeSubtitle) ??
+      def.homeSubtitle,
+    browseCategory:
+      firstNonEmptyString(e ? s.t1BrowseCategoryEn : s.t1BrowseCategoryZh, def.browseCategory) ??
+      def.browseCategory,
+    aboutSidebarTitle:
+      firstNonEmptyString(
+        e ? s.t1AboutSidebarTitleEn : s.t1AboutSidebarTitleZh,
+        def.aboutSidebarTitle,
+      ) ?? def.aboutSidebarTitle,
+    fullStory:
+      firstNonEmptyString(e ? s.t1FullStoryEn : s.t1FullStoryZh, def.fullStory) ?? def.fullStory,
+    topPicks:
+      firstNonEmptyString(e ? s.t1TopPicksEn : s.t1TopPicksZh, def.topPicks) ?? def.topPicks,
     bestIn: firstNonEmptyString(e ? s.t1BestInEn : s.t1BestInZh, def.bestIn) ?? def.bestIn,
-    fullReview: firstNonEmptyString(e ? s.t1FullReviewEn : s.t1FullReviewZh, def.fullReview) ?? def.fullReview,
-    moreTopPicks: firstNonEmptyString(e ? s.t1MoreTopPicksEn : s.t1MoreTopPicksZh, def.moreTopPicks) ?? def.moreTopPicks,
-    whyTrust: firstNonEmptyString(e ? s.t1WhyTrustEn : s.t1WhyTrustZh, def.whyTrust) ?? def.whyTrust,
-    trust1Title: firstNonEmptyString(e ? s.t1Trust1TitleEn : s.t1Trust1TitleZh, def.trust1Title) ?? def.trust1Title,
-    trust1Desc: firstNonEmptyString(e ? s.t1Trust1DescEn : s.t1Trust1DescZh, def.trust1Desc) ?? def.trust1Desc,
-    trust2Title: firstNonEmptyString(e ? s.t1Trust2TitleEn : s.t1Trust2TitleZh, def.trust2Title) ?? def.trust2Title,
-    trust2Desc: firstNonEmptyString(e ? s.t1Trust2DescEn : s.t1Trust2DescZh, def.trust2Desc) ?? def.trust2Desc,
-    trust3Title: firstNonEmptyString(e ? s.t1Trust3TitleEn : s.t1Trust3TitleZh, def.trust3Title) ?? def.trust3Title,
-    trust3Desc: firstNonEmptyString(e ? s.t1Trust3DescEn : s.t1Trust3DescZh, def.trust3Desc) ?? def.trust3Desc,
-    learnHowWeTest: firstNonEmptyString(e ? s.t1LearnHowWeTestEn : s.t1LearnHowWeTestZh, def.learnHowWeTest) ?? def.learnHowWeTest,
+    fullReview:
+      firstNonEmptyString(e ? s.t1FullReviewEn : s.t1FullReviewZh, def.fullReview) ??
+      def.fullReview,
+    moreTopPicks:
+      firstNonEmptyString(e ? s.t1MoreTopPicksEn : s.t1MoreTopPicksZh, def.moreTopPicks) ??
+      def.moreTopPicks,
+    whyTrust:
+      firstNonEmptyString(e ? s.t1WhyTrustEn : s.t1WhyTrustZh, def.whyTrust) ?? def.whyTrust,
+    trust1Title:
+      firstNonEmptyString(e ? s.t1Trust1TitleEn : s.t1Trust1TitleZh, def.trust1Title) ??
+      def.trust1Title,
+    trust1Desc:
+      firstNonEmptyString(e ? s.t1Trust1DescEn : s.t1Trust1DescZh, def.trust1Desc) ??
+      def.trust1Desc,
+    trust2Title:
+      firstNonEmptyString(e ? s.t1Trust2TitleEn : s.t1Trust2TitleZh, def.trust2Title) ??
+      def.trust2Title,
+    trust2Desc:
+      firstNonEmptyString(e ? s.t1Trust2DescEn : s.t1Trust2DescZh, def.trust2Desc) ??
+      def.trust2Desc,
+    trust3Title:
+      firstNonEmptyString(e ? s.t1Trust3TitleEn : s.t1Trust3TitleZh, def.trust3Title) ??
+      def.trust3Title,
+    trust3Desc:
+      firstNonEmptyString(e ? s.t1Trust3DescEn : s.t1Trust3DescZh, def.trust3Desc) ??
+      def.trust3Desc,
+    learnHowWeTest:
+      firstNonEmptyString(e ? s.t1LearnHowWeTestEn : s.t1LearnHowWeTestZh, def.learnHowWeTest) ??
+      def.learnHowWeTest,
     updated: firstNonEmptyString(e ? s.t1UpdatedEn : s.t1UpdatedZh, def.updated) ?? def.updated,
     minRead: firstNonEmptyString(e ? s.t1MinReadEn : s.t1MinReadZh, def.minRead) ?? def.minRead,
-    footerCategoriesHeading: firstNonEmptyString(
-      e ? s.t1FooterCategoriesHeadingEn : s.t1FooterCategoriesHeadingZh,
-      def.footerCategoriesHeading,
-    ) ?? def.footerCategoriesHeading,
-    footerCompanyHeading: firstNonEmptyString(
-      e ? s.t1FooterCompanyHeadingEn : s.t1FooterCompanyHeadingZh,
-      def.footerCompanyHeading,
-    ) ?? def.footerCompanyHeading,
-    footerAffiliateLabel: firstNonEmptyString(
-      e ? s.t1FooterAffiliateLabelEn : s.t1FooterAffiliateLabelZh,
-      def.footerAffiliateLabel,
-    ) ?? def.footerAffiliateLabel,
-    footerCopyright: firstNonEmptyString(e ? s.t1FooterCopyrightEn : s.t1FooterCopyrightZh, def.footerCopyright) ?? def.footerCopyright,
-    footerBottom: firstNonEmptyString(e ? s.t1FooterBottomEn : s.t1FooterBottomZh, def.footerBottom) ?? def.footerBottom,
+    footerCategoriesHeading:
+      firstNonEmptyString(
+        e ? s.t1FooterCategoriesHeadingEn : s.t1FooterCategoriesHeadingZh,
+        def.footerCategoriesHeading,
+      ) ?? def.footerCategoriesHeading,
+    footerCompanyHeading:
+      firstNonEmptyString(
+        e ? s.t1FooterCompanyHeadingEn : s.t1FooterCompanyHeadingZh,
+        def.footerCompanyHeading,
+      ) ?? def.footerCompanyHeading,
+    footerAffiliateLabel:
+      firstNonEmptyString(
+        e ? s.t1FooterAffiliateLabelEn : s.t1FooterAffiliateLabelZh,
+        def.footerAffiliateLabel,
+      ) ?? def.footerAffiliateLabel,
+    footerCopyright:
+      firstNonEmptyString(e ? s.t1FooterCopyrightEn : s.t1FooterCopyrightZh, def.footerCopyright) ??
+      def.footerCopyright,
+    footerBottom:
+      firstNonEmptyString(e ? s.t1FooterBottomEn : s.t1FooterBottomZh, def.footerBottom) ??
+      def.footerBottom,
   }
 }
 
 export function mergeTemplate1FromSite(
   siteT1Row: SiteT1Locale | { t1LocaleJson?: unknown } | null | undefined,
 ): Template1Theme {
-  const s = siteT1FromLocaleJson(siteT1Row)
+  return mergeTemplate1Layers(null, siteT1Row)
+}
+
+function mergeSiteT1Layers(base: SiteT1, override: SiteT1): SiteT1 {
+  const out: SiteT1 = { ...base }
+  if (typeof override.t1NavUsePageTitleForAbout === 'boolean') {
+    out.t1NavUsePageTitleForAbout = override.t1NavUsePageTitleForAbout
+  }
+  if (typeof override.t1NavUsePageTitleForContact === 'boolean') {
+    out.t1NavUsePageTitleForContact = override.t1NavUsePageTitleForContact
+  }
+  for (const key of T1_STRING_KEYS) {
+    const v = override[key]
+    if (typeof v === 'string' && v.trim()) {
+      const writable = out as Record<string, unknown>
+      writable[key] = v
+    }
+  }
+  return out
+}
+
+/**
+ * Merge Template1 copy layers: landing-template defaults first, then per-site overrides.
+ * Each source may be a Payload row with `t1LocaleJson` or the raw JSON object itself.
+ */
+export function mergeTemplate1Layers(
+  templateT1:
+    | SiteT1Locale
+    | { t1LocaleJson?: unknown }
+    | Record<string, unknown>
+    | null
+    | undefined,
+  siteT1: SiteT1Locale | { t1LocaleJson?: unknown } | Record<string, unknown> | null | undefined,
+): Template1Theme {
+  const fromSource = (
+    source: SiteT1Locale | { t1LocaleJson?: unknown } | Record<string, unknown> | null | undefined,
+  ): SiteT1 => {
+    if (source && typeof source === 'object' && 't1LocaleJson' in source) {
+      return siteT1FromLocaleJson(source as { t1LocaleJson?: unknown })
+    }
+    return siteT1FromLocaleJson({ t1LocaleJson: source })
+  }
+
+  const s = mergeSiteT1Layers(fromSource(templateT1), fromSource(siteT1))
   return {
     t1NavUsePageTitleForAbout: Boolean(s.t1NavUsePageTitleForAbout),
     t1NavUsePageTitleForContact: Boolean(s.t1NavUsePageTitleForContact),
@@ -340,7 +443,10 @@ export function mergeTemplate1FromSite(
   }
 }
 
-export function template1BlockForLocale(theme: Template1Theme, locale: AppLocale): Template1LocaleBlock {
+export function template1BlockForLocale(
+  theme: Template1Theme,
+  locale: AppLocale,
+): Template1LocaleBlock {
   return locale === 'zh' ? theme.zh : theme.en
 }
 

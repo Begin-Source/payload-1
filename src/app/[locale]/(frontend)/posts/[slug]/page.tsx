@@ -9,6 +9,7 @@ import { ArticleLayoutAffiliateHub } from '@/components/blog/ArticleLayoutAffili
 import { ArticleRelated } from '@/components/blog/ArticleRelated'
 import { blogPostingJsonLdString } from '@/components/blog/blogPostingJsonLd'
 import { categoryIdsFromArticle, firstCategoryFromArticle } from '@/components/blog/articleHelpers'
+import { Template1ArticlePage } from '@/components/template1/Template1ArticlePage'
 import type { Media } from '@/payload-types'
 import type { AppLocale } from '@/i18n/config'
 import { hreflangXDefaultUrl, isAppLocale } from '@/i18n/config'
@@ -117,7 +118,9 @@ export default async function PostPage(props: Props) {
 
   const defaultArticle = (
     <article
-      className={isTemplate1 ? 'mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8' : 'blogArticle'}
+      className={
+        isTemplate1 ? 'mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8' : 'blogArticle'
+      }
     >
       <ArticleBreadcrumbs
         locale={locale}
@@ -133,13 +136,7 @@ export default async function PostPage(props: Props) {
       </div>
       {img ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          className="blogArticleHero"
-          src={img}
-          alt={titleAlt}
-          width={1200}
-          height={630}
-        />
+        <img className="blogArticleHero" src={img} alt={titleAlt} width={1200} height={630} />
       ) : null}
       <div className="blogArticleBody" dangerouslySetInnerHTML={{ __html: html }} />
       {relatedEl}
@@ -153,7 +150,16 @@ export default async function PostPage(props: Props) {
         dangerouslySetInnerHTML={{ __html: jsonLd }}
         suppressHydrationWarning
       />
-      {layout === 'commercial_hub' ? (
+      {theme.siteLayout === 'template1' ? (
+        <Template1ArticlePage
+          article={article}
+          html={html}
+          locale={locale}
+          readMinutes={readMinutes}
+          related={related}
+          theme={theme}
+        />
+      ) : layout === 'commercial_hub' ? (
         <ArticleLayoutAffiliateHub
           article={article}
           html={html}

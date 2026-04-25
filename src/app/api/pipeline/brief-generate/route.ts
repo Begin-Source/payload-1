@@ -4,7 +4,9 @@ import { getPayload } from 'payload'
 import { isPipelineUnauthorized, requirePipelineJson } from '@/app/api/pipeline/lib/auth'
 import { tavilySearch } from '@/services/integrations/tavily/client'
 import { openrouterChat } from '@/services/integrations/openrouter/chat'
-import { getSkillPrompt } from '@/services/prompts/skillPrompts'
+import { appendMemoryBlock } from '@/services/prompts/skillPrompts'
+import { fetchKnowledgeMemorySummaries } from '@/utilities/knowledgeMemoryFetch'
+import { incrementSiteQuotaUsage } from '@/utilities/siteQuotaCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,20 +24,6 @@ export async function POST(request: Request): Promise<Response> {
   }
   const kw = await payload.findByID({ collection: 'keywords', id: String(body.keywordId) })
   const term = (kw as { term?: string }).term || 'topic'
-  let research: unknown
-  try {
-    research = await tavilySearch({ query: term, search_depth: 'advanced' })
-  } catch {
-    research = null
-  }
-  const system = getSkillPrompt('serp-analysis')
-  const text = await openrouterChat('openai/gpt-4o-mini', [
-    { role: 'system', content: system },
-    {
-      role: 'user',
-      content: `Build a content brief outline (sections array + globalContext) for keyword: ${term}. Use research: ${JSON.stringify(research).slice(0, 3000)}`,
-    },
-  ])
   const siteId =
     body.siteId ??
     (typeof (kw as { site?: number | { id: number } | null })?.site === 'object' &&
@@ -43,6 +31,33 @@ export async function POST(request: Request): Promise<Response> {
       ? (kw as { site: { id: number } }).site.id
       : (kw as { site?: number | null })?.site) ??
     undefined
+
+  let research: unknown
+  try {
+    research = await tavilySearch({ query: term, search_depth: 'advanced' })
+    if (typeof siteId === 'number' && Number.isFinite(siteId)) {
+      try {
+        await incrementSiteQuotaUsage(payload, siteId, { tavilyUsd: 0.002 })
+      } catch {
+        /* optional quota row */
+      }
+    }
+  } catch {
+    research = null
+  }
+  const memoryRows = await fetchKnowledgeMemorySummaries(payload, {
+    subject: term,
+    skillId: 'serp-analysis',
+    limit: 8,
+  })
+  const system = appendMemoryBlock('serp-analysis', memoryRows)
+  const text = await openrouterChat('openai/gpt-4o-mini', [
+    { role: 'system', content: system },
+    {
+      role: 'user',
+      content: `Build a content brief outline (sections array + globalContext) for keyword: ${term}. Use research: ${JSON.stringify(research).slice(0, 3000)}`,
+    },
+  ])
   const kid = typeof body.keywordId === 'number' ? body.keywordId : Number(body.keywordId)
   const outline = {
     sections: [
@@ -63,5 +78,14 @@ export async function POST(request: Request): Promise<Response> {
       status: 'draft',
     },
   })
+
+  if (typeof siteId === 'number' && Number.isFinite(siteId)) {
+    try {
+      await incrementSiteQuotaUsage(payload, siteId, { openrouterUsd: 0.025 })
+    } catch {
+      /* quota row optional */
+    }
+  }
+
   return Response.json({ ok: true, id: brief.id })
 }

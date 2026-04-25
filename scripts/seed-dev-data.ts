@@ -35,7 +35,10 @@ type TenantProfile = {
   network: { slug: string; name: string; websiteUrl: string }
   offers: Array<{ slug: string; title: string; targetUrl: string }>
   /** [siteIndex, category index 0|1 per site] */
-  categories: [{ slug: string; name: string; siteIndex: 0 | 1 }, { slug: string; name: string; siteIndex: 0 | 1 }]
+  categories: [
+    { slug: string; name: string; siteIndex: 0 | 1 },
+    { slug: string; name: string; siteIndex: 0 | 1 },
+  ]
   articles: Array<{
     slug: string
     title: string
@@ -43,6 +46,7 @@ type TenantProfile = {
     catKey: 0 | 1
     locale?: 'zh' | 'en'
     excerpt?: string
+    bodyLines?: string[]
   }>
   pages: Array<{
     slug: string
@@ -128,6 +132,11 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
         siteIndex: 1,
         catKey: 1,
         excerpt: '中文示例：第二站点 seed-site-b。',
+        bodyLines: [
+          '这是 Template1 演示站的一篇基础文章，用来检查文章详情页是否套用整站模版。',
+          '我们会重点观察顶栏、页脚、信任模块、联盟披露、作者信息和相关文章区域是否保持统一。',
+          '如果你在整站模版 CSV 中修改 t1_locale_json，这里的阅读时间、更新标签和信任区文案会一起变化。',
+        ],
       },
       {
         slug: 'seed-article-b',
@@ -136,6 +145,62 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
         catKey: 1,
         locale: 'en',
         excerpt: 'English article on seed-site-b.',
+        bodyLines: [
+          'This Template1 demo article verifies that article pages inherit the whole-site theme.',
+          'Use it to check the header, footer, disclosure panel, trust sidebar, and related articles.',
+          'When you change t1_locale_json in the site template CSV, the article chrome should follow.',
+        ],
+      },
+      {
+        slug: 'template1-air-purifier-guide',
+        title: 'Template1 演示：小户型空气净化器怎么选',
+        siteIndex: 1,
+        catKey: 1,
+        excerpt: '用于预览 Template1 首页列表、文章详情和相关文章区的中文模拟文章。',
+        bodyLines: [
+          '小户型空气净化器最容易踩的坑，是只看 CADR 数值而忽略噪音、滤芯成本和摆放空间。',
+          '我们建议先确认房间面积，再比较睡眠档噪音、滤芯更换周期和是否支持本地化售后。',
+          '如果是卧室使用，低噪音和稳定的自动模式通常比极限净化速度更重要。',
+        ],
+      },
+      {
+        slug: 'template1-standing-desk-review',
+        title: 'Template1 演示：升降桌长期使用体验清单',
+        siteIndex: 1,
+        catKey: 1,
+        excerpt: '一篇偏评测口吻的模拟文章，用于观察 Template1 字体、间距和信任侧栏。',
+        bodyLines: [
+          '升降桌的体验不只取决于电机数量，还取决于桌腿稳定性、最低高度和控制器记忆位。',
+          '如果你每天切换坐站姿势，按键手感和升降噪音会比参数表上看起来更重要。',
+          '本地演示数据不会包含真实购买链接，但页面会显示联盟披露和编辑信任说明。',
+        ],
+      },
+      {
+        slug: 'template1-wireless-earbuds-picks',
+        title: 'Template1 Demo: Wireless earbuds picks for daily calls',
+        siteIndex: 1,
+        catKey: 1,
+        locale: 'en',
+        excerpt: 'English mock article for checking Template1 article layout and related cards.',
+        bodyLines: [
+          'For daily calls, microphone consistency matters more than dramatic bass or headline battery numbers.',
+          'We compare comfort, multipoint reliability, transparency mode, and how quickly the case tops up the earbuds.',
+          'This seeded article is intentionally lightweight so the Template1 article layout is easy to inspect.',
+        ],
+      },
+      {
+        slug: 'template1-robot-vacuum-buying-guide',
+        title: 'Template1 Demo: Robot vacuum buying guide',
+        siteIndex: 1,
+        catKey: 1,
+        locale: 'en',
+        excerpt:
+          'A second English article so Template1 related articles and home lists feel populated.',
+        bodyLines: [
+          'Robot vacuum recommendations depend on floor type, obstacle density, mapping quality, and maintenance tolerance.',
+          'A self-emptying dock is useful, but brush design and edge cleaning often decide whether a model works day to day.',
+          'Use this article to preview English Template1 copy, read-time labels, and related article cards.',
+        ],
       },
     ],
     pages: [
@@ -160,7 +225,8 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
         siteIndex: 1,
         catKey: 1,
         excerpt: 'Template1 演示 · 根路径 /zh/about',
-        bodyLine: '这是种子数据中的「关于」页（中文）。顶栏若开启「使用 Page 标题」，应显示与标题一致的导航文案。',
+        bodyLine:
+          '这是种子数据中的「关于」页（中文）。顶栏若开启「使用 Page 标题」，应显示与标题一致的导航文案。',
       },
       {
         slug: 'about',
@@ -169,7 +235,8 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
         catKey: 1,
         locale: 'en',
         excerpt: 'Template1 seed · /en/about',
-        bodyLine: 'This is the About page (EN) for the Template1 demo site. Nav label can follow this title when the toggle is on.',
+        bodyLine:
+          'This is the About page (EN) for the Template1 demo site. Nav label can follow this title when the toggle is on.',
       },
       {
         slug: 'contact',
@@ -394,6 +461,7 @@ const TEMPLATE1_LANDING_TEMPLATE_BASE = {
   landingCtaBgColor: '#00502f',
   landingCtaTextColor: '#f8f8f8',
   landingFontPreset: 'serif' as const,
+  siteLayout: 'template1' as const,
   blogPrimaryColor: '#00502f',
   blogAccentColor: '#b6734d',
   blogContentBgColor: '#f9f8f5',
@@ -405,6 +473,13 @@ const TEMPLATE1_LANDING_TEMPLATE_BASE = {
   aboutBio: '',
   aboutCtaLabel: 'Learn more',
   aboutCtaHref: '#',
+  affiliateDisclosureLine:
+    'Seed demo disclosure: this local Template1 preview may show affiliate-style UI, but links and recommendations are mock data only.',
+  footerResourceLinks: [
+    { label: 'About', href: '/en/about' },
+    { label: 'Contact', href: '/en/contact' },
+    { label: 'Privacy', href: '/en/privacy' },
+  ],
 }
 
 /** 可选；与 blog-default 同本地预览。Seed Alpha 的 Template1 演示站为 `seed-site-b`。 */
@@ -433,8 +508,7 @@ const SEED_ALPHA_TEMPLATE1_DEMO: Record<string, string | boolean> = {
   t1NavMenuSrZh: '【演示】打开菜单',
   t1HomeTitleEn: '[Demo] Unbiased reviews & guides',
   t1HomeTitleZh: '【演示】客观评测与选购指南',
-  t1HomeSubtitleEn:
-    '[Demo] Template1 home subtitle — this copy comes from the site record (seed).',
+  t1HomeSubtitleEn: '[Demo] Template1 home subtitle — this copy comes from the site record (seed).',
   t1HomeSubtitleZh: '【演示】首页副标题由站点 Template1 文案区写入（本行为种子模拟数据）。',
   t1BrowseCategoryEn: '[Demo] Browse by category',
   t1BrowseCategoryZh: '【演示】按分类浏览',
@@ -454,15 +528,18 @@ const SEED_ALPHA_TEMPLATE1_DEMO: Record<string, string | boolean> = {
   t1WhyTrustZh: '【演示】为何可信',
   t1Trust1TitleEn: '[Demo] Independent testing',
   t1Trust1TitleZh: '【演示】独立测试',
-  t1Trust1DescEn: '[Demo] We buy products at retail; methods are described in our editorial policy.',
+  t1Trust1DescEn:
+    '[Demo] We buy products at retail; methods are described in our editorial policy.',
   t1Trust1DescZh: '【演示】商品多为自费购买；方法见编辑准则。（种子示例）',
   t1Trust2TitleEn: '[Demo] Transparent links',
   t1Trust2TitleZh: '【演示】联盟披露',
-  t1Trust2DescEn: '[Demo] When you buy through our links, we may earn a commission at no extra cost to you.',
+  t1Trust2DescEn:
+    '[Demo] When you buy through our links, we may earn a commission at no extra cost to you.',
   t1Trust2DescZh: '【演示】通过联盟链接完成购买时，我们可能获得分成，不额外向读者收费。',
   t1Trust3TitleEn: '[Demo] Updated regularly',
   t1Trust3TitleZh: '【演示】持续更新',
-  t1Trust3DescEn: '[Demo] We revisit picks when prices or models change; date reflects last major update.',
+  t1Trust3DescEn:
+    '[Demo] We revisit picks when prices or models change; date reflects last major update.',
   t1Trust3DescZh: '【演示】价格或型号变化时会回访榜单；日期为最近一次大改版。',
   t1LearnHowWeTestEn: '[Demo] How we test',
   t1LearnHowWeTestZh: '【演示】我们如何测试',
@@ -527,7 +604,8 @@ function textPara(line: string): {
   }
 }
 
-function minimalLexicalBody(line: string): { root: Record<string, unknown> } {
+function minimalLexicalBody(lines: string | string[]): { root: Record<string, unknown> } {
+  const inputLines = Array.isArray(lines) ? lines : [lines]
   return {
     root: {
       type: 'root',
@@ -535,7 +613,7 @@ function minimalLexicalBody(line: string): { root: Record<string, unknown> } {
       indent: 0,
       version: 1,
       direction: 'ltr',
-      children: [textPara(line)],
+      children: inputLines.map((line) => textPara(line)),
     },
   }
 }
@@ -566,12 +644,7 @@ function whereTenantSlugLocale(tenantId: number, slug: string, locale: string) {
   }
 }
 
-function whereTenantSiteSlugLocale(
-  tenantId: number,
-  siteId: number,
-  slug: string,
-  locale: string,
-) {
+function whereTenantSiteSlugLocale(tenantId: number, siteId: number, slug: string, locale: string) {
   return {
     and: [
       { slug: { equals: slug } },
@@ -607,8 +680,11 @@ async function d1NarrowUpdateSites(
   if (client == null || typeof (client as { prepare?: unknown }).prepare !== 'function') {
     return false
   }
-  const prep = (client as { prepare: (sql: string) => { bind: (...a: unknown[]) => { run: () => Promise<unknown> } } })
-    .prepare
+  const prep = (
+    client as {
+      prepare: (sql: string) => { bind: (...a: unknown[]) => { run: () => Promise<unknown> } }
+    }
+  ).prepare
   if (typeof prep !== 'function') return false
 
   const cols = setPairs.map(([c]) => `\`${c}\` = ?`).join(', ')
@@ -623,13 +699,72 @@ async function d1NarrowUpdateSites(
   return true
 }
 
-async function getSqliteTableColumnNames(payload: Payload, table: string): Promise<Set<string> | null> {
+async function d1UpsertSiteT1LocaleRaw(
+  payload: Payload,
+  siteId: number,
+  t1LocaleJson: Record<string, string | boolean>,
+): Promise<boolean> {
+  const cols = await getSqliteTableColumnNames(payload, 'site_t1_locales')
+  if (!cols?.has('site_id') || !cols.has('t1_locale_json')) return false
+  const c = (payload.db as unknown as SQLiteAdapter).client
+  if (!c || typeof (c as { prepare?: unknown }).prepare !== 'function') return false
+  const p = c as {
+    prepare: (q: string) => {
+      bind: (...a: unknown[]) => {
+        all: <T>() => Promise<{ results?: T[] }>
+        run: () => Promise<unknown>
+      }
+    }
+  }
+  const iso = new Date().toISOString()
+  const existing = await p
+    .prepare('SELECT `id` FROM `site_t1_locales` WHERE `site_id` = ? LIMIT 1')
+    .bind(siteId)
+    .all<{ id: number }>()
+  const json = JSON.stringify(t1LocaleJson)
+  if (existing.results?.[0]?.id != null) {
+    const set = cols.has('updated_at')
+      ? '`t1_locale_json` = ?, `updated_at` = ?'
+      : '`t1_locale_json` = ?'
+    const values = cols.has('updated_at') ? [json, iso, siteId] : [json, siteId]
+    await p
+      .prepare(`UPDATE \`site_t1_locales\` SET ${set} WHERE \`site_id\` = ?`)
+      .bind(...values)
+      .run()
+    return true
+  }
+
+  const insertCols = ['site_id', 't1_locale_json']
+  const insertVals: unknown[] = [siteId, json]
+  if (cols.has('updated_at')) {
+    insertCols.push('updated_at')
+    insertVals.push(iso)
+  }
+  if (cols.has('created_at')) {
+    insertCols.push('created_at')
+    insertVals.push(iso)
+  }
+  await p
+    .prepare(
+      `INSERT INTO \`site_t1_locales\` (${insertCols.map((col) => `\`${col}\``).join(', ')}) VALUES (${insertCols.map(() => '?').join(', ')})`,
+    )
+    .bind(...insertVals)
+    .run()
+  return true
+}
+
+async function getSqliteTableColumnNames(
+  payload: Payload,
+  table: string,
+): Promise<Set<string> | null> {
   const db = payload.db as unknown as SQLiteAdapter
   const client = db.client
   if (client == null || typeof (client as { prepare?: unknown }).prepare !== 'function') {
     return null
   }
-  const res = await (client as { prepare: (q: string) => { all: <T>() => Promise<{ results?: T[] }> } })
+  const res = await (
+    client as { prepare: (q: string) => { all: <T>() => Promise<{ results?: T[] }> } }
+  )
     .prepare(`PRAGMA table_info(\`${table}\`)`)
     .all<{ name: string }>()
   const rows = res.results ?? []
@@ -658,7 +793,10 @@ async function d1SeedEnsureSiteBlueprint(
 
   const p = client as {
     prepare: (q: string) => {
-      bind: (...a: unknown[]) => { all: <T>() => Promise<{ results?: T[] }>; run: () => Promise<unknown> }
+      bind: (...a: unknown[]) => {
+        all: <T>() => Promise<{ results?: T[] }>
+        run: () => Promise<unknown>
+      }
     }
   }
   const existing = await p
@@ -685,7 +823,10 @@ async function d1SeedEnsureSiteBlueprint(
   }
   const ph = insertCols.map(() => '?').join(', ')
   const csql = `INSERT INTO \`site_blueprints\` (${insertCols.map((c) => `\`${c}\``).join(', ')}) VALUES (${ph})`
-  await p.prepare(csql).bind(...insertVals).run()
+  await p
+    .prepare(csql)
+    .bind(...insertVals)
+    .run()
   const again = await p
     .prepare('SELECT `id` FROM `site_blueprints` WHERE `tenant_id` = ? AND `slug` = ? LIMIT 1')
     .bind(input.tenantId, input.blueprintSlug)
@@ -715,13 +856,14 @@ async function d1EnsureCategoryRaw(
   }
   const p = c as {
     prepare: (q: string) => {
-      bind: (...a: unknown[]) => { all: <T>() => Promise<{ results?: T[] }>; run: () => Promise<unknown> }
+      bind: (...a: unknown[]) => {
+        all: <T>() => Promise<{ results?: T[] }>
+        run: () => Promise<unknown>
+      }
     }
   }
   const catCols =
-    columnSet != null
-      ? columnSet
-      : await getSqliteTableColumnNames(payload, 'categories')
+    columnSet != null ? columnSet : await getSqliteTableColumnNames(payload, 'categories')
   if (!catCols?.has('slug') || !catCols.has('tenant_id')) {
     throw new Error('[seed:dev] d1EnsureCategoryRaw: categories table missing slug/tenant_id')
   }
@@ -736,7 +878,10 @@ async function d1EnsureCategoryRaw(
     ? [input.slug, input.tenantId, input.siteId]
     : [input.slug, input.tenantId]
 
-  const ex = await p.prepare(selectWhere).bind(...selectBind).all<{ id: number }>()
+  const ex = await p
+    .prepare(selectWhere)
+    .bind(...selectBind)
+    .all<{ id: number }>()
   if (ex.results?.[0]?.id != null) {
     return { id: ex.results[0].id as number }
   }
@@ -757,10 +902,19 @@ async function d1EnsureCategoryRaw(
       .run()
   }
 
-  const again = await p.prepare(selectWhere).bind(...selectBind).all<{ id: number }>()
+  const again = await p
+    .prepare(selectWhere)
+    .bind(...selectBind)
+    .all<{ id: number }>()
   const id = again.results?.[0]?.id
   if (id == null) throw new Error('[seed:dev] d1EnsureCategoryRaw: insert id missing')
-  console.info('[seed:dev] d1 category', input.slug, 'id', id, hasSite ? `site=${input.siteId}` : 'no site_id col')
+  console.info(
+    '[seed:dev] d1 category',
+    input.slug,
+    'id',
+    id,
+    hasSite ? `site=${input.siteId}` : 'no site_id col',
+  )
   return { id: id as number }
 }
 
@@ -795,7 +949,10 @@ async function d1EnsurePageOrArticleRaw(
   }
   const p = c as {
     prepare: (q: string) => {
-      bind: (...a: unknown[]) => { all: <T>() => Promise<{ results?: T[] }>; run: () => Promise<unknown> }
+      bind: (...a: unknown[]) => {
+        all: <T>() => Promise<{ results?: T[] }>
+        run: () => Promise<unknown>
+      }
     }
   }
   const iso = new Date().toISOString()
@@ -836,7 +993,10 @@ async function d1EnsurePageOrArticleRaw(
   }
   const ph = keys.map(() => '?').join(', ')
   const csql = `INSERT INTO \`${table}\` (${keys.map((k) => `\`${k}\``).join(', ')}) VALUES (${ph})`
-  await p.prepare(csql).bind(...keys.map((k) => row[k])).run()
+  await p
+    .prepare(csql)
+    .bind(...keys.map((k) => row[k]))
+    .run()
 
   const newIdQ = pageScoped
     ? await p
@@ -846,12 +1006,16 @@ async function d1EnsurePageOrArticleRaw(
         .bind(input.tenantId, input.siteId, input.slug, input.locale)
         .all<{ id: number }>()
     : await p
-        .prepare('SELECT `id` FROM `articles` WHERE `tenant_id` = ? AND `slug` = ? AND `locale` = ? LIMIT 1')
+        .prepare(
+          'SELECT `id` FROM `articles` WHERE `tenant_id` = ? AND `slug` = ? AND `locale` = ? LIMIT 1',
+        )
         .bind(input.tenantId, input.slug, input.locale)
         .all<{ id: number }>()
   const newId = newIdQ.results?.[0]?.id
   if (newId == null) {
-    throw new Error(`[seed:dev] d1EnsurePageOrArticleRaw: could not re-read id after ${table} insert`)
+    throw new Error(
+      `[seed:dev] d1EnsurePageOrArticleRaw: could not re-read id after ${table} insert`,
+    )
   }
 
   if (input.categoryIds.length > 0 && relCols != null) {
@@ -894,7 +1058,9 @@ async function ensureSiteScopeColumns(payload: Payload): Promise<void> {
     await client.exec(
       'ALTER TABLE `categories` ADD `site_id` integer REFERENCES `sites`(`id`) ON UPDATE no action ON DELETE set null;',
     )
-    await client.exec('CREATE INDEX IF NOT EXISTS `categories_site_idx` ON `categories` (`site_id`);')
+    await client.exec(
+      'CREATE INDEX IF NOT EXISTS `categories_site_idx` ON `categories` (`site_id`);',
+    )
   }
 
   if (!(await tableHasColumn('media', 'site_id'))) {
@@ -1071,10 +1237,7 @@ async function main(): Promise<void> {
     const pagesRelsCols = await getSqliteTableColumnNames(payload, 'pages_rels')
     const articlesRelsCols = await getSqliteTableColumnNames(payload, 'articles_rels')
     const useD1PageArticleRaw =
-      d1SitesNarrow &&
-      d1ClientOk &&
-      pageSqlCols != null &&
-      artSqlCols != null
+      d1SitesNarrow && d1ClientOk && pageSqlCols != null && artSqlCols != null
     console.info(
       '[seed:dev] D1/pages+articles: useD1PageArticleRaw=',
       useD1PageArticleRaw,
@@ -1165,6 +1328,7 @@ async function main(): Promise<void> {
           data: {
             ...TEMPLATE1_LANDING_TEMPLATE_BASE,
             previewUrl: keepPreview,
+            t1LocaleJson: SEED_ALPHA_TEMPLATE1_DEMO,
           },
           overrideAccess: true,
         })
@@ -1182,6 +1346,7 @@ async function main(): Promise<void> {
         data: {
           ...TEMPLATE1_LANDING_TEMPLATE_BASE,
           previewUrl,
+          t1LocaleJson: SEED_ALPHA_TEMPLATE1_DEMO,
           tenant: tenantId,
         },
         overrideAccess: true,
@@ -1264,9 +1429,7 @@ async function main(): Promise<void> {
         ['site_layout', 'template1'],
         ['landing_template_id', template1Lt.id],
       ]
-      const layoutForDb = siteSqlCols
-        ? layoutWanted.filter(([col]) => siteSqlCols.has(col))
-        : null
+      const layoutForDb = siteSqlCols ? layoutWanted.filter(([col]) => siteSqlCols.has(col)) : null
       let layoutApplied = false
       if (layoutForDb && layoutForDb.length > 0) {
         layoutApplied = await d1NarrowUpdateSites(payload, demoSite.id, layoutForDb)
@@ -1305,7 +1468,7 @@ async function main(): Promise<void> {
             collection: 'site-t1-locales',
             id: (existing.docs[0] as { id: number }).id,
             ...reqOpts,
-            data: { t1LocaleJson: json },
+            data: { tenant: tenantId, t1LocaleJson: json },
             overrideAccess: true,
           })
         } else {
@@ -1314,6 +1477,7 @@ async function main(): Promise<void> {
             ...reqOpts,
             ...d0,
             data: {
+              tenant: tenantId,
               site: demoSite.id,
               t1LocaleJson: json,
             },
@@ -1322,7 +1486,18 @@ async function main(): Promise<void> {
         }
         t1DocApplied = true
       } catch (e) {
-        console.warn('[seed:dev] site-t1-locales seed failed (run `pnpm exec payload migrate`?)', e)
+        try {
+          t1DocApplied = await d1UpsertSiteT1LocaleRaw(payload, demoSite.id, {
+            ...SEED_ALPHA_TEMPLATE1_DEMO,
+          })
+          if (t1DocApplied) {
+            console.info('[seed:dev] site-t1-locales raw upsert ok')
+          } else {
+            console.warn('[seed:dev] site-t1-locales seed skipped; table/columns unavailable', e)
+          }
+        } catch (rawError) {
+          console.warn('[seed:dev] site-t1-locales seed failed (Payload + raw fallback)', rawError)
+        }
       }
 
       console.info(
@@ -1564,7 +1739,10 @@ async function main(): Promise<void> {
       categoryIds: number[],
       locale: 'zh' | 'en' = 'zh',
       excerpt?: string,
+      bodyLines?: string[],
     ) {
+      const body =
+        bodyLines != null && bodyLines.length > 0 ? minimalLexicalBody(bodyLines) : undefined
       if (useD1PageArticleRaw && artSqlCols != null) {
         await d1EnsurePageOrArticleRaw(
           'articles',
@@ -1579,7 +1757,7 @@ async function main(): Promise<void> {
             locale,
             title,
             excerpt,
-            bodyJson: null,
+            bodyJson: body != null ? JSON.stringify(body) : null,
             categoryIds,
           },
           false,
@@ -1605,6 +1783,7 @@ async function main(): Promise<void> {
           excerpt: excerpt ?? undefined,
           site: siteId,
           categories: categoryIds,
+          ...(body != null ? { body } : {}),
           status: 'published',
           publishedAt: new Date().toISOString(),
           tenant: tenantId,
@@ -1623,7 +1802,8 @@ async function main(): Promise<void> {
       excerpt?: string,
       bodyLine?: string,
     ) {
-      const body = bodyLine != null && bodyLine.length > 0 ? minimalLexicalBody(bodyLine) : undefined
+      const body =
+        bodyLine != null && bodyLine.length > 0 ? minimalLexicalBody(bodyLine) : undefined
       if (useD1PageArticleRaw && pageSqlCols != null) {
         const bodyJson = body != null ? JSON.stringify(body) : null
         await d1EnsurePageOrArticleRaw(
@@ -1685,6 +1865,7 @@ async function main(): Promise<void> {
         [catId],
         loc,
         a.excerpt,
+        a.bodyLines,
       )
     }
     for (const pg of p.pages) {
@@ -1732,10 +1913,7 @@ async function main(): Promise<void> {
       collection: 'rankings',
       ...d0,
       where: {
-        and: [
-          { tenant: { equals: tenantId } },
-          { searchQuery: { equals: p.ranking.searchQuery } },
-        ],
+        and: [{ tenant: { equals: tenantId } }, { searchQuery: { equals: p.ranking.searchQuery } }],
       },
       limit: 1,
       overrideAccess: true,
@@ -1763,10 +1941,7 @@ async function main(): Promise<void> {
       collection: 'workflow-jobs',
       ...d0,
       where: {
-        and: [
-          { tenant: { equals: tenantId } },
-          { label: { equals: p.workflowLabel } },
-        ],
+        and: [{ tenant: { equals: tenantId } }, { label: { equals: p.workflowLabel } }],
       },
       limit: 1,
       overrideAccess: true,
@@ -1816,10 +1991,7 @@ async function main(): Promise<void> {
       collection: 'social-accounts',
       ...d0,
       where: {
-        and: [
-          { tenant: { equals: tenantId } },
-          { handle: { equals: p.socialHandle } },
-        ],
+        and: [{ tenant: { equals: tenantId } }, { handle: { equals: p.socialHandle } }],
       },
       limit: 1,
       overrideAccess: true,
@@ -1872,10 +2044,7 @@ async function main(): Promise<void> {
       collection: 'announcements',
       ...d0,
       where: {
-        and: [
-          { tenant: { equals: tenantId } },
-          { title: { equals: p.announcementTitle } },
-        ],
+        and: [{ tenant: { equals: tenantId } }, { title: { equals: p.announcementTitle } }],
       },
       limit: 1,
       overrideAccess: true,
@@ -1943,10 +2112,7 @@ async function main(): Promise<void> {
         collection: 'commissions',
         ...d0,
         where: {
-          and: [
-            { tenant: { equals: tenantId } },
-            { notes: { equals: p.commissionNotes } },
-          ],
+          and: [{ tenant: { equals: tenantId } }, { notes: { equals: p.commissionNotes } }],
         },
         limit: 1,
         overrideAccess: true,
@@ -1981,12 +2147,20 @@ async function main(): Promise<void> {
   console.info('[seed:dev] Beta site-manager only:', EMAILS.betaSitemgr, '/', PASSWORD)
   console.info('')
   console.info('[seed:dev] Blog template preview (after pnpm dev):')
-  console.info('  Set NEXT_PUBLIC_DEFAULT_SITE_SLUG=seed-site-a in .env, then open http://localhost:3000/zh/')
-  console.info('  Or: http://localhost:3000/zh/?site=seed-site-a  |  second site: ?site=seed-site-b')
+  console.info(
+    '  Set NEXT_PUBLIC_DEFAULT_SITE_SLUG=seed-site-a in .env, then open http://localhost:3000/zh/',
+  )
+  console.info(
+    '  Or: http://localhost:3000/zh/?site=seed-site-a  |  second site: ?site=seed-site-b',
+  )
   console.info('  Beta tenant: ?site=beta-saas-main')
   console.info('')
-  console.info('[seed:dev] Template1 demo (seed-site-b, seed-alpha): full shell + t1* copy in Admin')
-  console.info('  http://localhost:3000/zh/?site=seed-site-b  |  http://localhost:3000/en/?site=seed-site-b')
+  console.info(
+    '[seed:dev] Template1 demo (seed-site-b, seed-alpha): full shell + t1* copy in Admin',
+  )
+  console.info(
+    '  http://localhost:3000/zh/?site=seed-site-b  |  http://localhost:3000/en/?site=seed-site-b',
+  )
   console.info('  Root CMS pages: /zh/about, /zh/contact, /zh/privacy (and /en/…)')
 }
 

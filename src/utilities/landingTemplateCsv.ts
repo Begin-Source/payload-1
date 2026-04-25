@@ -9,6 +9,7 @@ export const LANDING_TEMPLATE_CSV_HEADER = [
   'description',
   'preview_url',
   'tenant_id',
+  'site_layout',
   'landing_browser_title',
   'landing_site_name',
   'landing_tagline',
@@ -34,9 +35,14 @@ export const LANDING_TEMPLATE_CSV_HEADER = [
   'about_image_id',
   'about_cta_label',
   'about_cta_href',
+  'review_hub_tagline',
+  'affiliate_disclosure_line',
+  'footer_resource_links_json',
+  't1_locale_json',
 ].join(',')
 
 const FONT_PRESET = new Set(['', 'system', 'serif', 'noto_sans_sc'])
+const SITE_LAYOUT = new Set(['', 'default', 'wide', 'affiliate_reviews', 'template1'])
 
 function docTenantIdNum(doc: { tenant?: number | { id: number } | null }): number | null {
   const t = doc.tenant
@@ -46,16 +52,48 @@ function docTenantIdNum(doc: { tenant?: number | { id: number } | null }): numbe
   return null
 }
 
-function aboutImageId(
-  m: number | { id: number } | null | undefined,
-): string {
+function aboutImageId(m: number | { id: number } | null | undefined): string {
   if (m == null) return ''
   if (typeof m === 'number') return String(m)
   return String(m.id)
 }
 
+function jsonCell(value: unknown): string {
+  if (value == null) return ''
+  if (typeof value === 'string') return value
+  return JSON.stringify(value)
+}
+
+function parseJsonCell(
+  raw: string,
+  expected: 'array' | 'object',
+  fieldName: string,
+): { value: unknown; error?: string } {
+  const t = raw.trim()
+  if (!t) return { value: null }
+  try {
+    const value = JSON.parse(t) as unknown
+    if (expected === 'array' && !Array.isArray(value)) {
+      return { value: null, error: `${fieldName} must be a JSON array` }
+    }
+    if (expected === 'object' && (!value || typeof value !== 'object' || Array.isArray(value))) {
+      return { value: null, error: `${fieldName} must be a JSON object` }
+    }
+    return { value }
+  } catch {
+    return { value: null, error: `invalid ${fieldName}` }
+  }
+}
+
 export function landingTemplateDocToRow(doc: LandingTemplate): string {
   const tid = docTenantIdNum(doc)
+  const wholeDoc = doc as LandingTemplate & {
+    siteLayout?: string | null
+    reviewHubTagline?: string | null
+    affiliateDisclosureLine?: string | null
+    footerResourceLinks?: unknown
+    t1LocaleJson?: unknown
+  }
   return [
     String(doc.id),
     escapeCsvCell(doc.name ?? ''),
@@ -63,6 +101,7 @@ export function landingTemplateDocToRow(doc: LandingTemplate): string {
     escapeCsvCell(doc.description == null ? '' : String(doc.description)),
     escapeCsvCell(doc.previewUrl == null ? '' : String(doc.previewUrl)),
     escapeCsvCell(tid == null ? '' : String(tid)),
+    escapeCsvCell(wholeDoc.siteLayout == null ? '' : String(wholeDoc.siteLayout)),
     escapeCsvCell(doc.landingBrowserTitle == null ? '' : String(doc.landingBrowserTitle)),
     escapeCsvCell(doc.landingSiteName == null ? '' : String(doc.landingSiteName)),
     escapeCsvCell(doc.landingTagline == null ? '' : String(doc.landingTagline)),
@@ -92,6 +131,12 @@ export function landingTemplateDocToRow(doc: LandingTemplate): string {
     escapeCsvCell(aboutImageId(doc.aboutImage)),
     escapeCsvCell(doc.aboutCtaLabel == null ? '' : String(doc.aboutCtaLabel)),
     escapeCsvCell(doc.aboutCtaHref == null ? '' : String(doc.aboutCtaHref)),
+    escapeCsvCell(wholeDoc.reviewHubTagline == null ? '' : String(wholeDoc.reviewHubTagline)),
+    escapeCsvCell(
+      wholeDoc.affiliateDisclosureLine == null ? '' : String(wholeDoc.affiliateDisclosureLine),
+    ),
+    escapeCsvCell(jsonCell(wholeDoc.footerResourceLinks)),
+    escapeCsvCell(jsonCell(wholeDoc.t1LocaleJson)),
   ].join(',')
 }
 
@@ -138,7 +183,15 @@ export function landingTemplateDataFromRow(
     aboutBio: c('about_bio').trim() || null,
     aboutCtaLabel: c('about_cta_label').trim() || null,
     aboutCtaHref: c('about_cta_href').trim() || null,
+    reviewHubTagline: c('review_hub_tagline').trim() || null,
+    affiliateDisclosureLine: c('affiliate_disclosure_line').trim() || null,
   }
+  const sl = c('site_layout').trim()
+  if (!SITE_LAYOUT.has(sl)) {
+    return { data: {}, error: 'invalid site_layout' }
+  }
+  data.siteLayout = sl === '' ? null : sl
+
   const fp = c('landing_font_preset').trim()
   if (!FONT_PRESET.has(fp)) {
     return { data: {}, error: 'invalid landing_font_preset' }
@@ -155,5 +208,18 @@ export function landingTemplateDataFromRow(
     }
     data.aboutImage = n
   }
+
+  const footerLinks = parseJsonCell(
+    c('footer_resource_links_json'),
+    'array',
+    'footer_resource_links_json',
+  )
+  if (footerLinks.error) return { data: {}, error: footerLinks.error }
+  data.footerResourceLinks = footerLinks.value
+
+  const t1 = parseJsonCell(c('t1_locale_json'), 'object', 't1_locale_json')
+  if (t1.error) return { data: {}, error: t1.error }
+  data.t1LocaleJson = t1.value
+
   return { data }
 }

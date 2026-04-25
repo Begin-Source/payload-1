@@ -1,0 +1,24 @@
+# Hourly: execute one pending workflow job (`/api/pipeline/tick?execute=1`).
+# Secrets: PIPELINE_BASE_URL, PAYLOAD_SECRET (same as `x-internal-token` exact match).
+name: Pipeline tick
+on:
+  schedule:
+    - cron: '8 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST tick
+        env:
+          PIPELINE_BASE_URL: ${{ secrets.PIPELINE_BASE_URL }}
+          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "${PIPELINE_BASE_URL:-}"
+          test -n "${PAYLOAD_SECRET:-}"
+          curl -fsS -X POST "${PIPELINE_BASE_URL%/}/api/pipeline/tick?execute=1" \
+            -H "x-internal-token: ${PAYLOAD_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d '{}'

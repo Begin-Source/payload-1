@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@payloadcms/ui'
 import React, { useEffect, useMemo, useState } from 'react'
 
 type Row = {
@@ -36,6 +37,8 @@ function withSchedule(rows: Row[], dailyCap: number) {
 export function ContentCalendarBoard(): React.ReactElement {
   const [data, setData] = useState<CalendarPayload | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  const [scheduling, setScheduling] = useState<string | number | null>(null)
+  const [msg, setMsg] = useState<string | null>(null)
 
   useEffect(() => {
     let c = false
@@ -63,6 +66,31 @@ export function ContentCalendarBoard(): React.ReactElement {
     return withSchedule(data.calendar.rows.slice(0, 42), cap)
   }, [data])
 
+  const scheduleBrief = async (keywordId: string | number): Promise<void> => {
+    setMsg(null)
+    setScheduling(keywordId)
+    try {
+      const res = await fetch('/api/admin/calendar-schedule-brief', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          keywordId: typeof keywordId === 'string' ? Number(keywordId) : keywordId,
+        }),
+      })
+      const j = (await res.json().catch(() => ({}))) as { error?: string; id?: number }
+      if (!res.ok) {
+        setMsg(typeof j.error === 'string' ? j.error : `排产失败 (${res.status})`)
+        return
+      }
+      setMsg(`已入队 brief_generate #${j.id ?? ''}`)
+    } catch {
+      setMsg('网络错误')
+    } finally {
+      setScheduling(null)
+    }
+  }
+
   return (
     <div
       style={{
@@ -75,9 +103,12 @@ export function ContentCalendarBoard(): React.ReactElement {
     >
       <strong>内容日历（机会分 × 日 cap）</strong>
       <p style={{ margin: '0.35rem 0 0', opacity: 0.85, fontSize: '0.88rem' }}>
-        按 <code>opportunityScore</code> 降序与 <code>SiteQuotas.dailyPostCap</code> 生成虚拟周序；排产按钮仍走{' '}
-        <code>workflow-jobs</code>。
+        按 <code>opportunityScore</code> 降序与 <code>SiteQuotas.dailyPostCap</code> 生成虚拟周序；每行「排产」创建一条{' '}
+        <code>brief_generate</code> 工作流任务（与批量排产一致，需 tick 执行）。
       </p>
+      {msg && (
+        <p style={{ margin: '0.35rem 0 0', fontSize: '0.82rem', color: 'var(--theme-success-600, #15803d)' }}>{msg}</p>
+      )}
       {err && (
         <p style={{ color: 'var(--theme-error-500, #c00)' }} role="alert">
           {err}
@@ -93,16 +124,28 @@ export function ContentCalendarBoard(): React.ReactElement {
                 <th style={{ textAlign: 'left', padding: '0.35rem' }}>槽</th>
                 <th style={{ textAlign: 'left', padding: '0.35rem' }}>词</th>
                 <th style={{ textAlign: 'right', padding: '0.35rem' }}>机会分</th>
+                <th style={{ textAlign: 'left', padding: '0.35rem' }}>排产</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={String(r.id)}>
+                <tr key={`${String(r.id)}-${r.week}-${r.dayIndex}`}>
                   <td style={{ padding: '0.35rem' }}>{r.week}</td>
                   <td style={{ padding: '0.35rem' }}>{r.dayIndex}</td>
                   <td style={{ padding: '0.35rem' }}>{r.term}</td>
                   <td style={{ padding: '0.35rem', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                     {r.opportunityScore ?? '—'}
+                  </td>
+                  <td style={{ padding: '0.35rem' }}>
+                    <Button
+                      buttonStyle="secondary"
+                      disabled={scheduling === r.id}
+                      size="small"
+                      type="button"
+                      onClick={() => void scheduleBrief(r.id)}
+                    >
+                      {scheduling === r.id ? '…' : '排产'}
+                    </Button>
                   </td>
                 </tr>
               ))}
