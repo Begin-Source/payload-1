@@ -23,6 +23,7 @@ const CSV_COLLECTION_SLUGS = [
   'pages',
   'categories',
   'site-blueprints',
+  'landing-templates',
   'knowledge-base',
   'operation-manuals',
 ] as const
@@ -82,7 +83,7 @@ export function CsvImportExportListMenuItem(props: CsvImportExportSlotProps): Re
 }
 
 /**
- * 搜索栏下：CSV 面板（多数集合为站点 + 导出所选 / 导出全部 + 导入；`operation-manuals` 无站点，仅导/入当前租户内全部手册）。
+ * 搜索栏下：CSV 面板（多数集合为站点 + 导出所选 / 导出全部 + 导入；`operation-manuals` 无站点，仅导/入当前租户内全部手册。`landing-templates` 的 CSV 面板在 `afterListTable`，见 `LandingTemplatesCsvAfterTable`）。
  */
 export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.ReactElement | null {
   const slug = resolveCsvSlug(props.collectionSlug)
@@ -100,6 +101,7 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
   const [siteMenuOpen, setSiteMenuOpen] = useState(false)
   const siteWrapRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const importAllFileRef = useRef<HTMLInputElement>(null)
 
   const loadSites = useCallback(async (q: string) => {
     setSitesLoading(true)
@@ -220,6 +222,44 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
     }
   }
 
+  const onFileImportAllKb = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const base = csvApiBase(slug)
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('importAll', '1')
+    try {
+      const res = await fetch(`${base}/csv-import`, {
+        method: 'POST',
+        credentials: 'include',
+        body: fd,
+      })
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string
+        created?: number
+        updated?: number
+        errors?: { row: number; message: string }[]
+      }
+      if (!res.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : '导入失败')
+      }
+      const errs = data.errors ?? []
+      const parts: string[] = []
+      if (data.created != null) parts.push(`创建 ${data.created} 条`)
+      if (data.updated != null) parts.push(`更新 ${data.updated} 条`)
+      const msg = `${parts.join('，')}${
+        errs.length > 0
+          ? `\n\n部分行失败：\n${errs.map((x) => `第 ${x.row} 行: ${x.message}`).join('\n')}`
+          : ''
+      }`
+      window.alert(msg || '完成')
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : '导入失败')
+    }
+  }
+
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0]
     e.target.value = ''
@@ -272,7 +312,7 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
         : slug === 'keywords'
           ? '列：id, term, slug, notes, status, site_id。'
           : slug === 'knowledge-base'
-            ? '列：id, slug, title, status, notes, site_id, body_json, entry_type, skill_id, subject, summary, payload_json, severity, expires_at, artifact_class。不含分类。导出所选=仅该站点；导出全部=租户范围内全部（含无站点）。'
+            ? '列：id, slug, title, status, notes, site_id, body_json, entry_type, skill_id, subject, summary, payload_json, severity, expires_at, artifact_class。不含分类。导出所选=仅该站点；导出全部=租户范围内全部（含无站点）。「导入全部」按每行 site_id 写入（与导出全部一致，无需选站点）。空 site_id=无站点文档。'
             : slug === 'operation-manuals'
               ? '列：id, slug, title, level, status, summary, search_keywords, body_json, sort_order。无 site；level 为 intro/standard/advanced。导出/导入均针对当前可访问租户内的全部操作手册。'
               : slug === 'media'
@@ -533,6 +573,25 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
               >
                 选择文件…
               </Button>
+              {slug === 'knowledge-base' ? (
+                <>
+                  <input
+                    ref={importAllFileRef}
+                    accept=".csv,text/csv"
+                    style={{ display: 'none' }}
+                    type="file"
+                    onChange={(e) => void onFileImportAllKb(e)}
+                  />
+                  <Button
+                    buttonStyle="secondary"
+                    onClick={() => importAllFileRef.current?.click()}
+                    size="small"
+                    type="button"
+                  >
+                    导入全部（按 CSV 内 site_id）
+                  </Button>
+                </>
+              ) : null}
             </div>
           </div>
         )}

@@ -3,10 +3,12 @@ import { notFound } from 'next/navigation'
 import React from 'react'
 
 import { AboutSidebar } from '@/components/blog/AboutSidebar'
+import { ReviewHubHome } from '@/components/blog/reviewHub/ReviewHubHome'
 import { PostList } from '@/components/blog/PostList'
+import { Template1HomePage } from '@/components/template1/Template1HomePage'
 import { isAppLocale } from '@/i18n/config'
 import { getPublicSiteContext } from '@/utilities/publicLandingTheme'
-import { getPublishedArticlesForSite } from '@/utilities/publicSiteQueries'
+import { getNavCategoriesForSite, getPublishedArticlesForSite } from '@/utilities/publicSiteQueries'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -34,7 +36,19 @@ export default async function HomePage(props: Props) {
     )
   }
 
-  const articles = await getPublishedArticlesForSite(site.id, locale)
+  const articles = await getPublishedArticlesForSite(site.id, locale, 20)
+
+  if (theme.siteLayout === 'template1') {
+    const categories = await getNavCategoriesForSite(site.id, 32)
+    return <Template1HomePage locale={locale} site={site} theme={theme} articles={articles} categories={categories} />
+  }
+
+  if (theme.siteLayout === 'affiliate_reviews') {
+    const categories = await getNavCategoriesForSite(site.id, 48)
+    return (
+      <ReviewHubHome articles={articles} categories={categories} locale={locale} theme={theme} />
+    )
+  }
 
   return (
     <div className="blogRow">

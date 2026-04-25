@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import type { Config } from '@/payload-types'
 import { isUsersCollection } from '@/utilities/announcementAccess'
 import { parseCsvRows } from '@/utilities/csv'
+import { resolveTenantIdForCsvCreate } from '@/utilities/resolveTenantIdForCsvCreate'
 import { getTenantScopeForStats } from '@/utilities/tenantScope'
 
 export const dynamic = 'force-dynamic'
@@ -41,6 +42,9 @@ export async function POST(request: Request): Promise<Response> {
 
   const form = await request.formData()
   const file = form.get('file')
+  const tenantIdFromForm = form.get('tenantId')
+  const formTenantIdStr =
+    typeof tenantIdFromForm === 'string' ? tenantIdFromForm : null
   const siteIdRaw = form.get('siteId')
   const hasSiteId =
     siteIdRaw != null && String(siteIdRaw).trim() !== '' && String(siteIdRaw) !== 'undefined'
@@ -53,6 +57,22 @@ export async function POST(request: Request): Promise<Response> {
   const scope = getTenantScopeForStats(user)
   if (scope.mode === 'none') {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const createTenantId = await resolveTenantIdForCsvCreate(
+    payload,
+    user as Config['user'] & { collection: 'users' },
+    scope,
+    formTenantIdStr,
+  )
+  if (createTenantId == null) {
+    return Response.json(
+      {
+        error:
+          '无法确定目标租户。请在管理后台左上角先选择租户，或请求里附带 tenantId；超管无绑定时需库中至少存在一条租户。',
+      },
+      { status: 400 },
+    )
   }
 
   if (hasSiteId) {
@@ -196,6 +216,7 @@ export async function POST(request: Request): Promise<Response> {
         if (body !== undefined) data.body = body
         if (sortOrder !== undefined) data.sortOrder = sortOrder
         else data.sortOrder = 0
+        data.tenant = createTenantId
 
         await payload.create({
           collection: 'operation-manuals',

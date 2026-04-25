@@ -13,7 +13,6 @@ AI engines (ChatGPT Search, Claude Search, Perplexity, Google AI Overview, Gemin
 - Lock out traffic from the fastest-growing discovery channel
 
 Allowing them can:
-
 - Expose content to training without compensation
 - Increase server load
 - Leak competitive content to rivals who scrape via AI
@@ -31,7 +30,6 @@ Allowing them can:
 ## Known crawler inventory (2026)
 
 ### OpenAI
-
 | User-Agent | Purpose | Typical robots.txt choice |
 |-----------|---------|---------------------------|
 | `GPTBot` | Training data for future ChatGPT models | Most orgs block |
@@ -39,7 +37,6 @@ Allowing them can:
 | `OAI-SearchBot` | ChatGPT Search (retrieval-focused) | Allow for GEO visibility |
 
 ### Anthropic
-
 | User-Agent | Purpose | Typical choice |
 |-----------|---------|-----------------|
 | `ClaudeBot` / `Claude-Web` | Training data | Most orgs block |
@@ -47,7 +44,6 @@ Allowing them can:
 | `anthropic-ai` (legacy) | Legacy tag; treat as `ClaudeBot` | Block if blocking training |
 
 ### Google
-
 | User-Agent | Purpose | Typical choice |
 |-----------|---------|-----------------|
 | `Googlebot` | Search + AI Overview | Always allow |
@@ -55,20 +51,17 @@ Allowing them can:
 | `GoogleOther` | Internal research / product testing | Allow |
 
 ### Perplexity
-
 | User-Agent | Purpose | Typical choice |
 |-----------|---------|-----------------|
 | `PerplexityBot` | Crawl for retrieval answers | Allow for GEO visibility |
 | `Perplexity-User` | Real-time fetch for user queries | Allow |
 
-### Common Crawl (downstream training data for many LLMs)
-
+### Common Crawl
 | User-Agent | Purpose | Typical choice |
 |-----------|---------|-----------------|
 | `CCBot` | Feeds Common Crawl dataset used by many LLMs | Blocking here is indirect training opt-out |
 
-### Other 2026 notable
-
+### Other 2026
 | User-Agent | Purpose |
 |-----------|---------|
 | `Bytespider` | TikTok / Doubao / ByteDance LLMs |
@@ -174,10 +167,9 @@ Disallow: /
 
 ## Legal layer beyond robots.txt
 
-Robots.txt alone is **not a legal opt-out** under EU law. For full compliance as content rights holder:
+Robots.txt alone is **not a legal opt-out** under EU law. For full compliance:
 
 ### EU DSM Directive Art 4(3) — TDM reservation
-Machine-readable reservation required (robots.txt is advisory, not legally binding for TDM):
 
 ```html
 <!-- In page HEAD -->
@@ -193,27 +185,18 @@ X-Robots-Tag: noai, notrain
 Reference: [W3C TDM Reservation Protocol](https://www.w3.org/2022/tdmrep/).
 
 ### EU AI Act Art 53(1)(c) — GPAI provider obligations
-
-> **Phased application of the AI Act**: the Act entered into force 2024-08; prohibited-practice provisions applied from 2025-02; **GPAI provider obligations (Art 51-55, including Art 53 summary-of-training-data) applied from 2025-08-02**; general applicability to high-risk systems phases through 2026-08. The date below refers specifically to when Art 53 GPAI obligations became applicable, not the whole Act.
-
-Art 53 applicable date: **2025-08-02**. General-Purpose AI Model providers (OpenAI, Anthropic, Google, etc.) must:
-- Publish summary of training data content
-- Respect opt-out signals including `tdm-reservation`
-- Establish copyright policy
-
-Content owners: monitor published training data summaries; file DMCA/EU copyright complaints if your content appears despite opt-out.
+Art 53 applicable date: **2025-08-02**. GPAI providers must: publish training data summary, respect `tdm-reservation` opt-out, establish copyright policy. Content owners: monitor training data summaries; file DMCA/EU complaints if content appears despite opt-out.
 
 ### CCPA — 2026 California extension
-California AG 2025 guidance extends §1798.135 "right to opt-out of sale/share" to training data. Use `Global Privacy Control (GPC)` HTTP header on requests + respect inbound GPC signals if you process user data.
+CA AG 2025 guidance extends "right to opt-out of sale/share" to training data. Use `Global Privacy Control (GPC)` HTTP header.
 
 ### Post-training content removal
-If content was scraped before opt-out was in place:
-- **OpenAI**: submit removal at https://platform.openai.com/privacy-removal-request (documented as of 2024)
-- **Google Bard/Gemini training**: opt-out via Search Console > Settings > Crawling (Google-Extended block)
-- **Perplexity**: email legal@perplexity.ai with URL + copyright assertion
-- **Anthropic**: email privacy@anthropic.com (no public removal form as of 2026)
+- **OpenAI**: https://platform.openai.com/privacy-removal-request
+- **Google**: Search Console > Settings > Crawling (Google-Extended block)
+- **Perplexity**: legal@perplexity.ai with URL + copyright assertion
+- **Anthropic**: privacy@anthropic.com
 
-### Enforcement timeline summary
+### Enforcement timeline
 | Jurisdiction | Regulation | Effective | Status |
 |---|---|---|---|
 | EU | DSM Art 4 | 2019 / 2021 transposition deadline | Active |
@@ -221,7 +204,7 @@ If content was scraped before opt-out was in place:
 | US CA | CCPA training data | 2025 AG guidance | Enforceable |
 | UK | TDM exception | 2025 consultation | Pending |
 
-## Diagnostic signals during a technical audit
+## Diagnostic signals
 
 | Signal | Action |
 |--------|--------|
@@ -233,17 +216,9 @@ If content was scraped before opt-out was in place:
 
 ## Cloudflare-specific (2026)
 
-Cloudflare added a one-click "Block AI scrapers" toggle that blocks GPTBot, ClaudeBot, CCBot, and others at the edge — **before** robots.txt is evaluated. Audit step:
-
-1. Log into Cloudflare dashboard
-2. Security → Bots → AI Scrapers and Crawlers
-3. Verify the toggle state matches the org's stance
-
-If Cloudflare is blocking but robots.txt allows, the bot will never reach robots.txt — Cloudflare wins.
+Cloudflare "Block AI scrapers" toggle blocks GPTBot, ClaudeBot, CCBot at the edge **before** robots.txt. Audit: Security -> Bots -> AI Scrapers and Crawlers -> verify toggle matches org stance. If Cloudflare blocks but robots.txt allows, Cloudflare wins.
 
 ## Handoff addition
-
-When the technical audit covers LLM crawler handling, include in the handoff:
 
 - `ai_crawler_stance`: `default-open` | `default-closed` | `mixed` | `unknown`
 - `ai_crawler_blocked`: list of bot user-agents blocked (e.g., `[GPTBot, ClaudeBot, CCBot]`)

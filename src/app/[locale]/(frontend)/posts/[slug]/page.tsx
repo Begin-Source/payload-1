@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation'
 import React from 'react'
 
 import { ArticleBreadcrumbs } from '@/components/blog/ArticleBreadcrumbs'
+import { ArticleLayoutAffiliateEditorial } from '@/components/blog/ArticleLayoutAffiliateEditorial'
+import { ArticleLayoutAffiliateHub } from '@/components/blog/ArticleLayoutAffiliateHub'
 import { ArticleRelated } from '@/components/blog/ArticleRelated'
 import { blogPostingJsonLdString } from '@/components/blog/blogPostingJsonLd'
 import { categoryIdsFromArticle, firstCategoryFromArticle } from '@/components/blog/articleHelpers'
@@ -105,6 +107,45 @@ export default async function PostPage(props: Props) {
 
   const jsonLd = blogPostingJsonLdString({ article, pageUrl, featuredImageUrl: img })
 
+  const relatedEl = (
+    <ArticleRelated articles={related} locale={locale} title={relatedTitle[locale]} />
+  )
+
+  const layout = article.affiliatePageLayout ?? 'default'
+
+  const isTemplate1 = theme.siteLayout === 'template1'
+
+  const defaultArticle = (
+    <article
+      className={isTemplate1 ? 'mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8' : 'blogArticle'}
+    >
+      <ArticleBreadcrumbs
+        locale={locale}
+        homeLabel={breadcrumbHome[locale]}
+        category={firstCat}
+        currentTitle={article.title}
+      />
+      <h1 className="blogArticleH1">{article.title}</h1>
+      <div className="blogArticleMeta">
+        {date ? <time dateTime={article.publishedAt ?? undefined}>{date}</time> : null}
+        {date ? <span className="blogArticleMetaSep" aria-hidden /> : null}
+        <span className="blogArticleReadTime">{readTimeLabel[locale](readMinutes)}</span>
+      </div>
+      {img ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          className="blogArticleHero"
+          src={img}
+          alt={titleAlt}
+          width={1200}
+          height={630}
+        />
+      ) : null}
+      <div className="blogArticleBody" dangerouslySetInnerHTML={{ __html: html }} />
+      {relatedEl}
+    </article>
+  )
+
   return (
     <>
       <script
@@ -112,32 +153,44 @@ export default async function PostPage(props: Props) {
         dangerouslySetInnerHTML={{ __html: jsonLd }}
         suppressHydrationWarning
       />
-      <article className="blogArticle">
-        <ArticleBreadcrumbs
+      {layout === 'commercial_hub' ? (
+        <ArticleLayoutAffiliateHub
+          article={article}
+          html={html}
           locale={locale}
           homeLabel={breadcrumbHome[locale]}
-          category={firstCat}
-          currentTitle={article.title}
+          readMinutes={readMinutes}
+          readTimeLabel={readTimeLabel[locale]}
+          related={relatedEl}
+          titleAlt={titleAlt}
+          variant="roundup"
         />
-        <h1 className="blogArticleH1">{article.title}</h1>
-        <div className="blogArticleMeta">
-          {date ? <time dateTime={article.publishedAt ?? undefined}>{date}</time> : null}
-          {date ? <span className="blogArticleMetaSep" aria-hidden /> : null}
-          <span className="blogArticleReadTime">{readTimeLabel[locale](readMinutes)}</span>
-        </div>
-        {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            className="blogArticleHero"
-            src={img}
-            alt={titleAlt}
-            width={1200}
-            height={630}
-          />
-        ) : null}
-        <div className="blogArticleBody" dangerouslySetInnerHTML={{ __html: html }} />
-        <ArticleRelated articles={related} locale={locale} title={relatedTitle[locale]} />
-      </article>
+      ) : layout === 'product_comparison' ? (
+        <ArticleLayoutAffiliateHub
+          article={article}
+          html={html}
+          locale={locale}
+          homeLabel={breadcrumbHome[locale]}
+          readMinutes={readMinutes}
+          readTimeLabel={readTimeLabel[locale]}
+          related={relatedEl}
+          titleAlt={titleAlt}
+          variant="comparison"
+        />
+      ) : layout === 'editorial_review' ? (
+        <ArticleLayoutAffiliateEditorial
+          article={article}
+          html={html}
+          locale={locale}
+          homeLabel={breadcrumbHome[locale]}
+          readMinutes={readMinutes}
+          readTimeLabel={readTimeLabel[locale]}
+          related={relatedEl}
+          titleAlt={titleAlt}
+        />
+      ) : (
+        defaultArticle
+      )}
     </>
   )
 }

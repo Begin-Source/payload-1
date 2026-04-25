@@ -67,6 +67,22 @@ export const Sites: CollectionConfig = {
       },
     },
     {
+      name: 'siteLayout',
+      type: 'select',
+      label: '全站版式',
+      defaultValue: 'default',
+      options: [
+        { label: '标准（与历史一致）', value: 'default' },
+        { label: '宽版内容区', value: 'wide' },
+        { label: '联盟测评站（BBF 风格壳 + 首页）', value: 'affiliate_reviews' },
+        { label: 'Template1（整站顶栏 + 主从栏 + 页脚）', value: 'template1' },
+      ],
+      admin: {
+        description:
+          '整站公开前台壳（顶栏 / 主内容宽度 / 页脚）。与单篇文章的 Affiliate 页布局不同；此处一处选择，全站路由生效。选 Template1 时，顶栏/首页/页脚等文案在侧边栏「站点 Template1 文案」集合中按站点维护（每站点一条）。',
+      },
+    },
+    {
       name: 'operators',
       type: 'relationship',
       relationTo: 'users',
@@ -149,6 +165,38 @@ export const Sites: CollectionConfig = {
         { label: '系统无衬线', value: 'system' },
         { label: '衬线（Georgia）', value: 'serif' },
         { label: '思源黑体 Noto Sans SC', value: 'noto_sans_sc' },
+      ],
+    },
+    {
+      type: 'collapsible',
+      label: '联盟测评站 · 前台',
+      admin: { initCollapsed: true },
+      fields: [
+        {
+          name: 'reviewHubTagline',
+          type: 'text',
+          label: '测评站首页副标题',
+          admin: {
+            description: '全站版式为「联盟测评站」时，首页大标题下展示；留空则使用落地页/全局副标题。',
+          },
+        },
+        {
+          name: 'affiliateDisclosureLine',
+          type: 'textarea',
+          label: '联盟声明（页脚上方）',
+          admin: {
+            description: '灰条说明文案；留空则使用默认英文短句。',
+          },
+        },
+        {
+          name: 'footerResourceLinks',
+          type: 'json',
+          label: 'Resources 链接（JSON 数组）',
+          admin: {
+            description:
+              '例: [{"label":"Privacy","href":"/en/pages/privacy"}]；href 可为相对路径。',
+          },
+        },
       ],
     },
     {

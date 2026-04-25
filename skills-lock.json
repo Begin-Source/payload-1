@@ -4,102 +4,102 @@
     "alert-manager": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "5a296c3b0acc7ebf47fd7fd09464a1dde40654b01dfc1da02a967151df45fa1e"
+      "computedHash": "286406849c48c19e812d4c07c0e95eb7b3acc56baa4e2433c00dd88f331cfe6e"
     },
     "backlink-analyzer": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "b734bae55063fa5bb543cc202e8d22d83f4bea086fb0a2df7f66f7b02442ef26"
+      "computedHash": "3bfffce052036d482ce40e137f20fd94bf8786389021792dc9ebb9a109c87cd9"
     },
     "competitor-analysis": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "5514598cbc1ad62fefd1a51778d7cef83ea3c699a24403d2b78198753359ddfa"
+      "computedHash": "cd3f46f50f1769f1439f0d28070d14a3c282047a2998c5b787a69588dfc21bbf"
     },
     "content-gap-analysis": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "1225d2da0ae7652a9c75f1df77850a2690e055128a764fbb3948e7728547d4f0"
+      "computedHash": "3cd51f932dce1543b19851566b7bbc25e1b075b7f5705a085903cd1eb5b52a7a"
     },
     "content-quality-auditor": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "6920ab9e172813ca04380564574e992f4bf8453f0b455023edaffa3923484d78"
+      "computedHash": "c2d7b9e6de176cac858d842905a67e9a675e3d4fdd773df4cc8e88d5b4b6fbdb"
     },
     "content-refresher": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "871cde2a426fee050758a1225afbc82f6b50fd4bb2e4ae451efd4f446e76bc21"
+      "computedHash": "f81e65aca1d717119bf5d2ee4a97d68cbb9af7b2c487013538e1a4164a82cae7"
     },
     "domain-authority-auditor": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "ae8418de6c43dc343f43fb28f3423cd19585f7a8610283bbc0d296ea341032d9"
+      "computedHash": "4116c6ed7a02d3007b782543866b9aceb8ca3bb63fb1ae24055abaf4a88ea6db"
     },
     "entity-optimizer": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "7f9404091debe29b259ab3629ccfb03810060b5e153ac6ae47258aa626f26d95"
+      "computedHash": "07408bccf244fc4c20db070ac7643e4f0667bbcc365811d37e6a004a16e706ed"
     },
     "geo-content-optimizer": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "5c9be789b661bbf37626dd698abc7e50e42a53793e157fdac36ae4b74daba7b3"
+      "computedHash": "c355c63a807c7e1bd7bb775100b6975ed7b6abc46bf81df335f948c9202b2334"
     },
     "internal-linking-optimizer": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "3d226129d85daf0b48ecf3d43a291f7bd474b7f73500026f2e9533d54d0e866d"
+      "computedHash": "ec05741740015aa4c17e8d6e288f7f1b70361e8f9aa978f5cd0524467eb7efb7"
     },
     "keyword-research": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "d9e8ff5347711bc631f5b9fe25ce70439fb8a2d58906e6d57825498131b028de"
+      "computedHash": "cf93ed64399d1685da03197e5a38c9e0340df522446bcd88a806d8badbe5a934"
     },
     "memory-management": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "c69b4dcf1cd3e8de5fc162f583f9a379cb99ff68cf67121f8aa0c2ccc889ba83"
+      "computedHash": "4e1b0c3b51d39b225aaa188cf6322067cb2215a4f6e9a88cca637d452a382d10"
     },
     "meta-tags-optimizer": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "6910d24a173f1f976654edb31872a0a882b4369164c119b9c76d455cbefb88de"
+      "computedHash": "ac6f17732b71e641f76e5acde8cbe30b9a4b2031fed5011167f66d1a995ac507"
     },
     "on-page-seo-auditor": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "6ce4a36e5fc685d14f7702bfbb6ad709f9080a656d4381ac291b54425bd45ab7"
+      "computedHash": "66fba059586227c12af29626dbb8a2be1a4b96cce38444b70bb8ea9a283d5a0c"
     },
     "performance-reporter": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "5ec7a2478bb754fbb4f6c4f533004329a28af3d565b03fc5ae1d6edcdc559555"
+      "computedHash": "9d02b46866f1e51338180ebf8cc03f6d0451c214cc38b2b87fb47fc8005ccc8d"
     },
     "rank-tracker": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "a89aea3558c94613d8884122c2726a12c21938145d0b65bb419436a7a5ab89c9"
+      "computedHash": "81f0c28fad8ae30da5d28e67b977936ff59b320e00d7509528f66251a091aead"
     },
     "schema-markup-generator": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "4c48e9210a6894021dc9090fdd5050f60999e0a97bdc200c858ec2d5e921015b"
+      "computedHash": "e158e9228c3a8a76dc73c43e7214b799d8df570b2087e30d4ca711ef9b94e929"
     },
     "seo-content-writer": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "7ec1d32d71b6e8075280f8dcbbabb2ddd94fc8d8c7840fd30cc63fcac4db79ea"
+      "computedHash": "3a8c6c17b24b4ce909de4bf40c7fb4dbe580158ca2a4ee28fcb2260c1a55abbe"
     },
     "serp-analysis": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "66a6dd19e31e64bf992b7f48fdfc7f83c95eb8f5607cbe45e90829bb7b33ed2b"
+      "computedHash": "77a541afe29c69713414f58cb31aa0213912a10346523c3c6ffd31f4dd0b930b"
     },
     "technical-seo-checker": {
       "source": "aaron-he-zhu/seo-geo-claude-skills",
       "sourceType": "github",
-      "computedHash": "bc0a05965eaca5091c14a7dbe322e5f95d3444ebdb44754cf7c2156967641e50"
+      "computedHash": "f678402431a412fc9c69c3296098b67f590c94981fc83439ed4be99dc82e7461"
     }
   }
 }

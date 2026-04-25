@@ -1,22 +1,130 @@
 import { cache } from 'react'
 
-import { getPayload } from 'payload'
+import { getPayload, type Payload } from 'payload'
 
 import config from '@/payload.config'
-import type { Article, Category, Page } from '@/payload-types'
+import type { Article, Author, Category, Media, Page } from '@/payload-types'
 
-export const getNavCategoriesForSite = cache(async (siteId: number): Promise<Category[]> => {
-  const payload = await getPayload({ config: await config })
+/**
+ * Public article/page fetch: set `site: false` on articles, media, and categories — omitting
+ * the key does not disable relationship hydration.
+ *
+ * Use **depth: 1** (not 2): at depth 2, populated `categories` still batch-loads full `sites`
+ * rows on D1 (`too many columns`), even with `site: false` on the category `select`. At
+ * depth 1, `Category.site` and `Media.site` stay as IDs. Author `headshot` is then a media ID;
+ * we batch-fetch headshots with `mergeAuthorHeadshots` and a narrow `media` `select`.
+ */
+const mediaPublicSelect = {
+  alt: true,
+  url: true,
+  thumbnailURL: true,
+  width: true,
+  height: true,
+  filename: true,
+  mimeType: true,
+  filesize: true,
+  site: false,
+  tenant: false,
+} as const
+
+const categoryPublicSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  description: true,
+  site: false,
+  tenant: false,
+} as const
+
+const authorPublicSelect = {
+  id: true,
+  displayName: true,
+  slug: true,
+  role: true,
+  bioLexical: true,
+  headshot: true,
+  tenant: false,
+} as const
+
+const articlePublicSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  excerpt: true,
+  body: true,
+  publishedAt: true,
+  locale: true,
+  status: true,
+  featuredImage: mediaPublicSelect,
+  author: authorPublicSelect,
+  categories: categoryPublicSelect,
+  tenant: true,
+  site: false,
+} as const
+
+const pagePublicSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  excerpt: true,
+  body: true,
+  publishedAt: true,
+  locale: true,
+  status: true,
+  featuredImage: mediaPublicSelect,
+  categories: categoryPublicSelect,
+  tenant: true,
+  site: false,
+} as const
+
+/** Depth-1 list leaves `author.headshot` as a media id; resolve without touching `sites`. */
+async function mergeAuthorHeadshots(payload: Payload, articles: Article[]): Promise<void> {
+  const ids = new Set<number>()
+  for (const a of articles) {
+    const auth = a.author
+    if (auth && typeof auth === 'object' && 'headshot' in auth) {
+      const h = (auth as Author).headshot
+      if (typeof h === 'number') ids.add(h)
+    }
+  }
+  if (ids.size === 0) return
+  const idArr = Array.from(ids)
   const res = await payload.find({
-    collection: 'categories',
-    where: { site: { equals: siteId } },
-    limit: 8,
-    sort: 'name',
+    collection: 'media',
+    where: { id: { in: idArr } },
+    limit: idArr.length,
     depth: 0,
+    pagination: false,
+    select: mediaPublicSelect,
     overrideAccess: true,
   })
-  return res.docs as Category[]
-})
+  const byId = new Map((res.docs as Media[]).map((m) => [m.id, m]))
+  for (const a of articles) {
+    const auth = a.author
+    if (auth && typeof auth === 'object' && 'headshot' in auth) {
+      const h = (auth as Author).headshot
+      if (typeof h === 'number') {
+        const m = byId.get(h)
+        if (m) (auth as Author).headshot = m
+      }
+    }
+  }
+}
+
+export const getNavCategoriesForSite = cache(
+  async (siteId: number, limit = 8): Promise<Category[]> => {
+    const payload = await getPayload({ config: await config })
+    const res = await payload.find({
+      collection: 'categories',
+      where: { site: { equals: siteId } },
+      limit,
+      sort: 'name',
+      depth: 0,
+      overrideAccess: true,
+    })
+    return res.docs as Category[]
+  },
+)
 
 export const getPublishedArticlesForSite = cache(
   async (siteId: number, locale: string, limit = 24): Promise<Article[]> => {
@@ -32,10 +140,13 @@ export const getPublishedArticlesForSite = cache(
       },
       sort: '-publishedAt',
       limit,
-      depth: 2,
+      depth: 1,
+      select: articlePublicSelect,
       overrideAccess: true,
     })
-    return res.docs as Article[]
+    const docs = res.docs as Article[]
+    await mergeAuthorHeadshots(payload, docs)
+    return docs
   },
 )
 
@@ -54,10 +165,13 @@ export const getPublishedArticlesForSiteAndCategory = cache(
       },
       sort: '-publishedAt',
       limit,
-      depth: 2,
+      depth: 1,
+      select: articlePublicSelect,
       overrideAccess: true,
     })
-    return res.docs as Article[]
+    const docs = res.docs as Article[]
+    await mergeAuthorHeadshots(payload, docs)
+    return docs
   },
 )
 
@@ -106,14 +220,18 @@ export const getRelatedArticlesForSite = cache(
         where: { and: [...base, { or: orConds }] },
         sort: '-publishedAt',
         limit: 24,
-        depth: 2,
+        depth: 1,
+        select: articlePublicSelect,
         overrideAccess: true,
       })
       for (const doc of res.docs as Article[]) {
         if (seen.has(doc.id)) continue
         seen.add(doc.id)
         out.push(doc)
-        if (out.length >= limit) return out
+        if (out.length >= limit) {
+          await mergeAuthorHeadshots(payload, out)
+          return out
+        }
       }
     }
 
@@ -122,7 +240,8 @@ export const getRelatedArticlesForSite = cache(
       where: { and: [...base] },
       sort: '-publishedAt',
       limit: 24,
-      depth: 2,
+      depth: 1,
+      select: articlePublicSelect,
       overrideAccess: true,
     })
     for (const doc of res2.docs as Article[]) {
@@ -131,6 +250,7 @@ export const getRelatedArticlesForSite = cache(
       out.push(doc)
       if (out.length >= limit) break
     }
+    await mergeAuthorHeadshots(payload, out)
     return out
   },
 )
@@ -149,10 +269,13 @@ export const getArticleBySlugForSite = cache(
         ],
       },
       limit: 1,
-      depth: 2,
+      depth: 1,
+      select: articlePublicSelect,
       overrideAccess: true,
     })
-    return (res.docs[0] as Article | undefined) ?? null
+    const doc = (res.docs[0] as Article | undefined) ?? null
+    if (doc) await mergeAuthorHeadshots(payload, [doc])
+    return doc
   },
 )
 
@@ -170,7 +293,8 @@ export const getPageBySlugForSite = cache(
         ],
       },
       limit: 1,
-      depth: 2,
+      depth: 1,
+      select: pagePublicSelect,
       overrideAccess: true,
     })
     return (res.docs[0] as Page | undefined) ?? null

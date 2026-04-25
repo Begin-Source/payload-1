@@ -48,5 +48,26 @@ export const Articles: CollectionConfig = {
     afterChange: [articleAfterChangeWorkflow, pageLinkGraphSync],
   },
   access: loggedInSuperAdminAccessFor('articles'),
-  fields: [...postLikeFields, ...articleSeoFields],
+  fields: [
+    ...postLikeFields,
+    {
+      name: 'affiliatePageLayout',
+      type: 'select',
+      defaultValue: 'default',
+      index: true,
+      label: 'Affiliate 页布局',
+      admin: {
+        position: 'sidebar',
+        description:
+          'default：标准博客。commercial_hub：清单/Deal，信息密度高。product_comparison：X vs Y / 多品对比，与 Hub 同壳、表格更宽。editorial_review：长文信任向，主栏阅读。正文均用下方 body；联盟链接与披露仍按系统规则。',
+      },
+      options: [
+        { label: '默认（标准博客）', value: 'default' },
+        { label: '商业清单 / Deal（Hub）', value: 'commercial_hub' },
+        { label: '产品对比', value: 'product_comparison' },
+        { label: '长文编辑 / 评测', value: 'editorial_review' },
+      ],
+    },
+    ...articleSeoFields,
+  ],
 }

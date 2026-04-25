@@ -88,6 +88,10 @@ export const LandingTemplates: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'previewUrl', 'updatedAt'],
     description: '站点前台预设主题与配文；在「设计」中可微调。',
+    components: {
+      afterListTable: ['./components/LandingTemplatesCsvAfterTable#LandingTemplatesCsvAfterTable'],
+      listMenuItems: ['./components/ArticleCsvImportExport#CsvImportExportListMenuItem'],
+    },
   },
   access: loggedInSuperAdminAccessFor('landing-templates'),
   fields: [

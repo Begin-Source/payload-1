@@ -26,6 +26,7 @@ import { Media } from './collections/Media'
 import { Tenants } from './collections/Tenants'
 import { LandingTemplates } from './collections/LandingTemplates'
 import { Sites } from './collections/Sites'
+import { SiteT1Locales } from './collections/SiteT1Locales'
 import { SiteQuotas } from './collections/SiteQuotas'
 import { SiteBlueprints } from './collections/SiteBlueprints'
 import { AffiliateNetworks } from './collections/AffiliateNetworks'
@@ -233,6 +234,7 @@ export default buildConfig({
   collections: [
     Announcements,
     Sites,
+    SiteT1Locales,
     SiteBlueprints,
     Categories,
     Pages,
@@ -299,6 +301,7 @@ export default buildConfig({
         announcements: {},
         'landing-templates': {},
         sites: {},
+        'site-t1-locales': {},
         'site-quotas': {},
         'site-blueprints': {},
         'affiliate-networks': {},

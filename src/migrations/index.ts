@@ -24,6 +24,10 @@ import * as migration_20260430_140000_article_link_budget_warnings from './20260
 import * as migration_20260501_120000_team_home_global from './20260501_120000_team_home_global';
 import * as migration_20260501_130000_teams_collection from './20260501_130000_teams_collection';
 import * as migration_20260502_120000_operation_manuals from './20260502_120000_operation_manuals';
+import * as migration_20260601_100000_articles_affiliate_page_layout from './20260601_100000_articles_affiliate_page_layout';
+import * as migration_20260602_120000_sites_site_layout from './20260602_120000_sites_site_layout';
+import * as migration_20260603_120000_sites_review_hub_v1 from './20260603_120000_sites_review_hub_v1';
+import * as migration_20260604_120000_sites_template1_copy from './20260604_120000_sites_template1_copy';
 
 export const migrations = [
   {
@@ -155,5 +159,25 @@ export const migrations = [
     up: migration_20260502_120000_operation_manuals.up,
     down: migration_20260502_120000_operation_manuals.down,
     name: '20260502_120000_operation_manuals',
+  },
+  {
+    up: migration_20260601_100000_articles_affiliate_page_layout.up,
+    down: migration_20260601_100000_articles_affiliate_page_layout.down,
+    name: '20260601_100000_articles_affiliate_page_layout',
+  },
+  {
+    up: migration_20260602_120000_sites_site_layout.up,
+    down: migration_20260602_120000_sites_site_layout.down,
+    name: '20260602_120000_sites_site_layout',
+  },
+  {
+    up: migration_20260603_120000_sites_review_hub_v1.up,
+    down: migration_20260603_120000_sites_review_hub_v1.down,
+    name: '20260603_120000_sites_review_hub_v1',
+  },
+  {
+    up: migration_20260604_120000_sites_template1_copy.up,
+    down: migration_20260604_120000_sites_template1_copy.down,
+    name: '20260604_120000_sites_template1_copy',
   },
 ];

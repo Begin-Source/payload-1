@@ -70,6 +70,7 @@ export interface Config {
   collections: {
     announcements: Announcement;
     sites: Site;
+    'site-t1-locales': SiteT1Locale;
     'site-blueprints': SiteBlueprint;
     categories: Category;
     pages: Page;
@@ -114,6 +115,7 @@ export interface Config {
   collectionsSelect: {
     announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
+    'site-t1-locales': SiteT1LocalesSelect<false> | SiteT1LocalesSelect<true>;
     'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
@@ -349,6 +351,10 @@ export interface Site {
    */
   landingTemplate?: (number | null) | LandingTemplate;
   /**
+   * 整站公开前台壳（顶栏 / 主内容宽度 / 页脚）。与单篇文章的 Affiliate 页布局不同；此处一处选择，全站路由生效。选 Template1 时，顶栏/首页/页脚等文案在侧边栏「站点 Template1 文案」集合中按站点维护（每站点一条）。
+   */
+  siteLayout?: ('default' | 'wide' | 'affiliate_reviews' | 'template1') | null;
+  /**
    * Users who operate this site (optional; tenant scoping still applies).
    */
   operators?: (number | User)[] | null;
@@ -369,6 +375,26 @@ export interface Site {
   landingCtaBgColor?: string | null;
   landingCtaTextColor?: string | null;
   landingFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
+  /**
+   * 全站版式为「联盟测评站」时，首页大标题下展示；留空则使用落地页/全局副标题。
+   */
+  reviewHubTagline?: string | null;
+  /**
+   * 灰条说明文案；留空则使用默认英文短句。
+   */
+  affiliateDisclosureLine?: string | null;
+  /**
+   * 例: [{"label":"Privacy","href":"/en/pages/privacy"}]；href 可为相对路径。
+   */
+  footerResourceLinks?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   landingBlogPrimaryColor?: string | null;
   landingBlogAccentColor?: string | null;
   landingBlogContentBgColor?: string | null;
@@ -563,6 +589,34 @@ export interface LandingTemplate {
    * 相对路径如 /pages/about 或绝对 URL
    */
   aboutCtaHref?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * 每站点一条；与「站点」中全站版式 Template1 配套。无记录则前台用代码默认文案。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-t1-locales".
+ */
+export interface SiteT1Locale {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  /**
+   * 一个站点仅一条 Template1 文案记录。
+   */
+  site: number | Site;
+  /**
+   * JSON 对象：键与历史独立字段一致（如 t1NavAllReviewsEn、t1HomeTitleZh、t1NavUsePageTitleForAbout 等）。留空则整段用代码默认。可粘贴 `scripts/seed-dev-data.ts` 中 `SEED_ALPHA_TEMPLATE1_DEMO` 结构作参考。
+   */
+  t1LocaleJson?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -869,6 +923,10 @@ export interface Article {
   status: 'draft' | 'published' | 'archived';
   publishedAt?: string | null;
   excerpt?: string | null;
+  /**
+   * default：标准博客。commercial_hub：清单/Deal，信息密度高。product_comparison：X vs Y / 多品对比，与 Hub 同壳、表格更宽。editorial_review：长文信任向，主栏阅读。正文均用下方 body；联盟链接与披露仍按系统规则。
+   */
+  affiliatePageLayout?: ('default' | 'commercial_hub' | 'product_comparison' | 'editorial_review') | null;
   primaryKeyword?: (number | null) | Keyword;
   secondaryKeywords?: (number | Keyword)[] | null;
   contentTemplate?: ('review' | 'comparison' | 'howto' | 'listicle' | 'buyingGuide' | 'pillar') | null;
@@ -2438,6 +2496,10 @@ export interface PayloadLockedDocument {
         value: number | Site;
       } | null)
     | ({
+        relationTo: 'site-t1-locales';
+        value: number | SiteT1Locale;
+      } | null)
+    | ({
         relationTo: 'site-blueprints';
         value: number | SiteBlueprint;
       } | null)
@@ -2655,6 +2717,7 @@ export interface SitesSelect<T extends boolean = true> {
   status?: T;
   blueprint?: T;
   landingTemplate?: T;
+  siteLayout?: T;
   operators?: T;
   notes?: T;
   landingBrowserTitle?: T;
@@ -2670,6 +2733,9 @@ export interface SitesSelect<T extends boolean = true> {
   landingCtaBgColor?: T;
   landingCtaTextColor?: T;
   landingFontPreset?: T;
+  reviewHubTagline?: T;
+  affiliateDisclosureLine?: T;
+  footerResourceLinks?: T;
   landingBlogPrimaryColor?: T;
   landingBlogAccentColor?: T;
   landingBlogContentBgColor?: T;
@@ -2682,6 +2748,17 @@ export interface SitesSelect<T extends boolean = true> {
   landingAboutImage?: T;
   landingAboutCtaLabel?: T;
   landingAboutCtaHref?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-t1-locales_select".
+ */
+export interface SiteT1LocalesSelect<T extends boolean = true> {
+  tenant?: T;
+  site?: T;
+  t1LocaleJson?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2906,6 +2983,7 @@ export interface ArticlesSelect<T extends boolean = true> {
   status?: T;
   publishedAt?: T;
   excerpt?: T;
+  affiliatePageLayout?: T;
   primaryKeyword?: T;
   secondaryKeywords?: T;
   contentTemplate?: T;

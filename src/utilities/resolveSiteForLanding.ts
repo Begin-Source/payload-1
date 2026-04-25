@@ -7,6 +7,7 @@ import {
   normalizeHostForMatch,
   primaryDomainQueryVariants,
 } from '@/utilities/normalizeRequestHost'
+import { publicSiteThemeSelectWithoutT1 } from '@/utilities/publicSiteThemeSelect'
 
 function warnDuplicate(payload: Payload, msg: string, extra: Record<string, unknown>) {
   if (typeof payload.logger?.warn === 'function') {
@@ -22,18 +23,22 @@ async function findSiteBySlug(payload: Payload, slug: string): Promise<Site | nu
     },
     limit: 10,
     depth: 0,
+    select: publicSiteThemeSelectWithoutT1,
     overrideAccess: true,
   })
   if (active.docs.length > 1) {
     warnDuplicate(payload, 'multiple active sites for slug', { slug, count: active.docs.length })
   }
-  if (active.docs[0]) return active.docs[0] as Site
+  if (active.docs[0]) {
+    return active.docs[0] as Site
+  }
 
   const anyStatus = await payload.find({
     collection: 'sites',
     where: { slug: { equals: slug } },
     limit: 10,
     depth: 0,
+    select: publicSiteThemeSelectWithoutT1,
     overrideAccess: true,
   })
   if (anyStatus.docs.length > 1) {
@@ -55,6 +60,7 @@ async function findSiteByPrimaryDomain(payload: Payload, canonicalHost: string):
     },
     limit: 10,
     depth: 0,
+    select: publicSiteThemeSelectWithoutT1,
     overrideAccess: true,
   })
   if (active.docs.length > 1) {
@@ -64,17 +70,20 @@ async function findSiteByPrimaryDomain(payload: Payload, canonicalHost: string):
       count: active.docs.length,
     })
   }
-  if (active.docs[0]) return active.docs[0] as Site
+  if (active.docs[0]) {
+    return active.docs[0] as Site
+  }
 
   const anyStatus = await payload.find({
     collection: 'sites',
     where: { or: orClause },
     limit: 10,
     depth: 0,
+    select: publicSiteThemeSelectWithoutT1,
     overrideAccess: true,
   })
   if (anyStatus.docs.length > 1) {
-    warnDuplicate(payload, 'multiple sites for primaryDomain (non-active)', {
+    warnDuplicate(payload, 'multiple active sites for primaryDomain (non-active)', {
       canonicalHost,
       variants,
       count: anyStatus.docs.length,

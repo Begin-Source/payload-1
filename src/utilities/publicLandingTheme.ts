@@ -3,9 +3,10 @@ import { cache } from 'react'
 import { getPayload } from 'payload'
 
 import config from '@/payload.config'
-import type { LandingTemplate, PublicLanding, Site, SiteBlueprint } from '@/payload-types'
+import type { LandingTemplate, PublicLanding, Site, SiteBlueprint, SiteT1Locale } from '@/payload-types'
 import { getRequestHost } from '@/utilities/normalizeRequestHost'
 import { resolveSiteForLanding } from '@/utilities/resolveSiteForLanding'
+import { mergeTemplate1FromSite, type Template1Theme } from '@/utilities/publicLandingTemplate1'
 
 export type LandingFontPreset = 'system' | 'serif' | 'noto_sans_sc'
 
@@ -40,7 +41,54 @@ export type BlogChromeTheme = {
   aboutCtaHref: string
 }
 
-export type PublicSiteTheme = LandingTheme & BlogChromeTheme
+/** Whole-site shell variant from `sites.siteLayout` (not inherited from landing-templates). */
+export type SiteLayoutId = 'default' | 'wide' | 'affiliate_reviews' | 'template1'
+
+const SITE_LAYOUT_IDS = new Set<SiteLayoutId>(['default', 'wide', 'affiliate_reviews', 'template1'])
+
+function normalizeSiteLayout(value: string | null | undefined): SiteLayoutId {
+  if (value && SITE_LAYOUT_IDS.has(value as SiteLayoutId)) return value as SiteLayoutId
+  return 'default'
+}
+
+export type FooterResourceLink = { label: string; href: string }
+
+const DEFAULT_AFFILIATE_DISCLOSURE =
+  'We may earn a small commission from purchases made through links on this site. This helps us provide unbiased reviews at no extra cost to you.'
+
+function parseFooterResourceLinks(raw: unknown): FooterResourceLink[] {
+  let value: unknown = raw
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      value = JSON.parse(value) as unknown
+    } catch {
+      return []
+    }
+  }
+  if (!value || !Array.isArray(value)) return []
+  const out: FooterResourceLink[] = []
+  for (const row of value) {
+    if (!row || typeof row !== 'object') continue
+    const r = row as { label?: unknown; href?: unknown }
+    const label = String(r.label ?? '').trim()
+    const href = String(r.href ?? '').trim()
+    if (label && href) out.push({ label, href })
+  }
+  return out
+}
+
+/**
+ * Public blog shell + landing text/colors. `siteLayout` is site-only; defaults when no site or unknown.
+ */
+export type PublicSiteTheme = LandingTheme &
+  BlogChromeTheme & {
+    siteLayout: SiteLayoutId
+    reviewHubTaglineResolved: string
+    affiliateDisclosureResolved: string
+    footerResourceLinks: FooterResourceLink[]
+    /** Template1 shell copy (en/zh + nav page-title flags); from `sites` only. */
+    template1: Template1Theme
+  }
 
 const BLOG_DEFAULTS: BlogChromeTheme = {
   blogPrimaryColor: '#2d8659',
@@ -279,15 +327,26 @@ export function mergePublicSiteTheme(
   template: LandingTemplate | null,
   design: SiteBlueprint | null,
   site: Site | null,
+  siteT1Locale: SiteT1Locale | null = null,
 ): PublicSiteTheme {
+  const landing = mergeLandingLayers(global, template, design, site)
+  const blogChrome = mergeBlogChromeLayers(global, template, design, site)
   return {
-    ...mergeLandingLayers(global, template, design, site),
-    ...mergeBlogChromeLayers(global, template, design, site),
+    ...landing,
+    ...blogChrome,
+    siteLayout: normalizeSiteLayout(site?.siteLayout),
+    reviewHubTaglineResolved:
+      firstNonEmpty(site?.reviewHubTagline, landing.tagline) ?? '',
+    affiliateDisclosureResolved:
+      firstNonEmpty(site?.affiliateDisclosureLine) ?? DEFAULT_AFFILIATE_DISCLOSURE,
+    footerResourceLinks: parseFooterResourceLinks(site?.footerResourceLinks),
+    template1: mergeTemplate1FromSite(siteT1Locale),
   }
 }
 
 type PublicSiteBundle = {
   site: Site | null
+  siteT1Locale: SiteT1Locale | null
   globalDoc: PublicLanding
   template: LandingTemplate | null
   blueprint: SiteBlueprint | null
@@ -336,12 +395,24 @@ const loadPublicSiteBundle = cache(async (rawHostKey: string, siteSlugKey: strin
     }
   }
 
-  return { site, globalDoc, template, blueprint }
+  let siteT1Locale: SiteT1Locale | null = null
+  if (site?.id != null) {
+    const t1Res = await payload.find({
+      collection: 'site-t1-locales',
+      where: { site: { equals: site.id } },
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    })
+    siteT1Locale = (t1Res.docs[0] as SiteT1Locale | undefined) ?? null
+  }
+
+  return { site, siteT1Locale, globalDoc, template, blueprint }
 })
 
 const loadPublicSiteTheme = cache(async (rawHostKey: string, siteSlugKey: string): Promise<PublicSiteTheme> => {
-  const { site, globalDoc, template, blueprint } = await loadPublicSiteBundle(rawHostKey, siteSlugKey)
-  return mergePublicSiteTheme(globalDoc, template, blueprint, site)
+  const { site, siteT1Locale, globalDoc, template, blueprint } = await loadPublicSiteBundle(rawHostKey, siteSlugKey)
+  return mergePublicSiteTheme(globalDoc, template, blueprint, site, siteT1Locale)
 })
 
 /**
@@ -354,7 +425,13 @@ export async function getPublicSiteContext(headers: Headers): Promise<{
   const rawHost = getRequestHost(headers) ?? ''
   const siteSlug = headers.get('x-site-slug')?.trim() ?? ''
   const bundle = await loadPublicSiteBundle(rawHost, siteSlug)
-  const theme = mergePublicSiteTheme(bundle.globalDoc, bundle.template, bundle.blueprint, bundle.site)
+  const theme = mergePublicSiteTheme(
+    bundle.globalDoc,
+    bundle.template,
+    bundle.blueprint,
+    bundle.site,
+    bundle.siteT1Locale,
+  )
   return { site: bundle.site, theme }
 }
 
