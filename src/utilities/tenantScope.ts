@@ -29,6 +29,7 @@ export function getTenantIdsForUser(
  * Super admin: no tenant filter (all tenants).
  * Normal user: tenant IN assigned ids.
  * User with no tenant assignments: empty scope (no documents).
+ * 例如总经理等角色在 `users.tenants` 未配置时，多租户 `withTenantAccess` 会拒绝访问租户级集合，CSV/统计也拿不到数据。
  */
 export function getTenantScopeForStats(
   user: Config['user'] & { collection: 'users' },

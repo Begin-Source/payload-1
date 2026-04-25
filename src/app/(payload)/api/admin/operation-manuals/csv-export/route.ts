@@ -12,63 +12,28 @@ export const dynamic = 'force-dynamic'
 const CSV_HEADER =
   'id,slug,title,level,status,summary,search_keywords,body_json,sort_order'
 
-function tenantIdFromRelation(
-  tenant: number | { id: number } | null | undefined,
-): number | null {
-  if (tenant == null || tenant === undefined) return null
-  if (typeof tenant === 'number') return tenant
-  if (typeof tenant === 'object' && typeof tenant.id === 'number') return tenant.id
-  return null
-}
-
-function siteAccessible(
+/**
+ * 无 site 列：导出「当前用户可访问租户」内全部操作手册。
+ * 超管（scope all）：不限租户；`combineTenantWhere` 为 `undefined` 时用空 where 表示全量。
+ */
+function whereForOperationManualsExport(
   scope: ReturnType<typeof getTenantScopeForStats>,
-  siteTenantId: number | null,
-): boolean {
-  if (scope.mode === 'all') return true
-  if (scope.mode === 'none') return false
-  if (siteTenantId == null) return false
-  return scope.tenantIds.includes(siteTenantId)
+): Where {
+  const combined = combineTenantWhere(scope)
+  if (combined !== undefined) return combined
+  if (scope.mode === 'all') return {}
+  return { id: { equals: 0 } }
 }
 
-export async function GET(request: Request): Promise<Response> {
+export async function GET(_request: Request): Promise<Response> {
   const payload = await getPayload({ config: configPromise })
-  const { user } = await payload.auth({ headers: request.headers })
+  const { user } = await payload.auth({ headers: _request.headers })
   if (!user || !isUsersCollection(user)) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const url = new URL(request.url)
-  const exportAll = url.searchParams.get('all') === '1'
-
   const scope = getTenantScopeForStats(user)
-
-  let where: Where
-
-  if (exportAll) {
-    where = combineTenantWhere(scope) ?? { id: { equals: 0 } }
-  } else {
-    const siteId = Number(url.searchParams.get('siteId'))
-    if (!Number.isFinite(siteId)) {
-      return Response.json({ error: 'siteId is required unless all=1' }, { status: 400 })
-    }
-
-    const site = await payload.findByID({
-      collection: 'sites',
-      id: siteId,
-      depth: 0,
-    })
-    if (!site) {
-      return Response.json({ error: 'Site not found' }, { status: 404 })
-    }
-    const siteTenantId = tenantIdFromRelation(site.tenant)
-    if (!siteAccessible(scope, siteTenantId)) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    // 操作手册无 site 字段；选站点仅作权限校验，导出范围为当前租户内全部手册
-    where = combineTenantWhere(scope) ?? { id: { equals: 0 } }
-  }
+  const where = whereForOperationManualsExport(scope)
 
   const userArg = user as Config['user'] & { collection: 'users' }
 

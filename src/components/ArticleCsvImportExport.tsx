@@ -82,7 +82,7 @@ export function CsvImportExportListMenuItem(props: CsvImportExportSlotProps): Re
 }
 
 /**
- * 搜索栏下：CSV 面板（站点筛选 + 导出所选 / 导出全部 + 导入）。
+ * 搜索栏下：CSV 面板（多数集合为站点 + 导出所选 / 导出全部 + 导入；`operation-manuals` 无站点，仅导/入当前租户内全部手册）。
  */
 export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.ReactElement | null {
   const slug = resolveCsvSlug(props.collectionSlug)
@@ -143,8 +143,9 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
 
   useEffect(() => {
     if (!expanded) return
+    if (slug === 'operation-manuals') return
     void loadSites('')
-  }, [expanded, loadSites])
+  }, [expanded, loadSites, slug])
 
   const closePanel = (): void => {
     setCsvPanelOpen(slug, false)
@@ -165,6 +166,21 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
   }
 
   const runExportSelected = async (): Promise<void> => {
+    if (slug === 'operation-manuals') {
+      const base = csvApiBase(slug)
+      try {
+        const u = new URL(`${base}/csv-export`, window.location.origin)
+        const res = await fetch(u.toString(), { credentials: 'include' })
+        if (!res.ok) {
+          const err = (await res.json().catch(() => ({}))) as { error?: string }
+          throw new Error(typeof err.error === 'string' ? err.error : '导出失败')
+        }
+        downloadBlob(res, `${slug}-export.csv`)
+      } catch (e) {
+        window.alert(e instanceof Error ? e.message : '导出失败')
+      }
+      return
+    }
     if (selectedSiteId == null) {
       window.alert('请先选择站点')
       return
@@ -185,6 +201,10 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
   }
 
   const runExportAll = async (): Promise<void> => {
+    if (slug === 'operation-manuals') {
+      await runExportSelected()
+      return
+    }
     const base = csvApiBase(slug)
     try {
       const u = new URL(`${base}/csv-export`, window.location.origin)
@@ -204,14 +224,16 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    if (selectedSiteId == null) {
+    if (slug !== 'operation-manuals' && selectedSiteId == null) {
       window.alert('请先选择站点')
       return
     }
     const base = csvApiBase(slug)
     const fd = new FormData()
     fd.append('file', file)
-    fd.append('siteId', String(selectedSiteId))
+    if (slug !== 'operation-manuals' && selectedSiteId != null) {
+      fd.append('siteId', String(selectedSiteId))
+    }
     try {
       const res = await fetch(`${base}/csv-import`, {
         method: 'POST',
@@ -252,7 +274,7 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
           : slug === 'knowledge-base'
             ? '列：id, slug, title, status, notes, site_id, body_json, entry_type, skill_id, subject, summary, payload_json, severity, expires_at, artifact_class。不含分类。导出所选=仅该站点；导出全部=租户范围内全部（含无站点）。'
             : slug === 'operation-manuals'
-              ? '列：id, slug, title, level, status, summary, search_keywords, body_json, sort_order。无 site；level 为 intro/standard/advanced；导出所选与导出全部为当前租户内全部；导入前选站点仅作权限校验。'
+              ? '列：id, slug, title, level, status, summary, search_keywords, body_json, sort_order。无 site；level 为 intro/standard/advanced。导出/导入均针对当前可访问租户内的全部操作手册。'
               : slug === 'media'
                 ? '列：id, alt, filename, mimeType, filesize, site_id。导入仅更新 alt；无 site 的旧媒体会写入所选站点。'
                 : slug === 'categories'
@@ -292,7 +314,49 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
           </Button>
         </div>
 
-        <div
+        {slug === 'operation-manuals' ? (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '0.5rem',
+              width: '100%',
+              marginBottom: '0.65rem',
+            }}
+          >
+            <span style={{ fontSize: '0.75rem', opacity: 0.85, marginRight: 4 }}>
+              无站点维度；为当前可访问租户内全部操作手册。
+            </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
+              <Button
+                buttonStyle="secondary"
+                onClick={() => void runExportSelected()}
+                size="small"
+                type="button"
+              >
+                导出
+              </Button>
+              <span style={{ fontSize: '0.8125rem', opacity: 0.85 }}>导入</span>
+              <input
+                ref={fileRef}
+                accept=".csv,text/csv"
+                style={{ display: 'none' }}
+                type="file"
+                onChange={(e) => void onFile(e)}
+              />
+              <Button
+                buttonStyle="secondary"
+                onClick={() => fileRef.current?.click()}
+                size="small"
+                type="button"
+              >
+                选择文件…
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div
             style={{
               display: 'flex',
               flexWrap: 'wrap',
@@ -471,6 +535,7 @@ export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.Rea
               </Button>
             </div>
           </div>
+        )}
 
         <p style={{ fontSize: '0.7rem', opacity: 0.65, margin: '0.5rem 0 0' }}>{hint}</p>
       </div>

@@ -293,6 +293,8 @@ export default buildConfig({
        * We keep collection-level rules in Tenants.ts (read: any logged-in user; writes: super-admin).
        */
       useTenantsCollectionAccess: false,
+      /** 租户在 `Users` 中手写字段并排在 `teamLead` 等之前，避免插件 `push` 到表单末尾。 */
+      tenantsArrayField: { includeDefaultField: false },
       collections: {
         announcements: {},
         'landing-templates': {},

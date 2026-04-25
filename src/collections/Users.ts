@@ -1,4 +1,5 @@
 import type { Access, CollectionBeforeChangeHook, CollectionConfig } from 'payload'
+import { tenantsArrayField } from '@payloadcms/plugin-multi-tenant/fields'
 
 import type { Config } from '@/payload-types'
 import { adminGroups } from '@/constants/adminGroups'
@@ -40,6 +41,20 @@ function normalizeRoles(roles: unknown): string[] {
   return roles.map((r) => String(r))
 }
 
+function tenantIdsForUserPayload(
+  next: Record<string, unknown>,
+  originalDoc: unknown,
+  operation: string,
+): number[] {
+  if (Object.prototype.hasOwnProperty.call(next, 'tenants')) {
+    return tenantIdsFromIncomingTenants(next)
+  }
+  if (operation === 'update' && originalDoc && typeof originalDoc === 'object') {
+    return tenantIdsFromIncomingTenants(originalDoc as Record<string, unknown>)
+  }
+  return []
+}
+
 const enforceUserTenantAndRoles: CollectionBeforeChangeHook = ({
   data,
   req,
@@ -56,6 +71,18 @@ const enforceUserTenantAndRoles: CollectionBeforeChangeHook = ({
   if (Array.isArray(rolesAfter) && rolesAfter.includes('system-admin') && !userHasUnscopedAdminAccess(req.user)) {
     const without = rolesAfter.filter((r: string) => r !== 'system-admin')
     next = { ...next, roles: without.length > 0 ? without : ['user'] }
+  }
+
+  const finalRoles = normalizeRoles(next.roles)
+  if (finalRoles.includes('general-manager')) {
+    const tids = tenantIdsForUserPayload(
+      next as Record<string, unknown>,
+      originalDoc,
+      operation,
+    )
+    if (tids.length === 0) {
+      throw new Error('总经理须分配至少一个所属租户')
+    }
   }
 
   if (!isUsersCollection(req.user)) return next
@@ -186,6 +213,7 @@ export const Users: CollectionConfig = {
     beforeChange: [enforceUserTenantAndRoles],
   },
   fields: [
+    tenantsArrayField({ tenantsCollectionSlug: 'tenants' }),
     {
       name: 'teamLead',
       type: 'relationship',

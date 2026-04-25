@@ -284,6 +284,12 @@ export interface Tenant {
  */
 export interface User {
   id: number;
+  tenants?:
+    | {
+        tenant: number | Tenant;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Optional team lead for commission / reporting (same tenant; refine access in PRD as needed).
    */
@@ -301,12 +307,6 @@ export interface User {
     | 'system-admin'
     | 'super-admin'
   )[];
-  tenants?:
-    | {
-        tenant: number | Tenant;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -3189,14 +3189,14 @@ export interface TenantsSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  teamLead?: T;
-  roles?: T;
   tenants?:
     | T
     | {
         tenant?: T;
         id?: T;
       };
+  teamLead?: T;
+  roles?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

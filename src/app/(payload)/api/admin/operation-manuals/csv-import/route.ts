@@ -42,28 +42,35 @@ export async function POST(request: Request): Promise<Response> {
   const form = await request.formData()
   const file = form.get('file')
   const siteIdRaw = form.get('siteId')
-  const siteId = typeof siteIdRaw === 'string' ? Number(siteIdRaw) : Number(siteIdRaw)
-
-  if (!Number.isFinite(siteId)) {
-    return Response.json({ error: 'siteId is required' }, { status: 400 })
-  }
+  const hasSiteId =
+    siteIdRaw != null && String(siteIdRaw).trim() !== '' && String(siteIdRaw) !== 'undefined'
+  const siteId = hasSiteId ? Number(siteIdRaw) : Number.NaN
 
   if (!(file instanceof Blob)) {
     return Response.json({ error: 'file is required' }, { status: 400 })
   }
 
   const scope = getTenantScopeForStats(user)
-  const site = await payload.findByID({
-    collection: 'sites',
-    id: siteId,
-    depth: 0,
-  })
-  if (!site) {
-    return Response.json({ error: 'Site not found' }, { status: 404 })
-  }
-  const siteTenantId = tenantIdFromRelation(site.tenant)
-  if (!siteAccessible(scope, siteTenantId)) {
+  if (scope.mode === 'none') {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  if (hasSiteId) {
+    if (!Number.isFinite(siteId)) {
+      return Response.json({ error: 'Invalid siteId' }, { status: 400 })
+    }
+    const site = await payload.findByID({
+      collection: 'sites',
+      id: siteId,
+      depth: 0,
+    })
+    if (!site) {
+      return Response.json({ error: 'Site not found' }, { status: 404 })
+    }
+    const siteTenantId = tenantIdFromRelation(site.tenant)
+    if (!siteAccessible(scope, siteTenantId)) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 })
+    }
   }
 
   const rows = parseCsvRows(await file.text())
