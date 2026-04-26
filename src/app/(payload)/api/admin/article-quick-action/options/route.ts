@@ -15,6 +15,7 @@ type SiteOption = {
   name: string
   slug: string
   primaryDomain: string
+  mainProduct?: string | null
 }
 
 type CategoryOption = {
@@ -125,12 +126,16 @@ export async function GET(request: Request): Promise<Response> {
     ...(where ? { where } : {}),
   })
 
-  const sites: SiteOption[] = result.docs.map((doc) => ({
-    id: doc.id,
-    name: doc.name,
-    slug: doc.slug,
-    primaryDomain: doc.primaryDomain,
-  }))
+  const sites: SiteOption[] = result.docs.map((doc) => {
+    const row = doc as typeof doc & { mainProduct?: string | null }
+    return {
+      id: doc.id,
+      name: doc.name,
+      slug: doc.slug,
+      primaryDomain: doc.primaryDomain,
+      mainProduct: row.mainProduct ?? null,
+    }
+  })
 
   return Response.json({ sites })
 }

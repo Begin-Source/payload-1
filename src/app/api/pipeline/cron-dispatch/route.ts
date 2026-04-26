@@ -17,6 +17,8 @@ const TASK_ROUTES = {
   domain_audit: '/api/pipeline/domain-audit',
   amazon_sync: '/api/pipeline/amazon-sync',
   meta_ab_pick: '/api/pipeline/meta-ab-pick',
+  /** SEO matrix: active sites × keywords → rank-track (DataForSEO). */
+  seo_matrix_rank_sync: '/api/seo-matrix/rank-sync',
 } as const
 
 export type CronDispatchTaskId = keyof typeof TASK_ROUTES
@@ -32,6 +34,8 @@ const PRESETS: Record<string, CronDispatchTaskId[]> = {
   monthly_ops_placeholder: ['backlink_scan', 'domain_audit', 'internal_link_audit', 'amazon_sync'],
   /** 钉子 5：A/B 冠军占位周检。 */
   weekly_meta_champion: ['meta_ab_pick'],
+  /** SEO 矩阵：批量回写 rankings（受站点配额与 DFS 密钥影响）。 */
+  seo_matrix_rank_pulse: ['seo_matrix_rank_sync'],
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -73,7 +77,7 @@ export async function POST(request: Request): Promise<Response> {
       {
         error: 'No tasks',
         detail:
-          'Provide preset (daily_lifecycle | weekly_link_audits | alert_digest | monthly_ops_placeholder | weekly_meta_champion) or tasks array',
+          'Provide preset (daily_lifecycle | weekly_link_audits | alert_digest | monthly_ops_placeholder | weekly_meta_champion | seo_matrix_rank_pulse) or tasks array',
       },
       { status: 400 },
     )

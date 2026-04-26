@@ -69,6 +69,7 @@ export interface Config {
   blocks: {};
   collections: {
     announcements: Announcement;
+    'site-portfolios': SitePortfolio;
     sites: Site;
     'site-blueprints': SiteBlueprint;
     'site-layouts': SiteLayout;
@@ -113,6 +114,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
+    'site-portfolios': SitePortfoliosSelect<false> | SitePortfoliosSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
     'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
     'site-layouts': SiteLayoutsSelect<false> | SiteLayoutsSelect<true>;
@@ -327,6 +329,24 @@ export interface User {
   collection: 'users';
 }
 /**
+ * SEO 矩阵：按项目/策略分组多个站点，便于筛选与批量运营（关联到各「站点」的「所属组合」）。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-portfolios".
+ */
+export interface SitePortfolio {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  /**
+   * URL-safe；同一租户内需唯一（与站点 slug 无关）。
+   */
+  slug: string;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sites".
  */
@@ -335,11 +355,21 @@ export interface Site {
   tenant?: (number | null) | Tenant;
   name: string;
   /**
-   * URL-safe key; pair with tenant for uniqueness in your workflows.
+   * URL-safe key; pair with tenant for uniqueness in your workflows. 列表「快捷操作 · 生成域名」在写回主域名时会将 slug 同步为小写并把域名中的点替换为连字符。新建时若留空，会按名称自动生成占位 slug。
    */
-  slug: string;
-  primaryDomain: string;
-  status: 'draft' | 'active' | 'archived';
+  slug?: string | null;
+  /**
+   * 可留空；入库前会存为空字符串，稍后可由域名生成流程或手工补全。
+   */
+  primaryDomain?: string | null;
+  /**
+   * 可留空；未选择时按 draft 写入数据库。
+   */
+  status?: ('draft' | 'active' | 'archived') | null;
+  /**
+   * SEO 矩阵：项目/批次分组，便于筛选与批量运营。
+   */
+  portfolio?: (number | null) | SitePortfolio;
   /**
    * Optional layout/template blueprint for this site.
    */
@@ -352,6 +382,37 @@ export interface Site {
    * Users who operate this site (optional; tenant scoping still applies).
    */
   operators?: (number | User)[] | null;
+  /**
+   * 用于域名与受众提示词（对应原 n8n main_product）。
+   */
+  mainProduct?: string | null;
+  /**
+   * JSON：建议含 niche、target_audience；流程会清理临时域名建议键。
+   */
+  nicheData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  domainWorkflowStatus?: ('idle' | 'running' | 'done' | 'error') | null;
+  /**
+   * available | unavailable | error（多由 API 写入）。
+   */
+  domainCheckStatus?: string | null;
+  /**
+   * 由 Spaceship 批量可查结果写入。
+   */
+  domainCheckAvailable?: boolean | null;
+  domainCheckAt?: string | null;
+  domainCheckMessage?: string | null;
+  /**
+   * 追加日志，末尾截断约 12000 字符（与 n8n 一致）。
+   */
+  domainGenerationLog?: string | null;
   notes?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -1124,6 +1185,8 @@ export interface Ranking {
   createdAt: string;
 }
 /**
+ * 矩阵模板：新建任务时可选「矩阵模板」，在 Input payload 为空时自动填入 JSON 预设（见 constants/workflowJobMatrixTemplates）。
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "workflow-jobs".
  */
@@ -1131,6 +1194,10 @@ export interface WorkflowJob {
   id: number;
   tenant?: (number | null) | Tenant;
   label: string;
+  /**
+   * 仅在新建且 Input payload 为空时写入默认 JSON（与 jobType 独立）。
+   */
+  matrixTemplate?: ('' | 'new_site_checklist' | 'bulk_keyword_sync' | 'post_publish_ping') | null;
   jobType:
     | 'publish'
     | 'sync'
@@ -2248,6 +2315,24 @@ export interface PayloadMcpApiKey {
      */
     delete?: boolean | null;
   };
+  sitePortfolios?: {
+    /**
+     * Allow clients to find site-portfolios.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create site-portfolios.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update site-portfolios.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete site-portfolios.
+     */
+    delete?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
   enableAPIKey?: boolean | null;
@@ -2407,6 +2492,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'announcements';
         value: number | Announcement;
+      } | null)
+    | ({
+        relationTo: 'site-portfolios';
+        value: number | SitePortfolio;
       } | null)
     | ({
         relationTo: 'sites';
@@ -2620,6 +2709,18 @@ export interface AnnouncementsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-portfolios_select".
+ */
+export interface SitePortfoliosSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sites_select".
  */
 export interface SitesSelect<T extends boolean = true> {
@@ -2628,9 +2729,18 @@ export interface SitesSelect<T extends boolean = true> {
   slug?: T;
   primaryDomain?: T;
   status?: T;
+  portfolio?: T;
   blueprint?: T;
   siteLayout?: T;
   operators?: T;
+  mainProduct?: T;
+  nicheData?: T;
+  domainWorkflowStatus?: T;
+  domainCheckStatus?: T;
+  domainCheckAvailable?: T;
+  domainCheckAt?: T;
+  domainCheckMessage?: T;
+  domainGenerationLog?: T;
   notes?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -2956,6 +3066,7 @@ export interface RankingsSelect<T extends boolean = true> {
 export interface WorkflowJobsSelect<T extends boolean = true> {
   tenant?: T;
   label?: T;
+  matrixTemplate?: T;
   jobType?: T;
   status?: T;
   parentJob?: T;
@@ -3523,6 +3634,14 @@ export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
         update?: T;
         delete?: T;
       };
+  sitePortfolios?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   enableAPIKey?: T;
@@ -3672,7 +3791,7 @@ export interface PublicLanding {
 export interface QuotaRule {
   id: number;
   /**
-   * JSON for default per-site caps and tenant-wide limits.
+   * JSON：站点/租户上限等。SEO 矩阵示例：`{ "maxSitesPerTenant": 50 }`（非超管新建站点时校验；≤0 或不填表示不限制）。
    */
   rules?:
     | {

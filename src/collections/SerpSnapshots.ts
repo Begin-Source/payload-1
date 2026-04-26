@@ -9,7 +9,8 @@ export const SerpSnapshots: CollectionConfig = {
   admin: {
     group: adminGroups.operations,
     useAsTitle: 'searchQuery',
-    defaultColumns: ['searchQuery', 'keyword', 'engine', 'capturedAt'],
+    defaultColumns: ['searchQuery', 'keyword', 'site', 'engine', 'capturedAt'],
+    listSearchableFields: ['searchQuery', 'location'],
   },
   access: loggedInSuperAdminAccessFor('serp-snapshots'),
   fields: [

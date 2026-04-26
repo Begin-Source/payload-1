@@ -9,7 +9,8 @@ export const Rankings: CollectionConfig = {
   admin: {
     group: adminGroups.operations,
     useAsTitle: 'searchQuery',
-    defaultColumns: ['searchQuery', 'site', 'serpPosition', 'capturedAt', 'updatedAt'],
+    defaultColumns: ['searchQuery', 'keyword', 'site', 'serpPosition', 'capturedAt', 'updatedAt'],
+    listSearchableFields: ['searchQuery', 'serpUrl', 'notes'],
   },
   access: loggedInSuperAdminAccessFor('rankings'),
   fields: [

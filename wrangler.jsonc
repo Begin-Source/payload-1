@@ -30,6 +30,8 @@
     //   "service": "my-app"
     // },
   ],
+  // Domain generation (n8n parity): POST /api/sites/generate-domain needs Worker secrets
+  // SPACESHIP_API_KEY + SPACESHIP_API_SECRET (and existing OPENAI_API_KEY / OPENROUTER for OpenRouter).
   // Cron triggers require a Worker `scheduled` handler. OpenNext does not emit one yet —
   // use GitHub Actions (`.github/workflows/pipeline-cron.yml` + `pipeline-daily.yml`) calling
   // POST /api/pipeline/tick?execute=1 and POST /api/pipeline/cron-dispatch with `x-internal-token: PAYLOAD_SECRET`.

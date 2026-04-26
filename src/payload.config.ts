@@ -25,6 +25,7 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Tenants } from './collections/Tenants'
 import { Sites } from './collections/Sites'
+import { SitePortfolios } from './collections/SitePortfolios'
 import { SiteQuotas } from './collections/SiteQuotas'
 import { SiteBlueprints } from './collections/SiteBlueprints'
 import { SiteLayouts } from './collections/SiteLayouts'
@@ -90,6 +91,7 @@ const mcpCollectionSlugs = [
   'original-evidence',
   'page-link-graph',
   'serp-snapshots',
+  'site-portfolios',
 ] as const
 
 const filename = fileURLToPath(import.meta.url)
@@ -232,6 +234,7 @@ export default buildConfig({
   },
   collections: [
     Announcements,
+    SitePortfolios,
     Sites,
     SiteBlueprints,
     SiteLayouts,
@@ -297,6 +300,7 @@ export default buildConfig({
       tenantsArrayField: { includeDefaultField: false },
       collections: {
         announcements: {},
+        'site-portfolios': {},
         sites: {},
         'site-quotas': {},
         'site-blueprints': {},
@@ -488,6 +492,11 @@ export default buildConfig({
         rankings: {
           enabled: true,
           description: 'SERP ranking snapshots linked to keywords and sites.',
+        },
+        'site-portfolios': {
+          enabled: true,
+          description:
+            'SEO matrix site portfolios (batch/project grouping); link from sites.portfolio.',
         },
       },
       overrideApiKeyCollection: (collection) => ({

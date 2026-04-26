@@ -5,7 +5,7 @@ export type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: stri
 export async function openrouterChat(
   model: string,
   messages: ChatMessage[],
-  init?: { signal?: AbortSignal; responseFormatJson?: boolean },
+  init?: { signal?: AbortSignal; responseFormatJson?: boolean; temperature?: number },
 ): Promise<string> {
   const key = process.env.OPENAI_API_KEY?.trim() || process.env.OPENROUTER_API_KEY?.trim()
   if (!key) {
@@ -24,7 +24,7 @@ export async function openrouterChat(
     body: JSON.stringify({
       model,
       messages,
-      temperature: 0.4,
+      temperature: init?.temperature ?? 0.4,
       ...(init?.responseFormatJson
         ? { response_format: { type: 'json_object' } }
         : {}),

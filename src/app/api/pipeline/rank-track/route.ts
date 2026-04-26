@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import { isPipelineUnauthorized, requirePipelineJson } from '@/app/api/pipeline/lib/auth'
 import { dataForSeoPost, keywordDataLocationAndLanguage } from '@/services/integrations/dataforseo/client'
 import { parseOrganicPositionAndAiOverview } from '@/utilities/dataForSeoOrganicParse'
+import { DataForSeoMatrixEndpoints, SeoMatrixJsonFields } from '@/utilities/seoMatrixPipeline'
 import { incrementSiteQuotaUsage } from '@/utilities/siteQuotaCheck'
 
 export const dynamic = 'force-dynamic'
@@ -82,7 +83,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const r = await dataForSeoPost('/v3/serp/google/organic/live/regular', [
+    const r = await dataForSeoPost(DataForSeoMatrixEndpoints.serpGoogleOrganicLive, [
       {
         language_code: loc.language_code,
         location_code: loc.location_code,
@@ -121,7 +122,7 @@ export async function POST(request: Request): Promise<Response> {
         ...(tenantRel != null && Number.isFinite(tenantRel) ? { tenant: tenantRel } : {}),
         serpPosition: position,
         isAiOverviewHit,
-        rawSerp: r as unknown as Record<string, unknown>,
+        [SeoMatrixJsonFields.rankingRawSerp]: r as unknown as Record<string, unknown>,
         ...(change != null ? { change } : {}),
       },
       overrideAccess: true,

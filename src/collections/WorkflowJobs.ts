@@ -1,6 +1,11 @@
 import type { CollectionConfig } from 'payload'
 
+import {
+  applyWorkflowMatrixTemplate,
+  guardWorkflowJobPipelineSpend,
+} from '@/collections/hooks/workflowJobMatrixTemplate'
 import { adminGroups } from '@/constants/adminGroups'
+import { WORKFLOW_MATRIX_TEMPLATE_LABELS } from '@/constants/workflowJobMatrixTemplates'
 import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 
 export const WorkflowJobs: CollectionConfig = {
@@ -9,14 +14,43 @@ export const WorkflowJobs: CollectionConfig = {
   admin: {
     group: adminGroups.operations,
     useAsTitle: 'label',
-    defaultColumns: ['label', 'jobType', 'status', 'site', 'updatedAt'],
+    defaultColumns: ['label', 'jobType', 'matrixTemplate', 'status', 'site', 'updatedAt'],
+    description:
+      '矩阵模板：新建任务时可选「矩阵模板」，在 Input payload 为空时自动填入 JSON 预设（见 constants/workflowJobMatrixTemplates）。',
   },
   access: loggedInSuperAdminAccessFor('workflow-jobs'),
+  hooks: {
+    beforeChange: [applyWorkflowMatrixTemplate, guardWorkflowJobPipelineSpend],
+  },
   fields: [
     {
       name: 'label',
       type: 'text',
       required: true,
+    },
+    {
+      name: 'matrixTemplate',
+      type: 'select',
+      label: '矩阵模板',
+      defaultValue: '',
+      options: [
+        { label: '— 无 —', value: '' },
+        {
+          label: WORKFLOW_MATRIX_TEMPLATE_LABELS.new_site_checklist,
+          value: 'new_site_checklist',
+        },
+        {
+          label: WORKFLOW_MATRIX_TEMPLATE_LABELS.bulk_keyword_sync,
+          value: 'bulk_keyword_sync',
+        },
+        {
+          label: WORKFLOW_MATRIX_TEMPLATE_LABELS.post_publish_ping,
+          value: 'post_publish_ping',
+        },
+      ],
+      admin: {
+        description: '仅在新建且 Input payload 为空时写入默认 JSON（与 jobType 独立）。',
+      },
     },
     {
       name: 'jobType',

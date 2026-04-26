@@ -31,7 +31,8 @@ export const QuotaRules: GlobalConfig = {
       type: 'json',
       label: '规则配置',
       admin: {
-        description: 'JSON for default per-site caps and tenant-wide limits.',
+        description:
+          'JSON：站点/租户上限等。SEO 矩阵示例：`{ "maxSitesPerTenant": 50 }`（非超管新建站点时校验；≤0 或不填表示不限制）。',
       },
     },
     {

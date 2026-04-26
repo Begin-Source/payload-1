@@ -10,6 +10,7 @@ export const Keywords: CollectionConfig = {
     group: adminGroups.website,
     useAsTitle: 'term',
     defaultColumns: ['term', 'site', 'status', 'updatedAt'],
+    listSearchableFields: ['term', 'slug'],
     components: {
       beforeListTable: [
         './components/ArticleFindReplacePanel#FindReplacePanel',
