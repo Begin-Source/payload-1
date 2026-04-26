@@ -393,102 +393,7 @@ const TENANT_PROFILES: [TenantProfile, TenantProfile] = [
   },
 ]
 
-/** `landing-templates.slug` — unique per tenant. */
-const BLOG_DEFAULT_LANDING_TEMPLATE_SLUG = 'blog-default'
-
-/** Align with `BLOG_DEFAULTS` in src/utilities/publicLandingTheme.ts; keep in sync manually. */
-/** Dev-only preview links; tenant slug → URL (site must use blog-default template). */
-const BLOG_DEFAULT_PREVIEW_URL_BY_TENANT: Record<string, string> = {
-  'seed-alpha': 'http://localhost:3000/zh/?site=seed-site-a',
-  'seed-beta': 'http://localhost:3000/zh/?site=beta-saas-main',
-}
-
-const BLOG_DEFAULT_LANDING_TEMPLATE_BASE = {
-  name: '整站博客 · 默认',
-  slug: BLOG_DEFAULT_LANDING_TEMPLATE_SLUG,
-  description:
-    '与当前工程默认整站博客一致：文章列表 + 顶栏 + About 侧栏；色板与 publicLandingTheme BLOG_DEFAULTS 对齐。',
-  landingBrowserTitle: '',
-  landingSiteName: '',
-  landingTagline: '',
-  landingLoggedInTitle: '',
-  landingLoggedInSubtitle: '',
-  landingFooterLine: '© 种子数据 · 整站博客模版演示',
-  landingCtaLabel: '前往管理后台',
-  landingBgColor: '#f0f0f0',
-  landingTextColor: '#333333',
-  landingMutedColor: '#888888',
-  landingCtaBgColor: '#2d8659',
-  landingCtaTextColor: '#ffffff',
-  landingFontPreset: 'noto_sans_sc' as const,
-  blogPrimaryColor: '#2d8659',
-  blogAccentColor: '#e6c84a',
-  blogContentBgColor: '#f0f0f0',
-  blogCardBgColor: '#ffffff',
-  blogHeaderTextColor: '#ffffff',
-  blogHeadingColor: '#333333',
-  blogBodyColor: '#444444',
-  aboutTitle: 'About Me',
-  aboutBio: '',
-  aboutCtaLabel: 'Learn more',
-  aboutCtaHref: '#',
-}
-
-/**
- * 与仓库 `template1/app/globals.css` :root（浅色主题）一致；OKLCH 已换算为 hex。
- * primary oklch(0.38 0.09 158) → #00502f · background 0.98/0.004/95 → #f9f8f5 ·
- * accent 0.62/0.1/50 → #b6734d · foreground 0.18/0.01/260 → #0f1216 ·
- * muted-foreground 0.5/0.01/260 → #606369；卡片白 #ffffff；顶栏字用 primary-foreground 近似 #f8f8f8。
- * 正文字用略深于 muted 的 #3a3f45 以接近 Inter 正文。字体 preset：serif 以贴近 template1 的 Merriweather。
- */
-const TEMPLATE1_LANDING_TEMPLATE_SLUG = 'template1'
-
-const TEMPLATE1_LANDING_TEMPLATE_BASE = {
-  name: 'template1',
-  slug: TEMPLATE1_LANDING_TEMPLATE_SLUG,
-  description:
-    '来自工程内 template1/（V0/Next+shadcn）`:root` 色板；仅站点模版可同步色与字重，整页结构仍以主工程组件为准。',
-  landingBrowserTitle: '',
-  landingSiteName: '',
-  landingTagline: '',
-  landingLoggedInTitle: '',
-  landingLoggedInSubtitle: '',
-  landingFooterLine: '© Demo · template1 主题',
-  landingCtaLabel: '前往管理后台',
-  landingBgColor: '#f9f8f5',
-  landingTextColor: '#0f1216',
-  landingMutedColor: '#606369',
-  landingCtaBgColor: '#00502f',
-  landingCtaTextColor: '#f8f8f8',
-  landingFontPreset: 'serif' as const,
-  siteLayout: 'template1' as const,
-  blogPrimaryColor: '#00502f',
-  blogAccentColor: '#b6734d',
-  blogContentBgColor: '#f9f8f5',
-  blogCardBgColor: '#ffffff',
-  blogHeaderTextColor: '#f8f8f8',
-  blogHeadingColor: '#0f1216',
-  blogBodyColor: '#3a3f45',
-  aboutTitle: 'About',
-  aboutBio: '',
-  aboutCtaLabel: 'Learn more',
-  aboutCtaHref: '#',
-  affiliateDisclosureLine:
-    'Seed demo disclosure: this local Template1 preview may show affiliate-style UI, but links and recommendations are mock data only.',
-  footerResourceLinks: [
-    { label: 'About', href: '/en/about' },
-    { label: 'Contact', href: '/en/contact' },
-    { label: 'Privacy', href: '/en/privacy' },
-  ],
-}
-
-/** 可选；与 blog-default 同本地预览。Seed Alpha 的 Template1 演示站为 `seed-site-b`。 */
-const TEMPLATE1_PREVIEW_URL_BY_TENANT: Record<string, string> = {
-  'seed-alpha': 'http://localhost:3000/zh/?site=seed-site-b',
-  'seed-beta': 'http://localhost:3000/zh/?site=beta-saas-main',
-}
-
-/** 写入 `site-t1-locales.t1LocaleJson`；`seed-site-b` 专用演示文案。 */
+/** 写入 `site-blueprints.t1LocaleJson`（`seed-site-b` 设计稿）的演示键值。 */
 const SEED_ALPHA_TEMPLATE1_DEMO: Record<string, string | boolean> = {
   t1NavUsePageTitleForAbout: true,
   t1NavUsePageTitleForContact: true,
@@ -660,7 +565,6 @@ function whereTenantSiteSlugLocale(tenantId: number, siteId: number, slug: strin
  * D1’s max result width (`too many columns in result set`).
  */
 function siteDataKeyToSqlColumn(camel: string): string {
-  if (camel === 'landingTemplate') return 'landing_template_id'
   return camel
     .replace(/([A-Z0-9])([A-Z][a-z])/g, '$1_$2')
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
@@ -696,60 +600,6 @@ async function d1NarrowUpdateSites(
   } else {
     throw new Error('[seed:dev] D1 client prepare() has no bind(); cannot run narrow UPDATE')
   }
-  return true
-}
-
-async function d1UpsertSiteT1LocaleRaw(
-  payload: Payload,
-  siteId: number,
-  t1LocaleJson: Record<string, string | boolean>,
-): Promise<boolean> {
-  const cols = await getSqliteTableColumnNames(payload, 'site_t1_locales')
-  if (!cols?.has('site_id') || !cols.has('t1_locale_json')) return false
-  const c = (payload.db as unknown as SQLiteAdapter).client
-  if (!c || typeof (c as { prepare?: unknown }).prepare !== 'function') return false
-  const p = c as {
-    prepare: (q: string) => {
-      bind: (...a: unknown[]) => {
-        all: <T>() => Promise<{ results?: T[] }>
-        run: () => Promise<unknown>
-      }
-    }
-  }
-  const iso = new Date().toISOString()
-  const existing = await p
-    .prepare('SELECT `id` FROM `site_t1_locales` WHERE `site_id` = ? LIMIT 1')
-    .bind(siteId)
-    .all<{ id: number }>()
-  const json = JSON.stringify(t1LocaleJson)
-  if (existing.results?.[0]?.id != null) {
-    const set = cols.has('updated_at')
-      ? '`t1_locale_json` = ?, `updated_at` = ?'
-      : '`t1_locale_json` = ?'
-    const values = cols.has('updated_at') ? [json, iso, siteId] : [json, siteId]
-    await p
-      .prepare(`UPDATE \`site_t1_locales\` SET ${set} WHERE \`site_id\` = ?`)
-      .bind(...values)
-      .run()
-    return true
-  }
-
-  const insertCols = ['site_id', 't1_locale_json']
-  const insertVals: unknown[] = [siteId, json]
-  if (cols.has('updated_at')) {
-    insertCols.push('updated_at')
-    insertVals.push(iso)
-  }
-  if (cols.has('created_at')) {
-    insertCols.push('created_at')
-    insertVals.push(iso)
-  }
-  await p
-    .prepare(
-      `INSERT INTO \`site_t1_locales\` (${insertCols.map((col) => `\`${col}\``).join(', ')}) VALUES (${insertCols.map(() => '?').join(', ')})`,
-    )
-    .bind(...insertVals)
-    .run()
   return true
 }
 
@@ -1250,116 +1100,9 @@ async function main(): Promise<void> {
     /** D1: populating `site` / `sites` loads the full `sites` row and exceeds max columns. */
     const d0 = { depth: 0 } as const
 
-    async function ensureBlogLandingTemplate(): Promise<{ id: number }> {
-      const found = await payload.find({
-        collection: 'landing-templates',
-        ...d0,
-        where: {
-          and: [
-            { slug: { equals: BLOG_DEFAULT_LANDING_TEMPLATE_SLUG } },
-            { tenant: { equals: tenantId } },
-          ],
-        },
-        limit: 1,
-        overrideAccess: true,
-      })
-      if (found.docs[0]) {
-        const existing = found.docs[0] as { id: number; previewUrl?: string | null }
-        const desiredPreview = BLOG_DEFAULT_PREVIEW_URL_BY_TENANT[p.slug] ?? ''
-        if (
-          desiredPreview &&
-          (existing.previewUrl == null || String(existing.previewUrl).trim() === '')
-        ) {
-          await payload.update({
-            collection: 'landing-templates',
-            id: existing.id,
-            ...reqOpts,
-            ...d0,
-            data: { previewUrl: desiredPreview },
-            overrideAccess: true,
-          })
-          console.info('[seed:dev] Set previewUrl on landing template', existing.id)
-        }
-        return { id: existing.id as number }
-      }
-      const doc = await payload.create({
-        collection: 'landing-templates',
-        ...reqOpts,
-        ...d0,
-        data: {
-          ...BLOG_DEFAULT_LANDING_TEMPLATE_BASE,
-          previewUrl: BLOG_DEFAULT_PREVIEW_URL_BY_TENANT[p.slug] ?? '',
-          tenant: tenantId,
-        },
-        overrideAccess: true,
-      })
-      console.info('[seed:dev] Created landing template', BLOG_DEFAULT_LANDING_TEMPLATE_SLUG)
-      return { id: doc.id as number }
-    }
-
-    const blogLandingTemplate = await ensureBlogLandingTemplate()
-
-    async function ensureTemplate1LandingTemplate(): Promise<{ id: number }> {
-      const found = await payload.find({
-        collection: 'landing-templates',
-        ...d0,
-        where: {
-          and: [
-            { slug: { equals: TEMPLATE1_LANDING_TEMPLATE_SLUG } },
-            { tenant: { equals: tenantId } },
-          ],
-        },
-        limit: 1,
-        overrideAccess: true,
-      })
-      const previewUrl = TEMPLATE1_PREVIEW_URL_BY_TENANT[p.slug] ?? ''
-      if (found.docs[0]) {
-        const existing = found.docs[0] as { id: number; previewUrl?: string | null }
-        const keepPreview =
-          previewUrl ||
-          (existing.previewUrl != null && String(existing.previewUrl).trim() !== ''
-            ? String(existing.previewUrl)
-            : '')
-        await payload.update({
-          collection: 'landing-templates',
-          id: existing.id,
-          ...reqOpts,
-          ...d0,
-          data: {
-            ...TEMPLATE1_LANDING_TEMPLATE_BASE,
-            previewUrl: keepPreview,
-            t1LocaleJson: SEED_ALPHA_TEMPLATE1_DEMO,
-          },
-          overrideAccess: true,
-        })
-        console.info(
-          '[seed:dev] Updated landing template',
-          TEMPLATE1_LANDING_TEMPLATE_SLUG,
-          existing.id,
-        )
-        return { id: existing.id as number }
-      }
-      const doc = await payload.create({
-        collection: 'landing-templates',
-        ...reqOpts,
-        ...d0,
-        data: {
-          ...TEMPLATE1_LANDING_TEMPLATE_BASE,
-          previewUrl,
-          t1LocaleJson: SEED_ALPHA_TEMPLATE1_DEMO,
-          tenant: tenantId,
-        },
-        overrideAccess: true,
-      })
-      console.info('[seed:dev] Created landing template', TEMPLATE1_LANDING_TEMPLATE_SLUG)
-      return { id: doc.id as number }
-    }
-
-    const template1Lt = await ensureTemplate1LandingTemplate()
-
     async function ensureSite(spec: SiteSpec) {
-      /** D1 has a small max column count per SELECT; `sites` is wide — avoid unbounded selects. */
-      const siteSelect = { id: true, landingTemplate: true, blueprint: true } as const
+      /** D1: `sites` is wide — avoid unbounded selects. */
+      const siteSelect = { id: true, blueprint: true } as const
       const found = await payload.find({
         collection: 'sites',
         where: whereTenantAndSlug(tenantId, spec.slug),
@@ -1369,27 +1112,7 @@ async function main(): Promise<void> {
         depth: 0,
       })
       if (found.docs[0]) {
-        const row = found.docs[0] as {
-          id: number
-          landingTemplate?: number | { id: number } | null
-        }
-        if (row.landingTemplate == null) {
-          if (d1SitesNarrow && siteSqlCols?.has('landing_template_id')) {
-            await d1NarrowUpdateSites(payload, row.id, [
-              ['landing_template_id', blogLandingTemplate.id],
-            ])
-          } else {
-            await payload.update({
-              collection: 'sites',
-              id: row.id,
-              ...reqOpts,
-              ...d0,
-              data: { landingTemplate: blogLandingTemplate.id },
-              overrideAccess: true,
-            })
-          }
-          console.info('[seed:dev] Linked landing template → site', spec.slug)
-        }
+        const row = found.docs[0] as { id: number }
         const refreshed = await payload.findByID({
           collection: 'sites',
           id: row.id,
@@ -1398,7 +1121,7 @@ async function main(): Promise<void> {
           depth: 0,
         })
         if (!refreshed) {
-          throw new Error(`[seed:dev] site id ${row.id} missing after landingTemplate link`)
+          throw new Error(`[seed:dev] site id ${row.id} missing`)
         }
         return refreshed
       }
@@ -1412,7 +1135,6 @@ async function main(): Promise<void> {
           primaryDomain: spec.primaryDomain,
           status: 'active',
           tenant: tenantId,
-          landingTemplate: blogLandingTemplate.id,
         },
         overrideAccess: true,
       })
@@ -1425,10 +1147,7 @@ async function main(): Promise<void> {
 
     if (p.slug === 'seed-alpha') {
       const demoSite = site1 as { id: number; slug?: string }
-      const layoutWanted: Array<[string, string | number]> = [
-        ['site_layout', 'template1'],
-        ['landing_template_id', template1Lt.id],
-      ]
+      const layoutWanted: Array<[string, string | number]> = [['site_layout', 'template1']]
       const layoutForDb = siteSqlCols ? layoutWanted.filter(([col]) => siteSqlCols.has(col)) : null
       let layoutApplied = false
       if (layoutForDb && layoutForDb.length > 0) {
@@ -1441,10 +1160,7 @@ async function main(): Promise<void> {
             id: demoSite.id,
             ...reqOpts,
             ...d0,
-            data: {
-              siteLayout: 'template1',
-              landingTemplate: template1Lt.id,
-            },
+            data: { siteLayout: 'template1' },
             overrideAccess: true,
           })
           layoutApplied = true
@@ -1452,61 +1168,12 @@ async function main(): Promise<void> {
           console.warn('[seed:dev] Template1 layout site update failed.', e)
         }
       }
-
-      let t1DocApplied = false
-      try {
-        const existing = await payload.find({
-          collection: 'site-t1-locales',
-          where: { site: { equals: demoSite.id } },
-          limit: 1,
-          depth: 0,
-          overrideAccess: true,
-        })
-        const json = { ...SEED_ALPHA_TEMPLATE1_DEMO }
-        if (existing.docs[0]) {
-          await payload.update({
-            collection: 'site-t1-locales',
-            id: (existing.docs[0] as { id: number }).id,
-            ...reqOpts,
-            data: { tenant: tenantId, t1LocaleJson: json },
-            overrideAccess: true,
-          })
-        } else {
-          await payload.create({
-            collection: 'site-t1-locales',
-            ...reqOpts,
-            ...d0,
-            data: {
-              tenant: tenantId,
-              site: demoSite.id,
-              t1LocaleJson: json,
-            },
-            overrideAccess: true,
-          })
-        }
-        t1DocApplied = true
-      } catch (e) {
-        try {
-          t1DocApplied = await d1UpsertSiteT1LocaleRaw(payload, demoSite.id, {
-            ...SEED_ALPHA_TEMPLATE1_DEMO,
-          })
-          if (t1DocApplied) {
-            console.info('[seed:dev] site-t1-locales raw upsert ok')
-          } else {
-            console.warn('[seed:dev] site-t1-locales seed skipped; table/columns unavailable', e)
-          }
-        } catch (rawError) {
-          console.warn('[seed:dev] site-t1-locales seed failed (Payload + raw fallback)', rawError)
-        }
-      }
-
       console.info(
-        '[seed:dev] Template1 demo + layout →',
+        '[seed:dev] Template1 site layout →',
         p.sites[1].slug,
         'id=',
         demoSite.id,
         layoutApplied ? '· layout ok' : '· layout partial',
-        t1DocApplied ? '· t1 ok' : '· t1 skipped',
       )
     }
 
@@ -1587,6 +1254,51 @@ async function main(): Promise<void> {
               overrideAccess: true,
             })
             console.info('[seed:dev] Linked blueprint → site id', s.id)
+          }
+        }
+      }
+    }
+
+    if (p.slug === 'seed-alpha') {
+      const bpForT1 = await payload.find({
+        collection: 'site-blueprints',
+        ...d0,
+        where: whereTenantAndSlug(tenantId, blueprintSlug),
+        limit: 1,
+        overrideAccess: true,
+        depth: 0,
+      })
+      const bpT1 = bpForT1.docs[0] as { id: number } | undefined
+      if (bpT1) {
+        const t1 = { ...SEED_ALPHA_TEMPLATE1_DEMO }
+        try {
+          await payload.update({
+            collection: 'site-blueprints',
+            id: bpT1.id,
+            ...reqOpts,
+            ...d0,
+            data: { t1LocaleJson: t1 },
+            overrideAccess: true,
+          })
+          console.info('[seed:dev] Set seed-alpha blueprint t1LocaleJson', blueprintSlug, bpT1.id)
+        } catch (e) {
+          const cols = await getSqliteTableColumnNames(payload, 'site_blueprints')
+          const db = payload.db as unknown as SQLiteAdapter
+          const client = db?.client as
+            | {
+                prepare: (q: string) => {
+                  bind: (...a: unknown[]) => { run: () => Promise<unknown> }
+                }
+              }
+            | undefined
+          if (cols?.has('t1_locale_json') && client?.prepare) {
+            await client
+              .prepare('UPDATE `site_blueprints` SET `t1_locale_json` = ? WHERE `id` = ?')
+              .bind(JSON.stringify(t1), bpT1.id)
+              .run()
+            console.info('[seed:dev] Set seed-alpha blueprint t1LocaleJson (D1 raw)', bpT1.id)
+          } else {
+            console.warn('[seed:dev] Could not set blueprint t1LocaleJson', e)
           }
         }
       }

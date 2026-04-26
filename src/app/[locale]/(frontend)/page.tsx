@@ -7,7 +7,7 @@ import { ReviewHubHome } from '@/components/blog/reviewHub/ReviewHubHome'
 import { PostList } from '@/components/blog/PostList'
 import { Template1HomePage } from '@/components/template1/Template1HomePage'
 import { isAppLocale } from '@/i18n/config'
-import { getPublicSiteContext } from '@/utilities/publicLandingTheme'
+import { getPublicSiteContext, isTemplateShellLayout } from '@/utilities/publicLandingTheme'
 import { getNavCategoriesForSite, getPublishedArticlesForSite } from '@/utilities/publicSiteQueries'
 
 type Props = { params: Promise<{ locale: string }> }
@@ -38,7 +38,7 @@ export default async function HomePage(props: Props) {
 
   const articles = await getPublishedArticlesForSite(site.id, locale, 20)
 
-  if (theme.siteLayout === 'template1') {
+  if (isTemplateShellLayout(theme.siteLayout)) {
     const categories = await getNavCategoriesForSite(site.id, 32)
     return <Template1HomePage locale={locale} site={site} theme={theme} articles={articles} categories={categories} />
   }

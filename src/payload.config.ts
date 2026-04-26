@@ -24,11 +24,10 @@ import {
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Tenants } from './collections/Tenants'
-import { LandingTemplates } from './collections/LandingTemplates'
 import { Sites } from './collections/Sites'
-import { SiteT1Locales } from './collections/SiteT1Locales'
 import { SiteQuotas } from './collections/SiteQuotas'
 import { SiteBlueprints } from './collections/SiteBlueprints'
+import { SiteLayouts } from './collections/SiteLayouts'
 import { AffiliateNetworks } from './collections/AffiliateNetworks'
 import { Offers } from './collections/Offers'
 import { ClickEvents } from './collections/ClickEvents'
@@ -234,8 +233,8 @@ export default buildConfig({
   collections: [
     Announcements,
     Sites,
-    SiteT1Locales,
     SiteBlueprints,
+    SiteLayouts,
     Categories,
     Pages,
     Redirects,
@@ -261,7 +260,6 @@ export default buildConfig({
     Tenants,
     Users,
     OriginalEvidence,
-    LandingTemplates,
     PageLinkGraph,
   ],
   globals: [
@@ -299,9 +297,7 @@ export default buildConfig({
       tenantsArrayField: { includeDefaultField: false },
       collections: {
         announcements: {},
-        'landing-templates': {},
         sites: {},
-        'site-t1-locales': {},
         'site-quotas': {},
         'site-blueprints': {},
         'affiliate-networks': {},

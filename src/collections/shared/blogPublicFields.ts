@@ -1,6 +1,6 @@
 import type { Field } from 'payload'
 
-/** Preset + merge source on `landing-templates`. */
+/** Blog chrome fields (template-style names) for globals / legacy; design uses `blogChromeDesignFields` on `site-blueprints`. */
 export const blogChromeTemplateFields: Field[] = [
   {
     name: 'blogPrimaryColor',
@@ -89,22 +89,6 @@ export const blogChromeDesignFields: Field[] = [
   { name: 'designAboutImage', type: 'upload', relationTo: 'media', label: '侧栏 · 头像图' },
   { name: 'designAboutCtaLabel', type: 'text', label: '侧栏 · 按钮文案' },
   { name: 'designAboutCtaHref', type: 'text', label: '侧栏 · 按钮链接' },
-]
-
-/** Last-win overrides on `sites` (landing* prefix). */
-export const blogChromeSiteFields: Field[] = [
-  { name: 'landingBlogPrimaryColor', type: 'text', label: '博客 · 主色' },
-  { name: 'landingBlogAccentColor', type: 'text', label: '博客 · 侧栏强调色' },
-  { name: 'landingBlogContentBgColor', type: 'text', label: '博客 · 内容区背景' },
-  { name: 'landingBlogCardBgColor', type: 'text', label: '博客 · 卡片背景' },
-  { name: 'landingBlogHeaderTextColor', type: 'text', label: '博客 · 顶栏文字色' },
-  { name: 'landingBlogHeadingColor', type: 'text', label: '博客 · 标题色' },
-  { name: 'landingBlogBodyColor', type: 'text', label: '博客 · 正文色' },
-  { name: 'landingAboutTitle', type: 'text', label: '侧栏 · 标题' },
-  { name: 'landingAboutBio', type: 'textarea', label: '侧栏 · 简介' },
-  { name: 'landingAboutImage', type: 'upload', relationTo: 'media', label: '侧栏 · 头像图' },
-  { name: 'landingAboutCtaLabel', type: 'text', label: '侧栏 · 按钮文案' },
-  { name: 'landingAboutCtaHref', type: 'text', label: '侧栏 · 按钮链接' },
 ]
 
 /** Global fallback on `public-landing`. */

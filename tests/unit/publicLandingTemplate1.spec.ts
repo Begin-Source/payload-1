@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { mergeTemplate1Layers, template1BlockForLocale } from '@/utilities/publicLandingTemplate1'
 
 describe('mergeTemplate1Layers', () => {
-  it('should use landing-template Template1 copy as the base layer', () => {
+  it('should use blueprint t1LocaleJson as the base layer', () => {
     const theme = mergeTemplate1Layers(
       {
         t1HomeTitleEn: 'Best gear picks',
@@ -18,7 +18,7 @@ describe('mergeTemplate1Layers', () => {
     expect(theme.t1NavUsePageTitleForAbout).toBe(true)
   })
 
-  it('should let per-site Template1 copy override landing-template copy', () => {
+  it('should let per-site t1LocaleJson override blueprint copy', () => {
     const theme = mergeTemplate1Layers(
       {
         t1HomeTitleEn: 'Template title',

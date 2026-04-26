@@ -16,7 +16,7 @@ import { hreflangXDefaultUrl, isAppLocale } from '@/i18n/config'
 import { lexicalStateToHtml } from '@/utilities/lexicalToHtml'
 import { estimateReadingTimeMinutesFromHtml } from '@/utilities/readingTime'
 import { getPublicBaseUrlFromHeaders, seoMetaForDocument } from '@/utilities/seoDocumentMeta'
-import { getPublicSiteContext } from '@/utilities/publicLandingTheme'
+import { getPublicSiteContext, isTemplateShellLayout } from '@/utilities/publicLandingTheme'
 import { getArticleBySlugForSite, getRelatedArticlesForSite } from '@/utilities/publicSiteQueries'
 
 type Props = { params: Promise<{ locale: string; slug: string }> }
@@ -114,12 +114,12 @@ export default async function PostPage(props: Props) {
 
   const layout = article.affiliatePageLayout ?? 'default'
 
-  const isTemplate1 = theme.siteLayout === 'template1'
+  const isTemplateShell = isTemplateShellLayout(theme.siteLayout)
 
   const defaultArticle = (
     <article
       className={
-        isTemplate1 ? 'mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8' : 'blogArticle'
+        isTemplateShell ? 'mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8' : 'blogArticle'
       }
     >
       <ArticleBreadcrumbs
@@ -150,7 +150,7 @@ export default async function PostPage(props: Props) {
         dangerouslySetInnerHTML={{ __html: jsonLd }}
         suppressHydrationWarning
       />
-      {theme.siteLayout === 'template1' ? (
+      {isTemplateShell ? (
         <Template1ArticlePage
           article={article}
           html={html}

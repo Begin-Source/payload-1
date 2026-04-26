@@ -3,13 +3,7 @@ import { cache } from 'react'
 import { getPayload } from 'payload'
 
 import config from '@/payload.config'
-import type {
-  LandingTemplate,
-  PublicLanding,
-  Site,
-  SiteBlueprint,
-  SiteT1Locale,
-} from '@/payload-types'
+import type { PublicLanding, Site, SiteBlueprint } from '@/payload-types'
 import { getRequestHost } from '@/utilities/normalizeRequestHost'
 import { resolveSiteForLanding } from '@/utilities/resolveSiteForLanding'
 import { mergeTemplate1Layers, type Template1Theme } from '@/utilities/publicLandingTemplate1'
@@ -47,10 +41,28 @@ export type BlogChromeTheme = {
   aboutCtaHref: string
 }
 
-/** Whole-site shell variant from `sites.siteLayout` or `landing-templates.siteLayout`. */
-export type SiteLayoutId = 'default' | 'wide' | 'affiliate_reviews' | 'template1'
+/** Whole-site shell variant from `sites.siteLayout` (empty string → `default`). */
+export type SiteLayoutId =
+  | 'default'
+  | 'wide'
+  | 'affiliate_reviews'
+  | 'template1'
+  | 'template2'
 
-const SITE_LAYOUT_IDS = new Set<SiteLayoutId>(['default', 'wide', 'affiliate_reviews', 'template1'])
+const SITE_LAYOUT_IDS = new Set<SiteLayoutId>([
+  'default',
+  'wide',
+  'affiliate_reviews',
+  'template1',
+  'template2',
+])
+
+/** Template1/2 共用 `Template1*` 壳与 `theme.template1` 文案 merge（Template2 用 `t2LocaleJson`）。 */
+export function isTemplateShellLayout(
+  layout: string | null | undefined,
+): layout is 'template1' | 'template2' {
+  return layout === 'template1' || layout === 'template2'
+}
 
 function normalizeSiteLayout(value: string | null | undefined): SiteLayoutId {
   if (value && SITE_LAYOUT_IDS.has(value as SiteLayoutId)) return value as SiteLayoutId
@@ -84,7 +96,7 @@ function parseFooterResourceLinks(raw: unknown): FooterResourceLink[] {
 }
 
 /**
- * Public blog shell + landing text/colors. `siteLayout` comes from site override, then template.
+ * Public blog shell + landing text/colors. `siteLayout` comes from `sites.siteLayout`.
  */
 export type PublicSiteTheme = LandingTheme &
   BlogChromeTheme & {
@@ -92,7 +104,7 @@ export type PublicSiteTheme = LandingTheme &
     reviewHubTaglineResolved: string
     affiliateDisclosureResolved: string
     footerResourceLinks: FooterResourceLink[]
-    /** Template1 shell copy (en/zh + nav page-title flags); template base + site override. */
+    /** T1/T2 壳层文案（`template1`→ 设计 t1LocaleJson；`template2`→ t2LocaleJson）；结构同 Template1Theme。 */
     template1: Template1Theme
   }
 
@@ -130,18 +142,8 @@ export function relationId(value: unknown): number | null {
   return null
 }
 
-function pickFontPreset(
-  global: PublicLanding,
-  template: LandingTemplate | null,
-  design: SiteBlueprint | null,
-  site: Site | null,
-): LandingFontPreset {
-  const order = [
-    site?.landingFontPreset,
-    design?.designFontPreset,
-    template?.landingFontPreset,
-    global.fontPreset,
-  ] as const
+function pickFontPreset(global: PublicLanding, design: SiteBlueprint | null): LandingFontPreset {
+  const order = [design?.designFontPreset, global.fontPreset] as const
   for (const v of order) {
     if (v === 'system' || v === 'serif' || v === 'noto_sans_sc') return v
   }
@@ -149,81 +151,32 @@ function pickFontPreset(
 }
 
 /**
- * Merge: **站点 landing*** → **设计 design*** → **模版 landing*** → **全局 public-landing**（每层空则下沉）。
+ * Merge: **设计 design*** → **全局 public-landing**；仅 `site.name` 仍来自 `sites`（用于题头兜底）。
  */
 export function mergeLandingLayers(
   global: PublicLanding,
-  template: LandingTemplate | null,
   design: SiteBlueprint | null,
   site: Site | null,
 ): LandingTheme {
   const g = global
-  const t = template
   const d = design
   const s = site
 
-  const siteName =
-    firstNonEmpty(s?.landingSiteName, s?.name, d?.designSiteName, t?.landingSiteName, g.siteName) ??
-    '基源科技'
+  const siteName = firstNonEmpty(d?.designSiteName, s?.name, g.siteName) ?? '基源科技'
   const browserTitle =
-    firstNonEmpty(
-      s?.landingBrowserTitle,
-      s?.name,
-      s?.landingSiteName,
-      d?.designBrowserTitle,
-      t?.landingBrowserTitle,
-      g.browserTitle,
-      siteName,
-    ) ?? siteName
-  const tagline =
-    firstNonEmpty(s?.landingTagline, d?.designTagline, t?.landingTagline, g.tagline) ?? ''
-  const loggedInTitle =
-    firstNonEmpty(
-      s?.landingLoggedInTitle,
-      d?.designLoggedInTitle,
-      t?.landingLoggedInTitle,
-      g.loggedInTitle,
-    ) ?? ''
-  const loggedInSubtitle =
-    firstNonEmpty(
-      s?.landingLoggedInSubtitle,
-      d?.designLoggedInSubtitle,
-      t?.landingLoggedInSubtitle,
-      g.loggedInSubtitle,
-    ) ?? ''
-  const footerLine =
-    firstNonEmpty(s?.landingFooterLine, d?.designFooterLine, t?.landingFooterLine, g.footerLine) ??
-    ''
-  const ctaLabel =
-    firstNonEmpty(s?.landingCtaLabel, d?.designCtaLabel, t?.landingCtaLabel, g.adminCtaLabel) ?? ''
-  const bgColor =
-    firstNonEmpty(s?.landingBgColor, d?.designBgColor, t?.landingBgColor, g.backgroundColor) ??
-    '#000000'
-  const textColor =
-    firstNonEmpty(s?.landingTextColor, d?.designTextColor, t?.landingTextColor, g.textColor) ??
-    '#ffffff'
+    firstNonEmpty(d?.designBrowserTitle, g.browserTitle, s?.name, siteName) ?? siteName
+  const tagline = firstNonEmpty(d?.designTagline, g.tagline) ?? ''
+  const loggedInTitle = firstNonEmpty(d?.designLoggedInTitle, g.loggedInTitle) ?? ''
+  const loggedInSubtitle = firstNonEmpty(d?.designLoggedInSubtitle, g.loggedInSubtitle) ?? ''
+  const footerLine = firstNonEmpty(d?.designFooterLine, g.footerLine) ?? ''
+  const ctaLabel = firstNonEmpty(d?.designCtaLabel, g.adminCtaLabel) ?? ''
+  const bgColor = firstNonEmpty(d?.designBgColor, g.backgroundColor) ?? '#000000'
+  const textColor = firstNonEmpty(d?.designTextColor, g.textColor) ?? '#ffffff'
   const mutedColor =
-    firstNonEmpty(
-      s?.landingMutedColor,
-      d?.designMutedColor,
-      t?.landingMutedColor,
-      g.mutedTextColor,
-    ) ?? 'rgba(255, 255, 255, 0.55)'
-  const ctaBgColor =
-    firstNonEmpty(
-      s?.landingCtaBgColor,
-      d?.designCtaBgColor,
-      t?.landingCtaBgColor,
-      g.ctaBackgroundColor,
-    ) ?? '#ffffff'
-  const ctaTextColor =
-    firstNonEmpty(
-      s?.landingCtaTextColor,
-      d?.designCtaTextColor,
-      t?.landingCtaTextColor,
-      g.ctaTextColor,
-    ) ?? '#000000'
-  const fontPreset = pickFontPreset(g, t, d, s)
+    firstNonEmpty(d?.designMutedColor, g.mutedTextColor) ?? 'rgba(255, 255, 255, 0.55)'
+  const ctaBgColor = firstNonEmpty(d?.designCtaBgColor, g.ctaBackgroundColor) ?? '#ffffff'
+  const ctaTextColor = firstNonEmpty(d?.designCtaTextColor, g.ctaTextColor) ?? '#000000'
+  const fontPreset = pickFontPreset(g, d)
 
   return {
     browserTitle,
@@ -242,140 +195,116 @@ export function mergeLandingLayers(
   }
 }
 
-/** 站点 landing* → 设计 design* → 模版 → 全局 public-landing（博客壳与 About）。 */
+/**
+ * 设计 design* → 全局 public-landing（博客壳与 About）。文案与色值不再来自 `sites` 列。
+ */
 export function mergeBlogChromeLayers(
   global: PublicLanding,
-  template: LandingTemplate | null,
   design: SiteBlueprint | null,
-  site: Site | null,
 ): BlogChromeTheme {
   const g = global
-  const t = template
   const d = design
-  const s = site
 
-  const aboutImageId =
-    relationId(s?.landingAboutImage) ??
-    relationId(d?.designAboutImage) ??
-    relationId(t?.aboutImage) ??
-    relationId(g.aboutImage)
+  const aboutImageId = relationId(d?.designAboutImage) ?? relationId(g.aboutImage)
 
   return {
     blogPrimaryColor:
       firstNonEmpty(
-        s?.landingBlogPrimaryColor,
         d?.designBlogPrimaryColor,
-        t?.blogPrimaryColor,
         g.blogPrimaryColor,
         BLOG_DEFAULTS.blogPrimaryColor,
       ) ?? BLOG_DEFAULTS.blogPrimaryColor,
     blogAccentColor:
       firstNonEmpty(
-        s?.landingBlogAccentColor,
         d?.designBlogAccentColor,
-        t?.blogAccentColor,
         g.blogAccentColor,
         BLOG_DEFAULTS.blogAccentColor,
       ) ?? BLOG_DEFAULTS.blogAccentColor,
     blogContentBgColor:
       firstNonEmpty(
-        s?.landingBlogContentBgColor,
         d?.designBlogContentBgColor,
-        t?.blogContentBgColor,
         g.blogContentBgColor,
         BLOG_DEFAULTS.blogContentBgColor,
       ) ?? BLOG_DEFAULTS.blogContentBgColor,
     blogCardBgColor:
       firstNonEmpty(
-        s?.landingBlogCardBgColor,
         d?.designBlogCardBgColor,
-        t?.blogCardBgColor,
         g.blogCardBgColor,
         BLOG_DEFAULTS.blogCardBgColor,
       ) ?? BLOG_DEFAULTS.blogCardBgColor,
     blogHeaderTextColor:
       firstNonEmpty(
-        s?.landingBlogHeaderTextColor,
         d?.designBlogHeaderTextColor,
-        t?.blogHeaderTextColor,
         g.blogHeaderTextColor,
         BLOG_DEFAULTS.blogHeaderTextColor,
       ) ?? BLOG_DEFAULTS.blogHeaderTextColor,
     blogHeadingColor:
       firstNonEmpty(
-        s?.landingBlogHeadingColor,
         d?.designBlogHeadingColor,
-        t?.blogHeadingColor,
         g.blogHeadingColor,
         BLOG_DEFAULTS.blogHeadingColor,
       ) ?? BLOG_DEFAULTS.blogHeadingColor,
     blogBodyColor:
       firstNonEmpty(
-        s?.landingBlogBodyColor,
         d?.designBlogBodyColor,
-        t?.blogBodyColor,
         g.blogBodyColor,
         BLOG_DEFAULTS.blogBodyColor,
       ) ?? BLOG_DEFAULTS.blogBodyColor,
     aboutTitle:
       firstNonEmpty(
-        s?.landingAboutTitle,
         d?.designAboutTitle,
-        t?.aboutTitle,
         g.aboutTitle,
         BLOG_DEFAULTS.aboutTitle,
       ) ?? BLOG_DEFAULTS.aboutTitle,
-    aboutBio: firstNonEmpty(s?.landingAboutBio, d?.designAboutBio, t?.aboutBio, g.aboutBio) ?? '',
+    aboutBio: firstNonEmpty(d?.designAboutBio, g.aboutBio) ?? '',
     aboutImageId,
     aboutCtaLabel:
       firstNonEmpty(
-        s?.landingAboutCtaLabel,
         d?.designAboutCtaLabel,
-        t?.aboutCtaLabel,
         g.aboutCtaLabel,
         BLOG_DEFAULTS.aboutCtaLabel,
       ) ?? BLOG_DEFAULTS.aboutCtaLabel,
     aboutCtaHref:
       firstNonEmpty(
-        s?.landingAboutCtaHref,
         d?.designAboutCtaHref,
-        t?.aboutCtaHref,
         g.aboutCtaHref,
         BLOG_DEFAULTS.aboutCtaHref,
       ) ?? BLOG_DEFAULTS.aboutCtaHref,
   }
 }
 
+function footerResourceLinksFromDesign(design: SiteBlueprint | null): FooterResourceLink[] {
+  return parseFooterResourceLinks(design?.designFooterResourceLinks)
+}
+
 export function mergePublicSiteTheme(
   global: PublicLanding,
-  template: LandingTemplate | null,
   design: SiteBlueprint | null,
   site: Site | null,
-  siteT1Locale: SiteT1Locale | null = null,
 ): PublicSiteTheme {
-  const landing = mergeLandingLayers(global, template, design, site)
-  const blogChrome = mergeBlogChromeLayers(global, template, design, site)
-  const siteFooterLinks = parseFooterResourceLinks(site?.footerResourceLinks)
-  const templateFooterLinks = parseFooterResourceLinks(template?.footerResourceLinks)
+  const landing = mergeLandingLayers(global, design, site)
+  const blogChrome = mergeBlogChromeLayers(global, design)
+  const sl = normalizeSiteLayout(firstNonEmpty(site?.siteLayout))
+  const template1Theme =
+    sl === 'template2'
+      ? mergeTemplate1Layers(design?.t2LocaleJson, null)
+      : mergeTemplate1Layers(design?.t1LocaleJson, null)
   return {
     ...landing,
     ...blogChrome,
-    siteLayout: normalizeSiteLayout(firstNonEmpty(site?.siteLayout, template?.siteLayout)),
+    siteLayout: sl,
     reviewHubTaglineResolved:
-      firstNonEmpty(site?.reviewHubTagline, template?.reviewHubTagline, landing.tagline) ?? '',
+      firstNonEmpty(design?.designReviewHubTagline, landing.tagline) ?? '',
     affiliateDisclosureResolved:
-      firstNonEmpty(site?.affiliateDisclosureLine, template?.affiliateDisclosureLine) ??
-      DEFAULT_AFFILIATE_DISCLOSURE,
-    footerResourceLinks: siteFooterLinks.length > 0 ? siteFooterLinks : templateFooterLinks,
-    template1: mergeTemplate1Layers(template?.t1LocaleJson, siteT1Locale),
+      firstNonEmpty(design?.designAffiliateDisclosureLine) ?? DEFAULT_AFFILIATE_DISCLOSURE,
+    footerResourceLinks: footerResourceLinksFromDesign(design),
+    template1: template1Theme,
   }
 }
 
 type PublicSiteBundle = {
   site: Site | null
-  siteT1Locale: SiteT1Locale | null
   globalDoc: PublicLanding
-  template: LandingTemplate | null
   blueprint: SiteBlueprint | null
 }
 
@@ -393,21 +322,6 @@ const loadPublicSiteBundle = cache(
       siteSlugFromHeader: siteSlugKey,
     })
 
-    let template: LandingTemplate | null = null
-    const templateId = relationId(site?.landingTemplate)
-    if (templateId) {
-      try {
-        template = (await payload.findByID({
-          collection: 'landing-templates',
-          id: templateId,
-          depth: 0,
-          overrideAccess: true,
-        })) as LandingTemplate
-      } catch {
-        template = null
-      }
-    }
-
     let blueprint: SiteBlueprint | null = null
     const blueprintId = relationId(site?.blueprint)
     if (blueprintId) {
@@ -423,29 +337,14 @@ const loadPublicSiteBundle = cache(
       }
     }
 
-    let siteT1Locale: SiteT1Locale | null = null
-    if (site?.id != null) {
-      const t1Res = await payload.find({
-        collection: 'site-t1-locales',
-        where: { site: { equals: site.id } },
-        limit: 1,
-        depth: 0,
-        overrideAccess: true,
-      })
-      siteT1Locale = (t1Res.docs[0] as SiteT1Locale | undefined) ?? null
-    }
-
-    return { site, siteT1Locale, globalDoc, template, blueprint }
+    return { site, globalDoc, blueprint }
   },
 )
 
 const loadPublicSiteTheme = cache(
   async (rawHostKey: string, siteSlugKey: string): Promise<PublicSiteTheme> => {
-    const { site, siteT1Locale, globalDoc, template, blueprint } = await loadPublicSiteBundle(
-      rawHostKey,
-      siteSlugKey,
-    )
-    return mergePublicSiteTheme(globalDoc, template, blueprint, site, siteT1Locale)
+    const { site, globalDoc, blueprint } = await loadPublicSiteBundle(rawHostKey, siteSlugKey)
+    return mergePublicSiteTheme(globalDoc, blueprint, site)
   },
 )
 
@@ -459,13 +358,7 @@ export async function getPublicSiteContext(headers: Headers): Promise<{
   const rawHost = getRequestHost(headers) ?? ''
   const siteSlug = headers.get('x-site-slug')?.trim() ?? ''
   const bundle = await loadPublicSiteBundle(rawHost, siteSlug)
-  const theme = mergePublicSiteTheme(
-    bundle.globalDoc,
-    bundle.template,
-    bundle.blueprint,
-    bundle.site,
-    bundle.siteT1Locale,
-  )
+  const theme = mergePublicSiteTheme(bundle.globalDoc, bundle.blueprint, bundle.site)
   return { site: bundle.site, theme }
 }
 

@@ -23,7 +23,6 @@ const CSV_COLLECTION_SLUGS = [
   'pages',
   'categories',
   'site-blueprints',
-  'landing-templates',
   'knowledge-base',
   'operation-manuals',
 ] as const
@@ -83,7 +82,7 @@ export function CsvImportExportListMenuItem(props: CsvImportExportSlotProps): Re
 }
 
 /**
- * 搜索栏下：CSV 面板（多数集合为站点 + 导出所选 / 导出全部 + 导入；`operation-manuals` 无站点，仅导/入当前租户内全部手册。`landing-templates` 的 CSV 面板在 `afterListTable`，见 `LandingTemplatesCsvAfterTable`）。
+ * 搜索栏下：CSV 面板（多数集合为站点 + 导出所选 / 导出全部 + 导入；`operation-manuals` 无站点，仅导/入当前租户内全部手册）。
  */
 export function CsvImportExportPanel(props: CsvImportExportSlotProps): React.ReactElement | null {
   const slug = resolveCsvSlug(props.collectionSlug)

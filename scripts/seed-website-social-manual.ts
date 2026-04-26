@@ -65,7 +65,7 @@ const MANUAL_BODY_TEXT = `
 1）在侧栏打开「网站」分组，进入「站点」列表（若您看不到「站点」，说明无创建权限，请将需求提给租户总经理或系统管理员代为创建）。
 2）点击右上角「Create New」或等价新建按钮。
 3）必填与建议字段：名称（name）、slug（全站 URL 安全标识，勿含空格）、Primary domain（主域名，含 https 与否按公司规范填写）、状态 status（可先 Draft，内容就绪后改为 Active）。
-4）可选：Blueprint（站点设计/蓝图）、站点模版（landingTemplate）、运营人 operators、备注 notes；落地页展示类文案（浏览器标题、主副标题等）按表单说明填写。
+4）可选：Blueprint（站点设计/蓝图）、运营人 operators、备注 notes；落地页展示类文案（浏览器标题、主副标题等）按表单说明填写。
 5）保存。系统在「新建」成功后会尝试自动创建 6 张合规向固定页（About、Editorial Policy、Affiliate Disclosure、Contact、Privacy、Terms），语言环境为 zh；若未出现请截图联系管理员（不得手工删改这些 slug 以免破坏合规基线）。
 6）新建站点后，请管理员或您在「站点配额」中为该站配置 dailyPostCap 等（见下文），否则批量排产默认上限可能不符合预期。
 

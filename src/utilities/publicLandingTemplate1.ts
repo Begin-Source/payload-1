@@ -1,4 +1,3 @@
-import type { SiteT1Locale } from '@/payload-types'
 
 import type { AppLocale } from '@/i18n/config'
 
@@ -257,9 +256,9 @@ const T1_STRING_KEYS: (keyof SiteT1)[] = [
   't1FooterBottomZh',
 ]
 
-/** Build flat Template1 fields from `site-t1-locales.t1LocaleJson` (or any `{ t1LocaleJson }`). */
+/** Build flat Template1 fields from `{ t1LocaleJson }` (e.g. site-blueprints row). */
 export function siteT1FromLocaleJson(
-  row: SiteT1Locale | { t1LocaleJson?: unknown } | null | undefined,
+  row: { t1LocaleJson?: unknown } | null | undefined,
 ): SiteT1 {
   const raw = row?.t1LocaleJson
   const j =
@@ -389,7 +388,7 @@ function blockFromSite(
 }
 
 export function mergeTemplate1FromSite(
-  siteT1Row: SiteT1Locale | { t1LocaleJson?: unknown } | null | undefined,
+  siteT1Row: { t1LocaleJson?: unknown } | null | undefined,
 ): Template1Theme {
   return mergeTemplate1Layers(null, siteT1Row)
 }
@@ -417,16 +416,11 @@ function mergeSiteT1Layers(base: SiteT1, override: SiteT1): SiteT1 {
  * Each source may be a Payload row with `t1LocaleJson` or the raw JSON object itself.
  */
 export function mergeTemplate1Layers(
-  templateT1:
-    | SiteT1Locale
-    | { t1LocaleJson?: unknown }
-    | Record<string, unknown>
-    | null
-    | undefined,
-  siteT1: SiteT1Locale | { t1LocaleJson?: unknown } | Record<string, unknown> | null | undefined,
+  templateT1: { t1LocaleJson?: unknown } | Record<string, unknown> | null | undefined,
+  siteT1: { t1LocaleJson?: unknown } | Record<string, unknown> | null | undefined,
 ): Template1Theme {
   const fromSource = (
-    source: SiteT1Locale | { t1LocaleJson?: unknown } | Record<string, unknown> | null | undefined,
+    source: { t1LocaleJson?: unknown } | Record<string, unknown> | null | undefined,
   ): SiteT1 => {
     if (source && typeof source === 'object' && 't1LocaleJson' in source) {
       return siteT1FromLocaleJson(source as { t1LocaleJson?: unknown })

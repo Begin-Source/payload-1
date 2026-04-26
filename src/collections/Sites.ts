@@ -1,7 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
 import { siteTrustPagesInstantiate } from '@/collections/hooks/siteTrustPagesInstantiate'
-import { blogChromeSiteFields } from '@/collections/shared/blogPublicFields'
 import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperAdminAccess'
 import { adminGroups } from '@/constants/adminGroups'
 
@@ -58,28 +57,23 @@ export const Sites: CollectionConfig = {
       },
     },
     {
-      name: 'landingTemplate',
-      type: 'relationship',
-      relationTo: 'landing-templates',
-      label: '整站模版',
-      admin: {
-        description: '整站前台版式、文案、配色、导航/页脚等配置源；站点字段留空时使用此模版。',
-      },
-    },
-    {
       name: 'siteLayout',
       type: 'select',
-      label: '全站版式',
+      label: '站点布局',
       options: [
-        { label: '（使用整站模版）', value: '' },
+        { label: '（默认标准）', value: '' },
         { label: '标准（与历史一致）', value: 'default' },
         { label: '宽版内容区', value: 'wide' },
         { label: '联盟测评站（BBF 风格壳 + 首页）', value: 'affiliate_reviews' },
         { label: 'Template1（整站顶栏 + 主从栏 + 页脚）', value: 'template1' },
+        {
+          label: 'Template2（同结构 · 第二套主题；文案 t2LocaleJson）',
+          value: 'template2',
+        },
       ],
       admin: {
         description:
-          '站点级覆盖。留空则使用「整站模版」中的版式；选 Template1 时，站点 Template1 文案可继续作为覆盖层。',
+          '站点级壳层。留空则按 `default`。各选项的说明与「预览链接」见侧栏「网站」→「站点布局」。落地页/博客/联盟测评的文案与配色在关联的「设计」中配置；Template1/2 导航/首页/页脚在「设计」的 t1LocaleJson / t2LocaleJson。',
       },
     },
     {
@@ -94,116 +88,6 @@ export const Sites: CollectionConfig = {
     {
       name: 'notes',
       type: 'textarea',
-    },
-    {
-      name: 'landingBrowserTitle',
-      type: 'text',
-      label: '落地页 · 浏览器标签标题',
-      admin: { description: '留空则使用全局兜底或站点名称。' },
-    },
-    {
-      name: 'landingSiteName',
-      type: 'text',
-      label: '落地页 · 主标题（未登录）',
-    },
-    {
-      name: 'landingTagline',
-      type: 'text',
-      label: '落地页 · 副标题（未登录）',
-    },
-    {
-      name: 'landingLoggedInTitle',
-      type: 'text',
-      label: '落地页 · 主标题（已登录）',
-    },
-    {
-      name: 'landingLoggedInSubtitle',
-      type: 'textarea',
-      label: '落地页 · 副标题（已登录）',
-    },
-    {
-      name: 'landingFooterLine',
-      type: 'textarea',
-      label: '落地页 · 页脚一行',
-    },
-    {
-      name: 'landingCtaLabel',
-      type: 'text',
-      label: '落地页 · 管理后台按钮',
-    },
-    {
-      name: 'landingBgColor',
-      type: 'text',
-      label: '落地页 · 背景色',
-    },
-    {
-      name: 'landingTextColor',
-      type: 'text',
-      label: '落地页 · 主文字色',
-    },
-    {
-      name: 'landingMutedColor',
-      type: 'text',
-      label: '落地页 · 次要文字色',
-    },
-    {
-      name: 'landingCtaBgColor',
-      type: 'text',
-      label: '落地页 · 主按钮背景色',
-    },
-    {
-      name: 'landingCtaTextColor',
-      type: 'text',
-      label: '落地页 · 主按钮文字色',
-    },
-    {
-      name: 'landingFontPreset',
-      type: 'select',
-      label: '落地页 · 字体',
-      options: [
-        { label: '（使用全局兜底）', value: '' },
-        { label: '系统无衬线', value: 'system' },
-        { label: '衬线（Georgia）', value: 'serif' },
-        { label: '思源黑体 Noto Sans SC', value: 'noto_sans_sc' },
-      ],
-    },
-    {
-      type: 'collapsible',
-      label: '联盟测评站 · 前台',
-      admin: { initCollapsed: true },
-      fields: [
-        {
-          name: 'reviewHubTagline',
-          type: 'text',
-          label: '测评站首页副标题',
-          admin: {
-            description: '站点级覆盖；留空则使用整站模版或落地页副标题。',
-          },
-        },
-        {
-          name: 'affiliateDisclosureLine',
-          type: 'textarea',
-          label: '联盟声明（页脚上方）',
-          admin: {
-            description: '站点级覆盖；留空则使用整站模版或默认英文短句。',
-          },
-        },
-        {
-          name: 'footerResourceLinks',
-          type: 'json',
-          label: 'Resources 链接（JSON 数组）',
-          admin: {
-            description:
-              '站点级覆盖；留空则使用整站模版。例: [{"label":"Privacy","href":"/en/pages/privacy"}]。',
-          },
-        },
-      ],
-    },
-    {
-      type: 'collapsible',
-      label: '博客前台 · 覆盖',
-      admin: { initCollapsed: true },
-      fields: blogChromeSiteFields,
     },
   ],
 }

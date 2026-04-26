@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { blogChromeDesignFields } from '@/collections/shared/blogPublicFields'
+import { template1SiteFields, template2SiteFields } from '@/collections/shared/template1SiteFields'
 import type { User } from '@/payload-types'
 import { adminGroups } from '@/constants/adminGroups'
 import {
@@ -68,7 +69,7 @@ export const SiteBlueprints: CollectionConfig = {
       type: 'collapsible',
       label: '落地页 · 设计微调',
       admin: {
-        description: '覆盖站点所选模版与全局兜底；不能更换模版（模版仅在站点选择）。',
+        description: '覆盖站点与「公开落地页」全局兜底。',
         initCollapsed: false,
       },
       fields: [
@@ -147,9 +148,64 @@ export const SiteBlueprints: CollectionConfig = {
     },
     {
       type: 'collapsible',
+      label: '联盟测评站 · 设计',
+      admin: {
+        description: '设计优先；站点上遗留的同名 override 未在后台展示时仍参与合并。',
+        initCollapsed: true,
+      },
+      fields: [
+        {
+          name: 'designReviewHubTagline',
+          type: 'text',
+          label: '测评站首页副标题',
+          admin: {
+            description: '留空则下沉到站点遗留值或落地页副标题。',
+          },
+        },
+        {
+          name: 'designAffiliateDisclosureLine',
+          type: 'textarea',
+          label: '联盟声明（页脚上方）',
+          admin: {
+            description: '留空则下沉到站点遗留值或默认英文短句。',
+          },
+        },
+        {
+          name: 'designFooterResourceLinks',
+          type: 'json',
+          label: 'Resources 链接（JSON 数组）',
+          admin: {
+            description:
+              '例: [{"label":"Privacy","href":"/en/pages/privacy"}]。留空则下沉到站点遗留值。',
+          },
+        },
+      ],
+    },
+    {
+      type: 'collapsible',
       label: '博客前台 · 设计微调',
-      admin: { description: '覆盖模版中的博客壳与侧栏。', initCollapsed: true },
+      admin: { description: '覆盖整站博客壳与侧栏。', initCollapsed: true },
       fields: blogChromeDesignFields,
+    },
+    {
+      type: 'collapsible',
+      label: 'Template1 · 导航 / 首页 / 页脚文案',
+      admin: {
+        description:
+          '站点布局为 Template1 时生效；留空则前台用代码默认中英文。键名与历史整站模版/JSON 导入一致。',
+        initCollapsed: true,
+      },
+      fields: [...template1SiteFields],
+    },
+    {
+      type: 'collapsible',
+      label: 'Template2 · 导航 / 首页 / 页脚文案',
+      admin: {
+        description:
+          '站点布局为 template2 时从此处读文案；与 Template1 同键。留空则前台用代码默认。',
+        initCollapsed: true,
+      },
+      fields: [...template2SiteFields],
     },
     {
       name: 'trustAssetsTemplate',

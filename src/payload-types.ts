@@ -70,8 +70,8 @@ export interface Config {
   collections: {
     announcements: Announcement;
     sites: Site;
-    'site-t1-locales': SiteT1Locale;
     'site-blueprints': SiteBlueprint;
+    'site-layouts': SiteLayout;
     categories: Category;
     pages: Page;
     redirects: Redirect;
@@ -97,7 +97,6 @@ export interface Config {
     tenants: Tenant;
     users: User;
     'original-evidence': OriginalEvidence;
-    'landing-templates': LandingTemplate;
     'page-link-graph': PageLinkGraph;
     'plugin-ai-instructions': PluginAiInstruction;
     'automation-triggers': AutomationTrigger;
@@ -115,8 +114,8 @@ export interface Config {
   collectionsSelect: {
     announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
-    'site-t1-locales': SiteT1LocalesSelect<false> | SiteT1LocalesSelect<true>;
     'site-blueprints': SiteBlueprintsSelect<false> | SiteBlueprintsSelect<true>;
+    'site-layouts': SiteLayoutsSelect<false> | SiteLayoutsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -142,7 +141,6 @@ export interface Config {
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'original-evidence': OriginalEvidenceSelect<false> | OriginalEvidenceSelect<true>;
-    'landing-templates': LandingTemplatesSelect<false> | LandingTemplatesSelect<true>;
     'page-link-graph': PageLinkGraphSelect<false> | PageLinkGraphSelect<true>;
     'plugin-ai-instructions': PluginAiInstructionsSelect<false> | PluginAiInstructionsSelect<true>;
     'automation-triggers': AutomationTriggersSelect<false> | AutomationTriggersSelect<true>;
@@ -347,66 +345,14 @@ export interface Site {
    */
   blueprint?: (number | null) | SiteBlueprint;
   /**
-   * 整站前台版式、文案、配色、导航/页脚等配置源；站点字段留空时使用此模版。
+   * 站点级壳层。留空则按 `default`。各选项的说明与「预览链接」见侧栏「网站」→「站点布局」。落地页/博客/联盟测评的文案与配色在关联的「设计」中配置；Template1/2 导航/首页/页脚在「设计」的 t1LocaleJson / t2LocaleJson。
    */
-  landingTemplate?: (number | null) | LandingTemplate;
-  /**
-   * 站点级覆盖。留空则使用「整站模版」中的版式；选 Template1 时，站点 Template1 文案可继续作为覆盖层。
-   */
-  siteLayout?: ('' | 'default' | 'wide' | 'affiliate_reviews' | 'template1') | null;
+  siteLayout?: ('' | 'default' | 'wide' | 'affiliate_reviews' | 'template1' | 'template2') | null;
   /**
    * Users who operate this site (optional; tenant scoping still applies).
    */
   operators?: (number | User)[] | null;
   notes?: string | null;
-  /**
-   * 留空则使用全局兜底或站点名称。
-   */
-  landingBrowserTitle?: string | null;
-  landingSiteName?: string | null;
-  landingTagline?: string | null;
-  landingLoggedInTitle?: string | null;
-  landingLoggedInSubtitle?: string | null;
-  landingFooterLine?: string | null;
-  landingCtaLabel?: string | null;
-  landingBgColor?: string | null;
-  landingTextColor?: string | null;
-  landingMutedColor?: string | null;
-  landingCtaBgColor?: string | null;
-  landingCtaTextColor?: string | null;
-  landingFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
-  /**
-   * 站点级覆盖；留空则使用整站模版或落地页副标题。
-   */
-  reviewHubTagline?: string | null;
-  /**
-   * 站点级覆盖；留空则使用整站模版或默认英文短句。
-   */
-  affiliateDisclosureLine?: string | null;
-  /**
-   * 站点级覆盖；留空则使用整站模版。例: [{"label":"Privacy","href":"/en/pages/privacy"}]。
-   */
-  footerResourceLinks?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  landingBlogPrimaryColor?: string | null;
-  landingBlogAccentColor?: string | null;
-  landingBlogContentBgColor?: string | null;
-  landingBlogCardBgColor?: string | null;
-  landingBlogHeaderTextColor?: string | null;
-  landingBlogHeadingColor?: string | null;
-  landingBlogBodyColor?: string | null;
-  landingAboutTitle?: string | null;
-  landingAboutBio?: string | null;
-  landingAboutImage?: (number | null) | Media;
-  landingAboutCtaLabel?: string | null;
-  landingAboutCtaHref?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -449,6 +395,26 @@ export interface SiteBlueprint {
   designCtaBgColor?: string | null;
   designCtaTextColor?: string | null;
   designFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
+  /**
+   * 留空则下沉到站点遗留值或落地页副标题。
+   */
+  designReviewHubTagline?: string | null;
+  /**
+   * 留空则下沉到站点遗留值或默认英文短句。
+   */
+  designAffiliateDisclosureLine?: string | null;
+  /**
+   * 例: [{"label":"Privacy","href":"/en/pages/privacy"}]。留空则下沉到站点遗留值。
+   */
+  designFooterResourceLinks?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   designBlogPrimaryColor?: string | null;
   designBlogAccentColor?: string | null;
   designBlogContentBgColor?: string | null;
@@ -461,6 +427,30 @@ export interface SiteBlueprint {
   designAboutImage?: (number | null) | Media;
   designAboutCtaLabel?: string | null;
   designAboutCtaHref?: string | null;
+  /**
+   * JSON 对象：键与历史独立字段一致（如 t1NavAllReviewsEn、t1HomeTitleZh、t1NavUsePageTitleForAbout 等）。留空则用 public-landing 全局或代码默认。可粘贴 `scripts/seed-dev-data.ts` 中 `SEED_ALPHA_TEMPLATE1_DEMO` 结构作参考。
+   */
+  t1LocaleJson?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * 与 Template1 键名一致，用于整站第二套设计（template2）。留空则与 Template1 一样用代码默认中英文。
+   */
+  t2LocaleJson?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   /**
    * Lexical or JSON template for /about, /affiliate-disclosure, etc.
    */
@@ -519,140 +509,31 @@ export interface Media {
   height?: number | null;
 }
 /**
- * 整站前台版式、首页文案、博客配色、导航/页脚与 Template1/ReviewHub 配置源。
- *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "landing-templates".
+ * via the `definition` "site-layouts".
  */
-export interface LandingTemplate {
+export interface SiteLayout {
   id: number;
-  tenant?: (number | null) | Tenant;
+  /**
+   * 需与编辑站点时选择的布局值一致；全库仅允许一条/键。
+   */
+  layoutKey: '' | 'default' | 'wide' | 'affiliate_reviews' | 'template1' | 'template2';
+  /**
+   * 与侧栏「网站 → 站点」里「站点布局」选项展示一致；本集合仅作说明与预览链接，不替代站点上存储的布局值。
+   */
   name: string;
   /**
-   * URL-safe key; unique per tenant with `slug`.
+   * 给编辑/运营看的整站壳说明（不直接驱动前台，前台仍读 `sites.siteLayout`）。
    */
-  slug: string;
   description?: string | null;
   /**
-   * 完整可访问的前台 URL，且对应站点须已选用本模版（本地示例：http://localhost:3000/zh/?site=站点 slug）。
+   * 可填本环境或 staging 的完整 URL；保存后在详情页复制或新窗口打开。部署域名不同时请按需修改。
    */
   previewUrl?: string | null;
   /**
-   * 作为引用此模版的站点默认版式；站点自身「全站版式」留空时生效。
+   * 列表中从小到大排列。
    */
-  siteLayout?: ('default' | 'wide' | 'affiliate_reviews' | 'template1') | null;
-  /**
-   * 留空则使用站点名称或全局兜底。
-   */
-  landingBrowserTitle?: string | null;
-  landingSiteName?: string | null;
-  landingTagline?: string | null;
-  landingLoggedInTitle?: string | null;
-  landingLoggedInSubtitle?: string | null;
-  landingFooterLine?: string | null;
-  landingCtaLabel?: string | null;
-  landingBgColor?: string | null;
-  landingTextColor?: string | null;
-  landingMutedColor?: string | null;
-  landingCtaBgColor?: string | null;
-  landingCtaTextColor?: string | null;
-  landingFontPreset?: ('' | 'system' | 'serif' | 'noto_sans_sc') | null;
-  /**
-   * 整站版式为「联盟测评站」时，首页大标题下展示；站点可覆盖。
-   */
-  reviewHubTagline?: string | null;
-  /**
-   * 灰条说明文案；站点可覆盖；留空则使用系统默认英文短句。
-   */
-  affiliateDisclosureLine?: string | null;
-  /**
-   * 例: [{"label":"Privacy","href":"/en/pages/privacy"}]；href 可为相对路径。站点可覆盖。
-   */
-  footerResourceLinks?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * CSS 颜色，如 #2d8659
-   */
-  blogPrimaryColor?: string | null;
-  /**
-   * 如 #e6c84a
-   */
-  blogAccentColor?: string | null;
-  /**
-   * 如 #f0f0f0
-   */
-  blogContentBgColor?: string | null;
-  /**
-   * 如 #ffffff
-   */
-  blogCardBgColor?: string | null;
-  /**
-   * 如 #ffffff
-   */
-  blogHeaderTextColor?: string | null;
-  /**
-   * 如 #333333
-   */
-  blogHeadingColor?: string | null;
-  /**
-   * 如 #444444
-   */
-  blogBodyColor?: string | null;
-  aboutTitle?: string | null;
-  aboutBio?: string | null;
-  aboutImage?: (number | null) | Media;
-  aboutCtaLabel?: string | null;
-  /**
-   * 相对路径如 /pages/about 或绝对 URL
-   */
-  aboutCtaHref?: string | null;
-  /**
-   * JSON 对象：键与历史独立字段一致（如 t1NavAllReviewsEn、t1HomeTitleZh、t1NavUsePageTitleForAbout 等）。整站模版作为基础层，站点 Template1 文案作为覆盖层；留空则用下一层或代码默认。可粘贴 `scripts/seed-dev-data.ts` 中 `SEED_ALPHA_TEMPLATE1_DEMO` 结构作参考。
-   */
-  t1LocaleJson?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * 每站点一条；与「站点」中全站版式 Template1 配套。无记录则前台用代码默认文案。
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-t1-locales".
- */
-export interface SiteT1Locale {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  /**
-   * 一个站点仅一条 Template1 文案记录。
-   */
-  site: number | Site;
-  /**
-   * JSON 对象：键与历史独立字段一致（如 t1NavAllReviewsEn、t1HomeTitleZh、t1NavUsePageTitleForAbout 等）。整站模版作为基础层，站点 Template1 文案作为覆盖层；留空则用下一层或代码默认。可粘贴 `scripts/seed-dev-data.ts` 中 `SEED_ALPHA_TEMPLATE1_DEMO` 结构作参考。
-   */
-  t1LocaleJson?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  sortOrder?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2532,12 +2413,12 @@ export interface PayloadLockedDocument {
         value: number | Site;
       } | null)
     | ({
-        relationTo: 'site-t1-locales';
-        value: number | SiteT1Locale;
-      } | null)
-    | ({
         relationTo: 'site-blueprints';
         value: number | SiteBlueprint;
+      } | null)
+    | ({
+        relationTo: 'site-layouts';
+        value: number | SiteLayout;
       } | null)
     | ({
         relationTo: 'categories';
@@ -2638,10 +2519,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'original-evidence';
         value: number | OriginalEvidence;
-      } | null)
-    | ({
-        relationTo: 'landing-templates';
-        value: number | LandingTemplate;
       } | null)
     | ({
         relationTo: 'page-link-graph';
@@ -2752,49 +2629,9 @@ export interface SitesSelect<T extends boolean = true> {
   primaryDomain?: T;
   status?: T;
   blueprint?: T;
-  landingTemplate?: T;
   siteLayout?: T;
   operators?: T;
   notes?: T;
-  landingBrowserTitle?: T;
-  landingSiteName?: T;
-  landingTagline?: T;
-  landingLoggedInTitle?: T;
-  landingLoggedInSubtitle?: T;
-  landingFooterLine?: T;
-  landingCtaLabel?: T;
-  landingBgColor?: T;
-  landingTextColor?: T;
-  landingMutedColor?: T;
-  landingCtaBgColor?: T;
-  landingCtaTextColor?: T;
-  landingFontPreset?: T;
-  reviewHubTagline?: T;
-  affiliateDisclosureLine?: T;
-  footerResourceLinks?: T;
-  landingBlogPrimaryColor?: T;
-  landingBlogAccentColor?: T;
-  landingBlogContentBgColor?: T;
-  landingBlogCardBgColor?: T;
-  landingBlogHeaderTextColor?: T;
-  landingBlogHeadingColor?: T;
-  landingBlogBodyColor?: T;
-  landingAboutTitle?: T;
-  landingAboutBio?: T;
-  landingAboutImage?: T;
-  landingAboutCtaLabel?: T;
-  landingAboutCtaHref?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-t1-locales_select".
- */
-export interface SiteT1LocalesSelect<T extends boolean = true> {
-  tenant?: T;
-  site?: T;
-  t1LocaleJson?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2822,6 +2659,9 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   designCtaBgColor?: T;
   designCtaTextColor?: T;
   designFontPreset?: T;
+  designReviewHubTagline?: T;
+  designAffiliateDisclosureLine?: T;
+  designFooterResourceLinks?: T;
   designBlogPrimaryColor?: T;
   designBlogAccentColor?: T;
   designBlogContentBgColor?: T;
@@ -2834,10 +2674,25 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   designAboutImage?: T;
   designAboutCtaLabel?: T;
   designAboutCtaHref?: T;
+  t1LocaleJson?: T;
+  t2LocaleJson?: T;
   trustAssetsTemplate?: T;
   mainNavTemplate?: T;
   footerTemplate?: T;
   showBreadcrumb?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-layouts_select".
+ */
+export interface SiteLayoutsSelect<T extends boolean = true> {
+  layoutKey?: T;
+  name?: T;
+  description?: T;
+  previewUrl?: T;
+  sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3344,49 +3199,6 @@ export interface OriginalEvidenceSelect<T extends boolean = true> {
   exifPreserved?: T;
   notes?: T;
   verifiedBy?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "landing-templates_select".
- */
-export interface LandingTemplatesSelect<T extends boolean = true> {
-  tenant?: T;
-  name?: T;
-  slug?: T;
-  description?: T;
-  previewUrl?: T;
-  siteLayout?: T;
-  landingBrowserTitle?: T;
-  landingSiteName?: T;
-  landingTagline?: T;
-  landingLoggedInTitle?: T;
-  landingLoggedInSubtitle?: T;
-  landingFooterLine?: T;
-  landingCtaLabel?: T;
-  landingBgColor?: T;
-  landingTextColor?: T;
-  landingMutedColor?: T;
-  landingCtaBgColor?: T;
-  landingCtaTextColor?: T;
-  landingFontPreset?: T;
-  reviewHubTagline?: T;
-  affiliateDisclosureLine?: T;
-  footerResourceLinks?: T;
-  blogPrimaryColor?: T;
-  blogAccentColor?: T;
-  blogContentBgColor?: T;
-  blogCardBgColor?: T;
-  blogHeaderTextColor?: T;
-  blogHeadingColor?: T;
-  blogBodyColor?: T;
-  aboutTitle?: T;
-  aboutBio?: T;
-  aboutImage?: T;
-  aboutCtaLabel?: T;
-  aboutCtaHref?: T;
-  t1LocaleJson?: T;
   updatedAt?: T;
   createdAt?: T;
 }

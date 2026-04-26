@@ -16,7 +16,11 @@ import {
   applyTemplate1Placeholders,
   template1BlockForLocale,
 } from '@/utilities/publicLandingTemplate1'
-import { getPublicSiteContext, getPublicSiteTheme } from '@/utilities/publicLandingTheme'
+import {
+  getPublicSiteContext,
+  getPublicSiteTheme,
+  isTemplateShellLayout,
+} from '@/utilities/publicLandingTheme'
 import { getNavCategoriesForSite } from '@/utilities/publicSiteQueries'
 import { resolveT1NavAboutLabel, resolveT1NavContactLabel } from '@/utilities/template1NavLabels'
 import type { Site } from '@/payload-types'
@@ -24,6 +28,7 @@ import type { Site } from '@/payload-types'
 import '@/components/blog/blog.css'
 import '@/components/blog/reviewHub/reviewHub.css'
 import '@/styles/template1-globals.css'
+import '@/styles/template2-globals.css'
 import './styles.css'
 
 const notoSansSc = Noto_Sans_SC({
@@ -114,14 +119,14 @@ export default async function LocaleFrontendLayout(props: LayoutProps) {
   const payloadConfig = await config
   const { site, theme } = await getPublicSiteContext(headersList)
   const catLimit =
-    theme.siteLayout === 'affiliate_reviews' ? 48 : theme.siteLayout === 'template1' ? 24 : 8
+    theme.siteLayout === 'affiliate_reviews' ? 48 : isTemplateShellLayout(theme.siteLayout) ? 24 : 8
   const categories = site ? await getNavCategoriesForSite(site.id, catLimit) : []
 
   const bodyStyle: React.CSSProperties = {
     backgroundColor: theme.blogContentBgColor,
     color: theme.blogBodyColor,
   }
-  if (theme.siteLayout === 'template1') {
+  if (isTemplateShellLayout(theme.siteLayout)) {
     bodyStyle.backgroundColor = theme.blogContentBgColor
     bodyStyle.color = theme.blogBodyColor
   } else if (theme.fontPreset === 'serif') {
@@ -144,7 +149,7 @@ export default async function LocaleFrontendLayout(props: LayoutProps) {
     '--blog-heading': theme.blogHeadingColor,
     '--blog-body': theme.blogBodyColor,
     '--blog-muted': 'rgba(0,0,0,0.45)',
-    ...(theme.siteLayout === 'template1'
+    ...(isTemplateShellLayout(theme.siteLayout)
       ? ({
           '--primary': theme.blogPrimaryColor,
           '--primary-foreground': '#ffffff',
@@ -157,20 +162,25 @@ export default async function LocaleFrontendLayout(props: LayoutProps) {
       : {}),
   } as React.CSSProperties
 
+  const tShell = isTemplateShellLayout(theme.siteLayout)
   const bodyClassName = [
-    theme.siteLayout === 'template1' ? `${inter.className} antialiased` : undefined,
-    theme.fontPreset === 'noto_sans_sc' && theme.siteLayout !== 'template1' ? notoSansSc.className : undefined,
+    tShell ? `${inter.className} antialiased` : undefined,
+    theme.fontPreset === 'noto_sans_sc' && !tShell ? notoSansSc.className : undefined,
   ]
     .filter(Boolean)
     .join(' ')
 
   const htmlClassName = [
-    theme.siteLayout === 'template1' ? `${inter.variable} ${merriweather.variable} template1-root` : undefined,
+    tShell
+      ? theme.siteLayout === 'template2'
+        ? `${inter.variable} ${merriweather.variable} template2-root`
+        : `${inter.variable} ${merriweather.variable} template1-root`
+      : undefined,
   ]
     .filter(Boolean)
     .join(' ')
 
-  const isT1 = theme.siteLayout === 'template1'
+  const isTemplateShell = tShell
   let t1HeaderLabels: {
     allReviews: string
     categories: string
@@ -186,7 +196,7 @@ export default async function LocaleFrontendLayout(props: LayoutProps) {
     bottomLine: string
   } | null = null
   let t1CompanyLinks: { label: string; href: string }[] = []
-  if (isT1) {
+  if (isTemplateShell) {
     const t1b = template1BlockForLocale(theme.template1, locale)
     const aboutNav =
       site != null
@@ -221,7 +231,7 @@ export default async function LocaleFrontendLayout(props: LayoutProps) {
   return (
     <html lang={htmlLangForLocale(locale)} className={htmlClassName || undefined} style={htmlStyle}>
       <body className={bodyClassName || undefined} style={bodyStyle}>
-        {isT1 && t1HeaderLabels && t1FooterLabels ? (
+        {isTemplateShell && t1HeaderLabels && t1FooterLabels ? (
           <>
             <Template1Header
               locale={locale}

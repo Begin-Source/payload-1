@@ -29,6 +29,14 @@ import * as migration_20260602_120000_sites_site_layout from './20260602_120000_
 import * as migration_20260603_120000_sites_review_hub_v1 from './20260603_120000_sites_review_hub_v1';
 import * as migration_20260604_120000_sites_template1_copy from './20260604_120000_sites_template1_copy';
 import * as migration_20260605_120000_landing_templates_full_site_theme from './20260605_120000_landing_templates_full_site_theme';
+import * as migration_20260624_120000_remove_landing_templates_and_site_t1 from './20260624_120000_remove_landing_templates_and_site_t1';
+import * as migration_20260626_120000_site_blueprints_affiliate_design from './20260626_120000_site_blueprints_affiliate_design';
+import * as migration_20260627_120000_sites_drop_landing_overrides from './20260627_120000_sites_drop_landing_overrides';
+import * as migration_20260628_120000_site_layouts_catalog from './20260628_120000_site_layouts_catalog';
+import * as migration_20260629_120000_site_blueprints_t2_locale_json from './20260629_120000_site_blueprints_t2_locale_json';
+import * as migration_20260629_130000_site_layouts_template2_row from './20260629_130000_site_layouts_template2_row';
+import * as migration_20260629_140000_repair_locked_docs_drop_site_t1_locales_id from './20260629_140000_repair_locked_docs_drop_site_t1_locales_id';
+import * as migration_20260629_150000_repair_sites_drop_landing_template_id_and_t1_columns from './20260629_150000_repair_sites_drop_landing_template_id_and_t1_columns';
 
 export const migrations = [
   {
@@ -185,5 +193,45 @@ export const migrations = [
     up: migration_20260605_120000_landing_templates_full_site_theme.up,
     down: migration_20260605_120000_landing_templates_full_site_theme.down,
     name: '20260605_120000_landing_templates_full_site_theme',
+  },
+  {
+    up: migration_20260624_120000_remove_landing_templates_and_site_t1.up,
+    down: migration_20260624_120000_remove_landing_templates_and_site_t1.down,
+    name: '20260624_120000_remove_landing_templates_and_site_t1',
+  },
+  {
+    up: migration_20260626_120000_site_blueprints_affiliate_design.up,
+    down: migration_20260626_120000_site_blueprints_affiliate_design.down,
+    name: '20260626_120000_site_blueprints_affiliate_design',
+  },
+  {
+    up: migration_20260627_120000_sites_drop_landing_overrides.up,
+    down: migration_20260627_120000_sites_drop_landing_overrides.down,
+    name: '20260627_120000_sites_drop_landing_overrides',
+  },
+  {
+    up: migration_20260628_120000_site_layouts_catalog.up,
+    down: migration_20260628_120000_site_layouts_catalog.down,
+    name: '20260628_120000_site_layouts_catalog',
+  },
+  {
+    up: migration_20260629_120000_site_blueprints_t2_locale_json.up,
+    down: migration_20260629_120000_site_blueprints_t2_locale_json.down,
+    name: '20260629_120000_site_blueprints_t2_locale_json',
+  },
+  {
+    up: migration_20260629_130000_site_layouts_template2_row.up,
+    down: migration_20260629_130000_site_layouts_template2_row.down,
+    name: '20260629_130000_site_layouts_template2_row',
+  },
+  {
+    up: migration_20260629_140000_repair_locked_docs_drop_site_t1_locales_id.up,
+    down: migration_20260629_140000_repair_locked_docs_drop_site_t1_locales_id.down,
+    name: '20260629_140000_repair_locked_docs_drop_site_t1_locales_id',
+  },
+  {
+    up: migration_20260629_150000_repair_sites_drop_landing_template_id_and_t1_columns.up,
+    down: migration_20260629_150000_repair_sites_drop_landing_template_id_and_t1_columns.down,
+    name: '20260629_150000_repair_sites_drop_landing_template_id_and_t1_columns',
   },
 ];
