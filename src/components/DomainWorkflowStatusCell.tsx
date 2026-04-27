@@ -28,19 +28,19 @@ const STYLE: Record<
     border: '1px solid var(--theme-elevation-150)',
   },
   running: {
-    background: 'var(--theme-warning-50, rgba(250, 204, 21, 0.15))',
-    color: 'var(--theme-warning-600, #b45309)',
-    border: '1px solid var(--theme-warning-400, #d97706)',
+    background: '#ca8a04',
+    color: '#ffffff',
+    border: '1px solid #a16207',
   },
   done: {
-    background: 'rgba(22, 163, 74, 0.16)',
-    color: '#166534',
-    border: '1px solid #22c55e',
+    background: '#16a34a',
+    color: '#ffffff',
+    border: '1px solid #15803d',
   },
   error: {
-    background: 'var(--theme-error-50, rgba(239, 68, 68, 0.12))',
-    color: 'var(--theme-error-600, #b91c1c)',
-    border: '1px solid var(--theme-error-400, #ef4444)',
+    background: '#dc2626',
+    color: '#ffffff',
+    border: '1px solid #b91c1c',
   },
 }
 
