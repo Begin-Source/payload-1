@@ -2,9 +2,32 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { defaultLocale, isAppLocale } from '@/i18n/config'
-import { hostNameLabel } from '@/utilities/normalizeRequestHost'
+import {
+  hostNameLabel,
+  isLocalDevelopmentHost,
+  normalizeHostForMatch,
+} from '@/utilities/normalizeRequestHost'
 
 const LOCAL_LABELS = new Set(['localhost', '127.0.0.1', '::1'])
+
+/** Hosts that still serve `(welcome)/` at `/` (comma-separated, `normalizeHostForMatch` per label). */
+function publicWelcomeRootHostsSet(): Set<string> {
+  const raw = process.env.PUBLIC_WELCOME_ROOT_HOSTS ?? ''
+  const out = new Set<string>()
+  for (const part of raw.split(',')) {
+    const n = normalizeHostForMatch(part.trim())
+    if (n) out.add(n)
+  }
+  return out
+}
+
+const WELCOME_ROOT_HOSTS = publicWelcomeRootHostsSet()
+
+function keepWelcomePageAtRoot(rawHost: string | null | undefined): boolean {
+  if (isLocalDevelopmentHost(rawHost)) return true
+  const c = normalizeHostForMatch(rawHost)
+  return c.length > 0 && WELCOME_ROOT_HOSTS.has(c)
+}
 
 const SKIP_LOCALE_PREFIXES = [
   '/admin',
@@ -68,9 +91,15 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname === '/') {
-    return NextResponse.next({
-      request: { headers: requestHeaders },
-    })
+    if (keepWelcomePageAtRoot(request.headers.get('host'))) {
+      return NextResponse.next({
+        request: { headers: requestHeaders },
+      })
+    }
+    const url = request.nextUrl.clone()
+    url.pathname = `/${defaultLocale}`
+    url.search = request.nextUrl.search
+    return NextResponse.redirect(url, 308)
   }
 
   const segments = pathname.split('/').filter(Boolean)

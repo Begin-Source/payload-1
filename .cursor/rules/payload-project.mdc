@@ -14,6 +14,7 @@ alwaysApply: true
 - **Multi-tenant**: `@payloadcms/plugin-multi-tenant` is enabled; `Config['user']` may be a **union** (e.g. `User` and MCP API keys)—narrow with `user.collection === 'users'` before assuming admin user fields like `roles` or `email`.
 - **Super admin**: `src/utilities/superAdmin.ts`; optional env `PAYLOAD_SUPER_ADMIN_EMAILS` (comma-separated).
 - **Do not** edit generated admin files under `src/app/(payload)/` that Payload marks as auto-generated unless you know the workflow.
+- **Public `/` routing**: Middleware redirects `/` → `/en` on every host except `localhost`/`127.0.0.1`/`::1` (dev passthrough for `?site=`) and hosts listed in `PUBLIC_WELCOME_ROOT_HOSTS` (comma-separated). Put system gateway hosts like `sys.beginos.org` there so they keep `(welcome)`; custom `sites.primaryDomain` hosts should omit the list.
 
 When suggesting commands, prefer existing scripts in `package.json` (`dev`, `build`, `test`, `lint`, `payload`, `deploy`).
 
