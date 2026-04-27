@@ -13,7 +13,15 @@ export const Sites: CollectionConfig = {
   admin: {
     group: adminGroups.website,
     useAsTitle: 'name',
-    defaultColumns: ['name', 'slug', 'portfolio', 'status', 'primaryDomain', 'updatedAt'],
+    defaultColumns: [
+      'name',
+      'slug',
+      'portfolio',
+      'status',
+      'domainWorkflowStatus',
+      'primaryDomain',
+      'updatedAt',
+    ],
     components: {
       views: {
         list: {

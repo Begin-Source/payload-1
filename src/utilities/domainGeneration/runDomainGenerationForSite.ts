@@ -71,6 +71,22 @@ export async function runDomainGenerationForSite(
   const currentDomain = String(site.primaryDomain ?? '').trim()
 
   try {
+    try {
+      await payload.update({
+        collection: 'sites',
+        id: idStr,
+        data: {
+          domainWorkflowStatus: 'running',
+          domainCheckAt: new Date().toISOString(),
+          domainCheckMessage:
+            '域名生成进行中：受众 → 域名建议 → Spaceship 可查（请勿重复提交直至完成）。',
+        } as Record<string, unknown>,
+        overrideAccess: true,
+      })
+    } catch {
+      /* non-fatal: continue pipeline so a single write failure does not block generation */
+    }
+
     const baseTopic = (mainProduct || siteName || niche).trim()
     if (!baseTopic) {
       throw new Error('main_product/site_name/niche are all empty')

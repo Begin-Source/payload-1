@@ -701,9 +701,7 @@ function SiteDomainQuickActionModal(): React.ReactElement {
   const [force, setForce] = useState(false)
   const [mainProduct, setMainProduct] = useState('')
   const [aiModel, setAiModel] = useState('')
-  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   const loadSites = useCallback(async (q: string) => {
     setSitesLoading(true)
@@ -775,7 +773,6 @@ function SiteDomainQuickActionModal(): React.ReactElement {
     setMainProduct('')
     setAiModel('')
     setError(null)
-    setSuccess(null)
   }
 
   const pickSite = (s: SiteOption): void => {
@@ -794,52 +791,47 @@ function SiteDomainQuickActionModal(): React.ReactElement {
     void loadSites('')
   }
 
-  const submit = async (): Promise<void> => {
+  const submit = (): void => {
     if (selectedSiteId == null) {
       setError('请选择站点')
       return
     }
-    setSubmitting(true)
     setError(null)
-    setSuccess(null)
-    try {
-      const res = await fetch('/api/admin/sites/generate-domain', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          siteId: selectedSiteId,
-          force,
-          ...(mainProduct.trim() ? { mainProduct: mainProduct.trim() } : {}),
-          ...(aiModel.trim() ? { ai_model: aiModel.trim() } : {}),
-        }),
-      })
-      const data = (await res.json().catch(() => ({}))) as {
-        ok?: boolean
-        error?: string
-        applied_domain?: string | null
-        selected_domain?: string | null
-        status?: string
-        message?: string
+
+    const siteId = selectedSiteId
+    const forceBool = force
+    const mainProductTrim = mainProduct.trim()
+    const aiModelTrim = aiModel.trim()
+
+    close()
+
+    void (async () => {
+      try {
+        const res = await fetch('/api/admin/sites/generate-domain', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            siteId,
+            force: forceBool,
+            ...(mainProductTrim ? { mainProduct: mainProductTrim } : {}),
+            ...(aiModelTrim ? { ai_model: aiModelTrim } : {}),
+          }),
+        })
+        const data = (await res.json().catch(() => ({}))) as {
+          ok?: boolean
+          error?: string
+        }
+        if (!res.ok || data.ok !== true) {
+          console.warn(
+            '[generate-domain]',
+            typeof data.error === 'string' ? data.error : `HTTP ${res.status}`,
+          )
+        }
+      } catch (e) {
+        console.warn('[generate-domain] network error', e)
       }
-      if (!res.ok) {
-        throw new Error(typeof data.error === 'string' ? data.error : '请求失败')
-      }
-      if (data.ok !== true) {
-        throw new Error(typeof data.error === 'string' ? data.error : '生成失败')
-      }
-      const parts = [
-        `applied: ${data.applied_domain ?? '-'}`,
-        `selected: ${data.selected_domain ?? '-'}`,
-        `status: ${data.status ?? '-'}`,
-      ]
-      if (data.message) parts.push(String(data.message).slice(0, 200))
-      setSuccess(parts.join(' · '))
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '请求失败')
-    } finally {
-      setSubmitting(false)
-    }
+    })()
   }
 
   return (
@@ -879,16 +871,14 @@ function SiteDomainQuickActionModal(): React.ReactElement {
             <p style={{ margin: '0 0 1rem', fontSize: '0.8125rem', opacity: 0.85, lineHeight: 1.5 }}>
               受众与域名由 OpenRouter 生成，可查由 Spaceship 校验；写回主域名时会把 slug 同步为「域名中的点换成连字符」。主产品会参与提示词；若填写则一并保存到站点字段。需配置服务端
               OPENROUTER / SPACESHIP 密钥。
+              <strong style={{ display: 'block', marginTop: '0.5rem', fontWeight: 600 }}>
+                点击「生成域名并写回站点」后弹窗会立即关闭，请在列表「域名流程状态」列查看进度（运行中 / 已完成 / 错误）；未更新时可刷新页面。
+              </strong>
             </p>
 
             {error ? (
               <p style={{ color: 'var(--theme-error-500)', fontSize: '0.8125rem', marginBottom: '0.75rem' }}>
                 {error}
-              </p>
-            ) : null}
-            {success ? (
-              <p style={{ color: 'var(--theme-success-500)', fontSize: '0.8125rem', marginBottom: '0.75rem' }}>
-                {success}
               </p>
             ) : null}
 
@@ -1065,10 +1055,10 @@ function SiteDomainQuickActionModal(): React.ReactElement {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <Button buttonStyle="secondary" disabled={submitting} onClick={close}>
+              <Button buttonStyle="secondary" onClick={close}>
                 关闭
               </Button>
-              <Button disabled={submitting || selectedSiteId == null} onClick={() => void submit()}>
+              <Button disabled={selectedSiteId == null} onClick={submit}>
                 生成域名并写回站点
               </Button>
             </div>
