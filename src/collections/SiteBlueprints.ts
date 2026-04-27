@@ -104,11 +104,22 @@ export const SiteBlueprints: CollectionConfig = {
       },
     },
     {
+      name: 'designWorkflowLog',
+      type: 'textarea',
+      label: '设计流程日志',
+      admin: {
+        readOnly: true,
+        description:
+          '由「快捷操作 · 生成 AMZ 设计」等在失败时追加记录（含时间与错误码、详情）；成功或重跑不会清空本日志。仅展示，不可手改。',
+        rows: 12,
+      },
+    },
+    {
       name: 'designWorkflowLastErrorCode',
       type: 'text',
       label: '末次错误代码',
       admin: {
-        position: 'sidebar',
+        hidden: true,
         readOnly: true,
         description: '由「快捷操作 · 生成 AMZ 设计」在失败时写入（如 OPENROUTER、QUOTA）。成功或重新运行时会清空。',
         listView: {
@@ -121,7 +132,7 @@ export const SiteBlueprints: CollectionConfig = {
       type: 'textarea',
       label: '末次错误详情',
       admin: {
-        position: 'sidebar',
+        hidden: true,
         readOnly: true,
         description: '失败时的具体原因（可能含上游 API 返回片段）。成功或重新运行时会清空。',
       },
@@ -131,7 +142,7 @@ export const SiteBlueprints: CollectionConfig = {
       type: 'date',
       label: '末次错误时间',
       admin: {
-        position: 'sidebar',
+        hidden: true,
         readOnly: true,
         description: '记录末次写入 error 状态的时间（UTC）。',
         date: {

@@ -15,6 +15,8 @@ import type { Site, SiteBlueprint } from '@/payload-types'
 
 const MAX_CURRENT_JSON_CHARS = 120_000
 const MAX_DESIGN_WORKFLOW_ERROR_DETAIL_CHARS = 8000
+/** Total stored log size; older entries dropped from the start when exceeded. */
+const MAX_DESIGN_WORKFLOW_LOG_CHARS = 32_000
 const OPENROUTER_EST_USD = 0.06
 
 /** Clear last-error fields when (re)starting or finishing the design workflow. */
@@ -179,12 +181,34 @@ async function markBlueprintDesignWorkflowError(
   err?: { code?: string; message?: string },
 ): Promise<void> {
   try {
+    const atIso = new Date().toISOString()
     const code = err?.code?.trim() || null
     let detail = err?.message?.trim() || null
     if (detail && detail.length > MAX_DESIGN_WORKFLOW_ERROR_DETAIL_CHARS) {
       detail =
         detail.slice(0, MAX_DESIGN_WORKFLOW_ERROR_DETAIL_CHARS) + '\n…(truncated)'
     }
+
+    const existing = (await payload.findByID({
+      collection: 'site-blueprints',
+      id: blueprintId,
+      depth: 0,
+    })) as SiteBlueprint | null
+    const rawPrev = existing?.designWorkflowLog
+    const prevLog =
+      typeof rawPrev === 'string' && rawPrev.trim() ? rawPrev : ''
+    const logLine = [
+      `${atIso} [${code?.trim() || 'ERROR'}]`,
+      detail ?? '',
+      '',
+    ].join('\n')
+    let designWorkflowLog = (prevLog ? `${prevLog}\n` : '') + logLine
+    if (designWorkflowLog.length > MAX_DESIGN_WORKFLOW_LOG_CHARS) {
+      const note = '…(earlier log truncated)\n\n'
+      designWorkflowLog =
+        note + designWorkflowLog.slice(-(MAX_DESIGN_WORKFLOW_LOG_CHARS - note.length))
+    }
+
     await payload.update({
       collection: 'site-blueprints',
       id: blueprintId,
@@ -192,7 +216,8 @@ async function markBlueprintDesignWorkflowError(
         designWorkflowStatus: 'error',
         designWorkflowLastErrorCode: code,
         designWorkflowLastErrorDetail: detail,
-        designWorkflowLastErrorAt: new Date().toISOString(),
+        designWorkflowLastErrorAt: atIso,
+        designWorkflowLog,
       },
       overrideAccess: true,
     })

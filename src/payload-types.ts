@@ -438,6 +438,10 @@ export interface SiteBlueprint {
    */
   designWorkflowStatus?: string | null;
   /**
+   * 由「快捷操作 · 生成 AMZ 设计」等在失败时追加记录（含时间与错误码、详情）；成功或重跑不会清空本日志。仅展示，不可手改。
+   */
+  designWorkflowLog?: string | null;
+  /**
    * 由「快捷操作 · 生成 AMZ 设计」在失败时写入（如 OPENROUTER、QUOTA）。成功或重新运行时会清空。
    */
   designWorkflowLastErrorCode?: string | null;
@@ -2794,6 +2798,7 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   site?: T;
   mirroredSiteLayout?: T;
   designWorkflowStatus?: T;
+  designWorkflowLog?: T;
   designWorkflowLastErrorCode?: T;
   designWorkflowLastErrorDetail?: T;
   designWorkflowLastErrorAt?: T;
