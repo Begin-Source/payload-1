@@ -695,6 +695,20 @@ export interface Page {
   status: 'draft' | 'published' | 'archived';
   publishedAt?: string | null;
   excerpt?: string | null;
+  /**
+   * n8n 同源：About/Contact/Privacy/Terms/Affiliate 五张 en 页一次生成。仅上列 slug 且 locale 为 en 时显示与更新。
+   */
+  sitePagesBundleWorkflowStatus?: string | null;
+  /**
+   * 失败时由「生成信任页包」追加；成功不整段清空。
+   */
+  sitePagesBundleWorkflowLog?: string | null;
+  sitePagesBundleLastErrorCode?: string | null;
+  sitePagesBundleLastErrorDetail?: string | null;
+  /**
+   * ISO 8601（UTC）文本。使用 text 避免空串在列表查询时被当作非法 Date。
+   */
+  sitePagesBundleLastErrorAt?: string | null;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -2886,6 +2900,11 @@ export interface PagesSelect<T extends boolean = true> {
   status?: T;
   publishedAt?: T;
   excerpt?: T;
+  sitePagesBundleWorkflowStatus?: T;
+  sitePagesBundleWorkflowLog?: T;
+  sitePagesBundleLastErrorCode?: T;
+  sitePagesBundleLastErrorDetail?: T;
+  sitePagesBundleLastErrorAt?: T;
   meta?:
     | T
     | {

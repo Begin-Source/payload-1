@@ -1,6 +1,7 @@
 'use client'
 
 import { CategorySlotsQuickActionModal } from '@/components/CategorySlotsQuickActionModal'
+import { TrustPagesBundleQuickActionModal } from '@/components/TrustPagesBundleQuickActionModal'
 import { Button } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -1562,7 +1563,12 @@ export function ArticleListQuickAction(): React.ReactElement {
 }
 
 export function PageListQuickAction(): React.ReactElement {
-  return <WorkflowQuickActionModal kind="pages" />
+  return (
+    <>
+      <TrustPagesBundleQuickActionModal />
+      <WorkflowQuickActionModal kind="pages" />
+    </>
+  )
 }
 
 export function CategoryListQuickAction(): React.ReactElement {

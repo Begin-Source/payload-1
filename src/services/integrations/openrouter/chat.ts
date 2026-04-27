@@ -2,11 +2,35 @@ const DEFAULT_BASE = 'https://openrouter.ai/api/v1'
 
 export type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string }
 
+type ChatInit = {
+  signal?: AbortSignal
+  responseFormatJson?: boolean
+  temperature?: number
+  maxTokens?: number
+}
+
+export type OpenRouterChatResult = {
+  text: string
+  finishReason: string
+}
+
 export async function openrouterChat(
   model: string,
   messages: ChatMessage[],
-  init?: { signal?: AbortSignal; responseFormatJson?: boolean; temperature?: number },
+  init?: ChatInit,
 ): Promise<string> {
+  const r = await openrouterChatWithMeta(model, messages, init)
+  return r.text
+}
+
+/**
+ * Returns assistant text and finish_reason (e.g. `length` when truncated) for post-processing.
+ */
+export async function openrouterChatWithMeta(
+  model: string,
+  messages: ChatMessage[],
+  init?: ChatInit,
+): Promise<OpenRouterChatResult> {
   const key = process.env.OPENAI_API_KEY?.trim() || process.env.OPENROUTER_API_KEY?.trim()
   if (!key) {
     throw new Error('Set OPENAI_API_KEY or OPENROUTER_API_KEY for OpenRouter')
@@ -25,6 +49,9 @@ export async function openrouterChat(
       model,
       messages,
       temperature: init?.temperature ?? 0.4,
+      ...(init?.maxTokens != null && init.maxTokens > 0
+        ? { max_tokens: init.maxTokens }
+        : {}),
       ...(init?.responseFormatJson
         ? { response_format: { type: 'json_object' } }
         : {}),
@@ -36,11 +63,12 @@ export async function openrouterChat(
     throw new Error(`OpenRouter ${res.status}: ${t.slice(0, 500)}`)
   }
   const data = (await res.json()) as {
-    choices?: { message?: { content?: string } }[]
+    choices?: { message?: { content?: string }; finish_reason?: string }[]
   }
-  const text = data.choices?.[0]?.message?.content
+  const ch = data.choices?.[0]
+  const text = ch?.message?.content
   if (!text) {
     throw new Error('OpenRouter: empty response')
   }
-  return text
+  return { text, finishReason: ch?.finish_reason ?? '' }
 }

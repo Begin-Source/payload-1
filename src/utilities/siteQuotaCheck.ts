@@ -55,6 +55,8 @@ export async function findSiteQuotaForSite(payload: Payload, siteId: number): Pr
 /** Rough per-job USD / credit estimates for pre-flight checks (not billing-grade). */
 const EST_OPENROUTER_USD: Partial<Record<string, number>> = {
   category_slots: 0.03,
+  /** n8n Site Pages Bundle — one OpenRouter call, five pages written */
+  site_pages_bundle_content: 0.05,
   amz_template_design: 0.06,
   brief_generate: 0.025,
   draft_skeleton: 0.015,
