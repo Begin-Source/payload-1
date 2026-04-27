@@ -1,7 +1,10 @@
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 
-import { runDomainGenerationForSite } from '@/utilities/domainGeneration/runDomainGenerationForSite'
+import {
+  markSiteDomainWorkflowRunning,
+  runDomainGenerationForSite,
+} from '@/utilities/domainGeneration/runDomainGenerationForSite'
 import { getTenantScopeForStats, type TenantScope } from '@/utilities/tenantScope'
 import { assertUsersCollection } from '@/utilities/workflowQuickCreate'
 
@@ -33,8 +36,9 @@ function toBool(value: unknown): boolean {
 }
 
 /**
- * POST { siteId: number, force?: boolean, ai_model?: string, mainProduct?: string }
+ * POST { siteId: number, prepare?: boolean, force?: boolean, ai_model?: string, mainProduct?: string }
  * Cookie session + tenant-scoped; runs n8n-equivalent domain generation for one site.
+ * When prepare is true, only marks domainWorkflowStatus running and returns immediately.
  */
 export async function POST(request: Request): Promise<Response> {
   const payload = await getPayload({ config: configPromise })
@@ -48,6 +52,7 @@ export async function POST(request: Request): Promise<Response> {
   let body: {
     siteId?: unknown
     force?: unknown
+    prepare?: unknown
     ai_model?: unknown
     aiModel?: unknown
     mainProduct?: unknown
@@ -88,6 +93,14 @@ export async function POST(request: Request): Promise<Response> {
   )
   if (!siteAccessible(scope, siteTenantId)) {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  if (toBool(body.prepare)) {
+    const marked = await markSiteDomainWorkflowRunning(payload, siteId)
+    if (!marked) {
+      return Response.json({ error: 'Failed to update site status' }, { status: 500 })
+    }
+    return Response.json({ ok: true })
   }
 
   const r = await runDomainGenerationForSite(payload, siteId, {

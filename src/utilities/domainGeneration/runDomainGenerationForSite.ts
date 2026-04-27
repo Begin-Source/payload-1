@@ -43,6 +43,32 @@ export type RunDomainGenerationResult =
 
 const OPENROUTER_DOMAIN_USD = 0.012
 
+const DOMAIN_WORKFLOW_RUNNING_MESSAGE =
+  '域名生成进行中：受众 → 域名建议 → Spaceship 可查（请勿重复提交直至完成）。'
+
+/** 将站点标为域名流程「运行中」（与长流程首步一致；失败返回 false，调用方可决定是否强校验）。 */
+export async function markSiteDomainWorkflowRunning(
+  payload: Payload,
+  siteId: string | number,
+): Promise<boolean> {
+  const idStr = String(siteId)
+  try {
+    await payload.update({
+      collection: 'sites',
+      id: idStr,
+      data: {
+        domainWorkflowStatus: 'running',
+        domainCheckAt: new Date().toISOString(),
+        domainCheckMessage: DOMAIN_WORKFLOW_RUNNING_MESSAGE,
+      } as Record<string, unknown>,
+      overrideAccess: true,
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
 export async function runDomainGenerationForSite(
   payload: Payload,
   siteId: string | number,
@@ -71,21 +97,7 @@ export async function runDomainGenerationForSite(
   const currentDomain = String(site.primaryDomain ?? '').trim()
 
   try {
-    try {
-      await payload.update({
-        collection: 'sites',
-        id: idStr,
-        data: {
-          domainWorkflowStatus: 'running',
-          domainCheckAt: new Date().toISOString(),
-          domainCheckMessage:
-            '域名生成进行中：受众 → 域名建议 → Spaceship 可查（请勿重复提交直至完成）。',
-        } as Record<string, unknown>,
-        overrideAccess: true,
-      })
-    } catch {
-      /* non-fatal: continue pipeline so a single write failure does not block generation */
-    }
+    await markSiteDomainWorkflowRunning(payload, siteId)
 
     const baseTopic = (mainProduct || siteName || niche).trim()
     if (!baseTopic) {

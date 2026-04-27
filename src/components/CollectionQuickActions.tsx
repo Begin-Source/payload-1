@@ -793,7 +793,7 @@ function SiteDomainQuickActionModal(): React.ReactElement {
     void loadSites('')
   }
 
-  const submit = (): void => {
+  const submit = async (): Promise<void> => {
     if (selectedSiteId == null) {
       setError('请选择站点')
       return
@@ -805,7 +805,45 @@ function SiteDomainQuickActionModal(): React.ReactElement {
     const mainProductTrim = mainProduct.trim()
     const aiModelTrim = aiModel.trim()
 
+    const baseBody = {
+      siteId,
+      force: forceBool,
+      ...(mainProductTrim ? { mainProduct: mainProductTrim } : {}),
+      ...(aiModelTrim ? { ai_model: aiModelTrim } : {}),
+    }
+
+    try {
+      const prepRes = await fetch('/api/admin/sites/generate-domain', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...baseBody, prepare: true }),
+      })
+      const prepData = (await prepRes.json().catch(() => ({}))) as {
+        ok?: boolean
+        error?: string
+      }
+      if (!prepRes.ok || prepData.ok !== true) {
+        setError(
+          typeof prepData.error === 'string'
+            ? prepData.error
+            : `请求失败（HTTP ${prepRes.status}）`,
+        )
+        return
+      }
+    } catch {
+      setError('网络错误，请稍后重试')
+      return
+    }
+
     close()
+
+    if (
+      typeof window !== 'undefined' &&
+      window.location.pathname.includes('/collections/sites')
+    ) {
+      router.refresh()
+    }
 
     void (async () => {
       try {
@@ -813,12 +851,7 @@ function SiteDomainQuickActionModal(): React.ReactElement {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            siteId,
-            force: forceBool,
-            ...(mainProductTrim ? { mainProduct: mainProductTrim } : {}),
-            ...(aiModelTrim ? { ai_model: aiModelTrim } : {}),
-          }),
+          body: JSON.stringify(baseBody),
         })
         const data = (await res.json().catch(() => ({}))) as {
           ok?: boolean
@@ -881,7 +914,7 @@ function SiteDomainQuickActionModal(): React.ReactElement {
               受众与域名由 OpenRouter 生成，可查由 Spaceship 校验；写回主域名时会把 slug 同步为「域名中的点换成连字符」。主产品会参与提示词；若填写则一并保存到站点字段。需配置服务端
               OPENROUTER / SPACESHIP 密钥。
               <strong style={{ display: 'block', marginTop: '0.5rem', fontWeight: 600 }}>
-                点击「生成域名并写回站点」后弹窗会立即关闭；请求结束后若仍在本列表页，会自动刷新一次以更新「域名流程状态」。若已离开本页或状态未变，可手动刷新。
+                点击「生成域名并写回站点」后先标为「运行中」并关闭弹窗，列表会马上刷新；全流程结束后若仍在本列表页会再刷新一次以显示「已完成」或「错误」。若已离开本页或状态未变，可手动刷新。
               </strong>
             </p>
 
@@ -1028,7 +1061,7 @@ function SiteDomainQuickActionModal(): React.ReactElement {
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <span style={fieldLabel}>主产品（可选）</span>
+              <span style={fieldLabel}>主产品</span>
               <textarea
                 placeholder="用于受众/域名提示词；选站点后会预填站点已保存的值。若填写则本次会写入站点的「主品 / Main product」字段。"
                 rows={2}
@@ -1067,7 +1100,12 @@ function SiteDomainQuickActionModal(): React.ReactElement {
               <Button buttonStyle="secondary" onClick={close}>
                 关闭
               </Button>
-              <Button disabled={selectedSiteId == null} onClick={submit}>
+              <Button
+                disabled={selectedSiteId == null}
+                onClick={() => {
+                  void submit()
+                }}
+              >
                 生成域名并写回站点
               </Button>
             </div>
