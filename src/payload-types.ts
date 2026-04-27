@@ -437,6 +437,18 @@ export interface SiteBlueprint {
    * 推荐取值（小写英文）：idle 代办 · running 运行中 · done 已完成 · error 错误。由 AMZ 设计生成等流程写入；卡死时可手工改回 idle（代办）。
    */
   designWorkflowStatus?: string | null;
+  /**
+   * 由「快捷操作 · 生成 AMZ 设计」在失败时写入（如 OPENROUTER、QUOTA）。成功或重新运行时会清空。
+   */
+  designWorkflowLastErrorCode?: string | null;
+  /**
+   * 失败时的具体原因（可能含上游 API 返回片段）。成功或重新运行时会清空。
+   */
+  designWorkflowLastErrorDetail?: string | null;
+  /**
+   * 记录末次写入 error 状态的时间（UTC）。
+   */
+  designWorkflowLastErrorAt?: string | null;
   description?: string | null;
   /**
    * Arbitrary JSON for themes, sections, or generator defaults.
@@ -2782,6 +2794,9 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   site?: T;
   mirroredSiteLayout?: T;
   designWorkflowStatus?: T;
+  designWorkflowLastErrorCode?: T;
+  designWorkflowLastErrorDetail?: T;
+  designWorkflowLastErrorAt?: T;
   description?: T;
   templateConfig?: T;
   designBrowserTitle?: T;

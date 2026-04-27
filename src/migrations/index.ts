@@ -48,6 +48,7 @@ import * as migration_20260705_120000_site_blueprints_design_workflow_status fro
 import * as migration_20260706_120000_category_slots_workflow from './20260706_120000_category_slots_workflow';
 import * as migration_20260707_120000_drop_sites_category_slots_workflow_status from './20260707_120000_drop_sites_category_slots_workflow_status';
 import * as migration_20260708_120000_repair_site_id_fk_to_sites from './20260708_120000_repair_site_id_fk_to_sites';
+import * as migration_20260709_120000_site_blueprints_design_workflow_error_log from './20260709_120000_site_blueprints_design_workflow_error_log';
 
 export const migrations = [
   {
@@ -299,5 +300,10 @@ export const migrations = [
     up: migration_20260708_120000_repair_site_id_fk_to_sites.up,
     down: migration_20260708_120000_repair_site_id_fk_to_sites.down,
     name: '20260708_120000_repair_site_id_fk_to_sites',
+  },
+  {
+    up: migration_20260709_120000_site_blueprints_design_workflow_error_log.up,
+    down: migration_20260709_120000_site_blueprints_design_workflow_error_log.down,
+    name: '20260709_120000_site_blueprints_design_workflow_error_log',
   },
 ];

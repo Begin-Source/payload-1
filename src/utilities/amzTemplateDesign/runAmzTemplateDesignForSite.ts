@@ -14,7 +14,15 @@ import {
 import type { Site, SiteBlueprint } from '@/payload-types'
 
 const MAX_CURRENT_JSON_CHARS = 120_000
+const MAX_DESIGN_WORKFLOW_ERROR_DETAIL_CHARS = 8000
 const OPENROUTER_EST_USD = 0.06
+
+/** Clear last-error fields when (re)starting or finishing the design workflow. */
+const clearedDesignWorkflowLastError = {
+  designWorkflowLastErrorCode: null as string | null,
+  designWorkflowLastErrorDetail: null as string | null,
+  designWorkflowLastErrorAt: null as string | null,
+}
 
 function canonicalDomain(primary: string | null | undefined): string {
   return String(primary ?? '')
@@ -168,12 +176,24 @@ type AmzDesignWorkContext = {
 async function markBlueprintDesignWorkflowError(
   payload: Payload,
   blueprintId: number,
+  err?: { code?: string; message?: string },
 ): Promise<void> {
   try {
+    const code = err?.code?.trim() || null
+    let detail = err?.message?.trim() || null
+    if (detail && detail.length > MAX_DESIGN_WORKFLOW_ERROR_DETAIL_CHARS) {
+      detail =
+        detail.slice(0, MAX_DESIGN_WORKFLOW_ERROR_DETAIL_CHARS) + '\n…(truncated)'
+    }
     await payload.update({
       collection: 'site-blueprints',
       id: blueprintId,
-      data: { designWorkflowStatus: 'error' },
+      data: {
+        designWorkflowStatus: 'error',
+        designWorkflowLastErrorCode: code,
+        designWorkflowLastErrorDetail: detail,
+        designWorkflowLastErrorAt: new Date().toISOString(),
+      },
       overrideAccess: true,
     })
   } catch {
@@ -302,7 +322,10 @@ export async function prepareAmzTemplateDesignForBlueprint(
     await args.payload.update({
       collection: 'site-blueprints',
       id: args.blueprintId,
-      data: { designWorkflowStatus: 'running' },
+      data: {
+        designWorkflowStatus: 'running',
+        ...clearedDesignWorkflowLastError,
+      },
       overrideAccess: true,
     })
   } catch (e) {
@@ -325,7 +348,10 @@ export async function runAmzTemplateDesignForBlueprint(
   const loaded = await loadAmzTemplateDesignWorkContext(args)
   if (!loaded.ok) {
     if (afterPrepare) {
-      await markBlueprintDesignWorkflowError(payload, blueprintId)
+      await markBlueprintDesignWorkflowError(payload, blueprintId, {
+        code: loaded.code,
+        message: loaded.message,
+      })
     }
     return loaded
   }
@@ -336,7 +362,10 @@ export async function runAmzTemplateDesignForBlueprint(
     await payload.update({
       collection: 'site-blueprints',
       id: blueprintId,
-      data: { designWorkflowStatus: 'running' },
+      data: {
+        designWorkflowStatus: 'running',
+        ...clearedDesignWorkflowLastError,
+      },
       overrideAccess: true,
     })
   }
@@ -353,7 +382,10 @@ export async function runAmzTemplateDesignForBlueprint(
     )
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    await markBlueprintDesignWorkflowError(payload, blueprintId)
+    await markBlueprintDesignWorkflowError(payload, blueprintId, {
+      code: 'OPENROUTER',
+      message: msg,
+    })
     return { ok: false, code: 'OPENROUTER', message: msg, status: 502 }
   }
 
@@ -362,7 +394,10 @@ export async function runAmzTemplateDesignForBlueprint(
     patch = parseJsonPatch(raw)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    await markBlueprintDesignWorkflowError(payload, blueprintId)
+    await markBlueprintDesignWorkflowError(payload, blueprintId, {
+      code: 'PARSE',
+      message: msg,
+    })
     return { ok: false, code: 'PARSE', message: msg, status: 422 }
   }
 
@@ -377,12 +412,16 @@ export async function runAmzTemplateDesignForBlueprint(
       data: {
         amzSiteConfigJson: merged as Record<string, unknown>,
         designWorkflowStatus: 'done',
+        ...clearedDesignWorkflowLastError,
       },
       overrideAccess: true,
     })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    await markBlueprintDesignWorkflowError(payload, blueprintId)
+    await markBlueprintDesignWorkflowError(payload, blueprintId, {
+      code: 'UPDATE',
+      message: msg,
+    })
     return { ok: false, code: 'UPDATE', message: msg, status: 500 }
   }
 
