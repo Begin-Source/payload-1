@@ -151,6 +151,11 @@ export const Sites: CollectionConfig = {
             { label: '已完成', value: 'done' },
             { label: '错误', value: 'error' },
           ],
+          admin: {
+            components: {
+              Cell: './components/DomainWorkflowStatusCell#DomainWorkflowStatusCell',
+            },
+          },
         },
         {
           name: 'domainCheckStatus',

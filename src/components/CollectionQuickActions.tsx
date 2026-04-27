@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@payloadcms/ui'
+import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { WorkflowQuickKind } from '@/utilities/workflowQuickCreate'
@@ -688,6 +689,7 @@ function WorkflowQuickActionModal({ kind }: { kind: WorkflowQuickKind }): React.
 const siteDomainTitleId = 'quick-action-title-site-domain'
 
 function SiteDomainQuickActionModal(): React.ReactElement {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [siteQuery, setSiteQuery] = useState('')
   const [sites, setSites] = useState<SiteOption[]>([])
@@ -830,6 +832,13 @@ function SiteDomainQuickActionModal(): React.ReactElement {
         }
       } catch (e) {
         console.warn('[generate-domain] network error', e)
+      } finally {
+        if (
+          typeof window !== 'undefined' &&
+          window.location.pathname.includes('/collections/sites')
+        ) {
+          router.refresh()
+        }
       }
     })()
   }
@@ -872,7 +881,7 @@ function SiteDomainQuickActionModal(): React.ReactElement {
               受众与域名由 OpenRouter 生成，可查由 Spaceship 校验；写回主域名时会把 slug 同步为「域名中的点换成连字符」。主产品会参与提示词；若填写则一并保存到站点字段。需配置服务端
               OPENROUTER / SPACESHIP 密钥。
               <strong style={{ display: 'block', marginTop: '0.5rem', fontWeight: 600 }}>
-                点击「生成域名并写回站点」后弹窗会立即关闭，请在列表「域名流程状态」列查看进度（运行中 / 已完成 / 错误）；未更新时可刷新页面。
+                点击「生成域名并写回站点」后弹窗会立即关闭；请求结束后若仍在本列表页，会自动刷新一次以更新「域名流程状态」。若已离开本页或状态未变，可手动刷新。
               </strong>
             </p>
 

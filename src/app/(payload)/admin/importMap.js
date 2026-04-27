@@ -1,5 +1,6 @@
 import { TenantField as TenantField_1d0591e3cf4f332c83a86da13a0de59a } from '@payloadcms/plugin-multi-tenant/client'
 import { AssignTenantFieldTrigger as AssignTenantFieldTrigger_1d0591e3cf4f332c83a86da13a0de59a } from '@payloadcms/plugin-multi-tenant/client'
+import { DomainWorkflowStatusCell as DomainWorkflowStatusCell_d02e5517766a3d127031406940d63f37 } from '../../../components/DomainWorkflowStatusCell'
 import { SiteListQuickAction as SiteListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { CsvImportExportListMenuItem as CsvImportExportListMenuItem_4c39b1e20c32c7d5b42c969ff894026e } from '../../../components/ArticleCsvImportExport'
 import { CsvImportExportPanel as CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e } from '../../../components/ArticleCsvImportExport'
@@ -62,6 +63,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 export const importMap = {
   "@payloadcms/plugin-multi-tenant/client#TenantField": TenantField_1d0591e3cf4f332c83a86da13a0de59a,
   "@payloadcms/plugin-multi-tenant/client#AssignTenantFieldTrigger": AssignTenantFieldTrigger_1d0591e3cf4f332c83a86da13a0de59a,
+  "./components/DomainWorkflowStatusCell#DomainWorkflowStatusCell": DomainWorkflowStatusCell_d02e5517766a3d127031406940d63f37,
   "./components/CollectionQuickActions#SiteListQuickAction": SiteListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "./components/ArticleCsvImportExport#CsvImportExportListMenuItem": CsvImportExportListMenuItem_4c39b1e20c32c7d5b42c969ff894026e,
   "./components/ArticleCsvImportExport#CsvImportExportPanel": CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e,
