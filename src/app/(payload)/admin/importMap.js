@@ -7,6 +7,7 @@ import { DesignWorkflowStatusCell as DesignWorkflowStatusCell_22909da9cd5de942db
 import { CsvImportExportListMenuItem as CsvImportExportListMenuItem_4c39b1e20c32c7d5b42c969ff894026e } from '../../../components/ArticleCsvImportExport'
 import { CsvImportExportPanel as CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e } from '../../../components/ArticleCsvImportExport'
 import { DesignListQuickAction as DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
+import { CategorySlotsWorkflowStatusCell as CategorySlotsWorkflowStatusCell_6f5ace4c14c56b8b9e05676fcf152c70 } from '../../../components/CategorySlotsWorkflowStatusCell'
 import { CategoryListQuickAction as CategoryListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { ComposeField as ComposeField_c25bd927cd468b8e16d7bdb2cc282659 } from '@ai-stack/payloadcms/fields'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -72,6 +73,7 @@ export const importMap = {
   "./components/ArticleCsvImportExport#CsvImportExportListMenuItem": CsvImportExportListMenuItem_4c39b1e20c32c7d5b42c969ff894026e,
   "./components/ArticleCsvImportExport#CsvImportExportPanel": CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e,
   "./components/CollectionQuickActions#DesignListQuickAction": DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
+  "./components/CategorySlotsWorkflowStatusCell#CategorySlotsWorkflowStatusCell": CategorySlotsWorkflowStatusCell_6f5ace4c14c56b8b9e05676fcf152c70,
   "./components/CollectionQuickActions#CategoryListQuickAction": CategoryListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "@ai-stack/payloadcms/fields#ComposeField": ComposeField_c25bd927cd468b8e16d7bdb2cc282659,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,

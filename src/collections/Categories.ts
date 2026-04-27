@@ -13,7 +13,7 @@ export const Categories: CollectionConfig = {
   admin: {
     group: adminGroups.website,
     useAsTitle: 'name',
-    defaultColumns: ['name', 'slug', 'site', 'updatedAt'],
+    defaultColumns: ['name', 'slug', 'site', 'categorySlotsWorkflowStatus', 'updatedAt'],
     components: {
       beforeListTable: ['./components/ArticleCsvImportExport#CsvImportExportPanel'],
       listMenuItems: ['./components/ArticleCsvImportExport#CsvImportExportListMenuItem'],
@@ -41,6 +41,35 @@ export const Categories: CollectionConfig = {
       index: true,
     },
     siteScopedSiteField,
+    {
+      name: 'slotIndex',
+      type: 'number',
+      label: '槽位序号',
+      min: 1,
+      max: 5,
+      admin: {
+        position: 'sidebar',
+        description:
+          '可选。1–5 由「快捷操作 · 生成分类槽位」管理；留空表示手工分类。',
+      },
+    },
+    {
+      name: 'categorySlotsWorkflowStatus',
+      type: 'text',
+      label: '分类槽位流程状态',
+      defaultValue: 'idle',
+      admin: {
+        readOnly: true,
+        description:
+          '由「快捷操作 · 生成分类槽位」直接写入本分类（idle / running / done / error）。同站点下各分类通常一致。',
+        listView: {
+          label: '槽位流程',
+        },
+        components: {
+          Cell: './components/CategorySlotsWorkflowStatusCell#CategorySlotsWorkflowStatusCell',
+        },
+      },
+    },
     {
       name: 'description',
       type: 'textarea',

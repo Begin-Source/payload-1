@@ -630,6 +630,14 @@ export interface Category {
    * 新建必填；旧数据可暂为空后再补全。
    */
   site?: (number | null) | Site;
+  /**
+   * 可选。1–5 由「快捷操作 · 生成分类槽位」管理；留空表示手工分类。
+   */
+  slotIndex?: number | null;
+  /**
+   * 由「快捷操作 · 生成分类槽位」直接写入本分类（idle / running / done / error）。同站点下各分类通常一致。
+   */
+  categorySlotsWorkflowStatus?: string | null;
   description?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -2836,6 +2844,8 @@ export interface CategoriesSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   site?: T;
+  slotIndex?: T;
+  categorySlotsWorkflowStatus?: T;
   description?: T;
   updatedAt?: T;
   createdAt?: T;

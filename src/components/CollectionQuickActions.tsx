@@ -1,5 +1,6 @@
 'use client'
 
+import { CategorySlotsQuickActionModal } from '@/components/CategorySlotsQuickActionModal'
 import { Button } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -1565,7 +1566,12 @@ export function PageListQuickAction(): React.ReactElement {
 }
 
 export function CategoryListQuickAction(): React.ReactElement {
-  return <WorkflowQuickActionModal kind="categories" />
+  return (
+    <>
+      <CategorySlotsQuickActionModal />
+      <WorkflowQuickActionModal kind="categories" />
+    </>
+  )
 }
 
 export function KeywordListQuickAction(): React.ReactElement {

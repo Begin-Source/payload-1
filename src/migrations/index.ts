@@ -45,6 +45,9 @@ import * as migration_20260702_140000_site_blueprints_amz_site_config_json from 
 import * as migration_20260703_120000_repair_site_blueprints_site_id_fk_sites from './20260703_120000_repair_site_blueprints_site_id_fk_sites';
 import * as migration_20260704_120000_drop_sites_blueprint_relation from './20260704_120000_drop_sites_blueprint_relation';
 import * as migration_20260705_120000_site_blueprints_design_workflow_status from './20260705_120000_site_blueprints_design_workflow_status';
+import * as migration_20260706_120000_category_slots_workflow from './20260706_120000_category_slots_workflow';
+import * as migration_20260707_120000_drop_sites_category_slots_workflow_status from './20260707_120000_drop_sites_category_slots_workflow_status';
+import * as migration_20260708_120000_repair_site_id_fk_to_sites from './20260708_120000_repair_site_id_fk_to_sites';
 
 export const migrations = [
   {
@@ -281,5 +284,20 @@ export const migrations = [
     up: migration_20260705_120000_site_blueprints_design_workflow_status.up,
     down: migration_20260705_120000_site_blueprints_design_workflow_status.down,
     name: '20260705_120000_site_blueprints_design_workflow_status',
+  },
+  {
+    up: migration_20260706_120000_category_slots_workflow.up,
+    down: migration_20260706_120000_category_slots_workflow.down,
+    name: '20260706_120000_category_slots_workflow',
+  },
+  {
+    up: migration_20260707_120000_drop_sites_category_slots_workflow_status.up,
+    down: migration_20260707_120000_drop_sites_category_slots_workflow_status.down,
+    name: '20260707_120000_drop_sites_category_slots_workflow_status',
+  },
+  {
+    up: migration_20260708_120000_repair_site_id_fk_to_sites.up,
+    down: migration_20260708_120000_repair_site_id_fk_to_sites.down,
+    name: '20260708_120000_repair_site_id_fk_to_sites',
   },
 ];
