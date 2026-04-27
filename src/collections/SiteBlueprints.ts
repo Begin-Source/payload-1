@@ -5,6 +5,9 @@ import { template1SiteFields, template2SiteFields } from '@/collections/shared/t
 import type { User } from '@/payload-types'
 import { adminGroups } from '@/constants/adminGroups'
 import {
+  syncMirroredLayoutFromSiteBeforeChange,
+} from '@/collections/hooks/syncBlueprintMirroredLayout'
+import {
   requireSiteOnCreate,
   siteScopedSiteField,
 } from '@/collections/shared/siteScopedSiteField'
@@ -19,7 +22,14 @@ export const SiteBlueprints: CollectionConfig = {
   admin: {
     group: adminGroups.website,
     useAsTitle: 'name',
-    defaultColumns: ['name', 'slug', 'site', 'updatedAt'],
+    defaultColumns: [
+      'name',
+      'slug',
+      'site',
+      'mirroredSiteLayout',
+      'designWorkflowStatus',
+      'updatedAt',
+    ],
     hidden: ({ user }) =>
       !isSystemConfigNavVisible(user) && !userHasTenantGeneralManagerRole(user as User),
     components: {
@@ -33,7 +43,7 @@ export const SiteBlueprints: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [requireSiteOnCreate],
+    beforeChange: [requireSiteOnCreate, syncMirroredLayoutFromSiteBeforeChange],
   },
   access: {
     read: denyPortalAndFinanceCollection('site-blueprints', superAdminOrTenantGMPasses(() => false)),
@@ -55,6 +65,45 @@ export const SiteBlueprints: CollectionConfig = {
     },
     siteScopedSiteField,
     {
+      name: 'mirroredSiteLayout',
+      type: 'select',
+      label: '镜像：站点布局',
+      defaultValue: 'template1',
+      options: [
+        { label: 'Template1', value: 'template1' },
+        { label: 'Template2', value: 'template2' },
+        { label: 'amz-template-1', value: 'amz-template-1' },
+      ],
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description:
+          '只读，随关联「站点」的「站点布局」自动同步；用于在下方只展示当前壳层对应的文案区。',
+        listView: {
+          label: '布局',
+        },
+        components: {
+          Field: './components/MirroredSiteLayoutField#MirroredSiteLayoutField',
+        },
+      },
+    },
+    {
+      name: 'designWorkflowStatus',
+      type: 'text',
+      label: '设计流程状态',
+      defaultValue: 'idle',
+      admin: {
+        description:
+          '推荐取值（小写英文）：idle 代办 · running 运行中 · done 已完成 · error 错误。由 AMZ 设计生成等流程写入；卡死时可手工改回 idle（代办）。',
+        listView: {
+          label: '流程',
+        },
+        components: {
+          Cell: './components/DesignWorkflowStatusCell#DesignWorkflowStatusCell',
+        },
+      },
+    },
+    {
       name: 'description',
       type: 'textarea',
     },
@@ -69,8 +118,10 @@ export const SiteBlueprints: CollectionConfig = {
       type: 'collapsible',
       label: '落地页 · 设计微调',
       admin: {
-        description: '覆盖站点与「公开落地页」全局兜底。',
+        description:
+          '覆盖站点与「公开落地页」全局兜底。镜像为 amz-template-1 时请用下方「amz-template-1 · 站点配置 JSON」（含 SEO / 品牌 / 主题色）。',
         initCollapsed: false,
+        condition: (_data, siblingData) => siblingData?.mirroredSiteLayout !== 'amz-template-1',
       },
       fields: [
         {
@@ -152,6 +203,7 @@ export const SiteBlueprints: CollectionConfig = {
       admin: {
         description: '设计优先；站点上遗留的同名 override 未在后台展示时仍参与合并。',
         initCollapsed: true,
+        condition: () => false,
       },
       fields: [
         {
@@ -189,11 +241,33 @@ export const SiteBlueprints: CollectionConfig = {
     },
     {
       type: 'collapsible',
+      label: 'amz-template-1 · 站点配置 JSON',
+      admin: {
+        description:
+          '与 amz-template-1 仓库 lib/site.config.ts（siteConfig）同形；参见该仓库 CONFIG_GUIDE。留空或缺键时与代码内默认配置 deep merge。',
+        initCollapsed: true,
+        condition: (_data, siblingData) => siblingData?.mirroredSiteLayout === 'amz-template-1',
+      },
+      fields: [
+        {
+          name: 'amzSiteConfigJson',
+          type: 'json',
+          label: 'AMZ site.config（JSON）',
+          admin: {
+            description:
+              '覆盖品牌、主题色、导航、首页 Hero、页脚等。结构同 siteConfig；未写部分使用内置默认。',
+          },
+        },
+      ],
+    },
+    {
+      type: 'collapsible',
       label: 'Template1 · 导航 / 首页 / 页脚文案',
       admin: {
         description:
-          '站点布局为 Template1 时生效；留空则前台用代码默认中英文。键名与历史整站模版/JSON 导入一致。',
+          '仅当镜像为 Template1 时显示；留空则前台用代码默认中英文。键名与历史整站模版/JSON 导入一致。',
         initCollapsed: true,
+        condition: (_data, siblingData) => siblingData?.mirroredSiteLayout === 'template1',
       },
       fields: [...template1SiteFields],
     },
@@ -202,8 +276,9 @@ export const SiteBlueprints: CollectionConfig = {
       label: 'Template2 · 导航 / 首页 / 页脚文案',
       admin: {
         description:
-          '站点布局为 template2 时从此处读文案；与 Template1 同键。留空则前台用代码默认。',
+          '仅当镜像为 Template2 时显示；与 Template1 同键。留空则前台用代码默认。',
         initCollapsed: true,
+        condition: (_data, siblingData) => siblingData?.mirroredSiteLayout === 'template2',
       },
       fields: [...template2SiteFields],
     },

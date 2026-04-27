@@ -7,17 +7,16 @@ import {
   normalizeWorkflowStatus,
 } from '@/components/workflowStatusBadge'
 
-/** Payload list Cell props (subset; aligns with admin.components.Cell). */
-type DomainWorkflowStatusCellProps = {
+type DesignWorkflowStatusCellProps = {
   cellData?: unknown
   rowData?: unknown
   className?: string
 }
 
-export function DomainWorkflowStatusCell(props: DomainWorkflowStatusCellProps): React.ReactElement {
+export function DesignWorkflowStatusCell(props: DesignWorkflowStatusCellProps): React.ReactElement {
   const row = props.rowData as Record<string, unknown> | undefined
   const fromCell = props.cellData
-  const fromRow = row?.domainWorkflowStatus
+  const fromRow = row?.designWorkflowStatus
   const status = normalizeWorkflowStatus(
     fromCell !== undefined && fromCell !== null ? fromCell : fromRow,
   )

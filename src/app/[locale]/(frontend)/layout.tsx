@@ -16,9 +16,11 @@ import {
   applyTemplate1Placeholders,
   template1BlockForLocale,
 } from '@/utilities/publicLandingTemplate1'
+import { AmzChrome } from '@/amz-template-1/AmzChrome'
 import {
   getPublicSiteContext,
   getPublicSiteTheme,
+  isAmzTemplateLayout,
   isTemplateShellLayout,
 } from '@/utilities/publicLandingTheme'
 import { getNavCategoriesForSite } from '@/utilities/publicSiteQueries'
@@ -118,15 +120,25 @@ export default async function LocaleFrontendLayout(props: LayoutProps) {
   const headersList = await headers()
   const payloadConfig = await config
   const { site, theme } = await getPublicSiteContext(headersList)
+  const isAmz = isAmzTemplateLayout(theme.siteLayout)
   const catLimit =
-    theme.siteLayout === 'affiliate_reviews' ? 48 : isTemplateShellLayout(theme.siteLayout) ? 24 : 8
+    theme.siteLayout === 'affiliate_reviews'
+      ? 48
+      : isTemplateShellLayout(theme.siteLayout)
+        ? 24
+        : isAmz
+          ? 24
+          : 8
   const categories = site ? await getNavCategoriesForSite(site.id, catLimit) : []
 
   const bodyStyle: React.CSSProperties = {
     backgroundColor: theme.blogContentBgColor,
     color: theme.blogBodyColor,
   }
-  if (isTemplateShellLayout(theme.siteLayout)) {
+  if (isAmz) {
+    bodyStyle.backgroundColor = ''
+    bodyStyle.color = ''
+  } else if (isTemplateShellLayout(theme.siteLayout)) {
     bodyStyle.backgroundColor = theme.blogContentBgColor
     bodyStyle.color = theme.blogBodyColor
   } else if (theme.fontPreset === 'serif') {
@@ -135,43 +147,49 @@ export default async function LocaleFrontendLayout(props: LayoutProps) {
     bodyStyle.fontFamily = 'system-ui, sans-serif'
   }
 
-  const htmlStyle = {
-    backgroundColor: theme.blogContentBgColor,
-    '--landing-bg': theme.bgColor,
-    '--landing-text': theme.textColor,
-    '--landing-muted': theme.mutedColor,
-    '--landing-cta-bg': theme.ctaBgColor,
-    '--landing-cta-text': theme.ctaTextColor,
-    '--blog-primary': theme.blogPrimaryColor,
-    '--blog-accent': theme.blogAccentColor,
-    '--blog-card-bg': theme.blogCardBgColor,
-    '--blog-header-text': theme.blogHeaderTextColor,
-    '--blog-heading': theme.blogHeadingColor,
-    '--blog-body': theme.blogBodyColor,
-    '--blog-muted': 'rgba(0,0,0,0.45)',
-    ...(isTemplateShellLayout(theme.siteLayout)
-      ? ({
-          '--primary': theme.blogPrimaryColor,
-          '--primary-foreground': '#ffffff',
-          '--background': theme.blogContentBgColor,
-          '--foreground': theme.blogHeadingColor,
-          '--card': theme.blogCardBgColor,
-          '--muted-foreground': theme.blogBodyColor,
-          '--border': 'oklch(0.9 0.005 95)',
-        } as React.CSSProperties)
-      : {}),
-  } as React.CSSProperties
+  const htmlStyle = (
+    isAmz
+      ? {}
+      : {
+          backgroundColor: theme.blogContentBgColor,
+          '--landing-bg': theme.bgColor,
+          '--landing-text': theme.textColor,
+          '--landing-muted': theme.mutedColor,
+          '--landing-cta-bg': theme.ctaBgColor,
+          '--landing-cta-text': theme.ctaTextColor,
+          '--blog-primary': theme.blogPrimaryColor,
+          '--blog-accent': theme.blogAccentColor,
+          '--blog-card-bg': theme.blogCardBgColor,
+          '--blog-header-text': theme.blogHeaderTextColor,
+          '--blog-heading': theme.blogHeadingColor,
+          '--blog-body': theme.blogBodyColor,
+          '--blog-muted': 'rgba(0,0,0,0.45)',
+          ...(isTemplateShellLayout(theme.siteLayout)
+            ? ({
+                '--primary': theme.blogPrimaryColor,
+                '--primary-foreground': '#ffffff',
+                '--background': theme.blogContentBgColor,
+                '--foreground': theme.blogHeadingColor,
+                '--card': theme.blogCardBgColor,
+                '--muted-foreground': theme.blogBodyColor,
+                '--border': 'oklch(0.9 0.005 95)',
+              } as React.CSSProperties)
+            : {}),
+        }
+  ) as React.CSSProperties
 
   const tShell = isTemplateShellLayout(theme.siteLayout)
   const bodyClassName = [
-    tShell ? `${inter.className} antialiased` : undefined,
-    theme.fontPreset === 'noto_sans_sc' && !tShell ? notoSansSc.className : undefined,
+    isAmz ? 'min-h-screen antialiased' : undefined,
+    !isAmz && tShell ? `${inter.className} antialiased` : undefined,
+    theme.fontPreset === 'noto_sans_sc' && !tShell && !isAmz ? notoSansSc.className : undefined,
   ]
     .filter(Boolean)
     .join(' ')
 
   const htmlClassName = [
-    tShell
+    isAmz ? 'amz-template-1-root' : undefined,
+    !isAmz && tShell
       ? theme.siteLayout === 'template2'
         ? `${inter.variable} ${merriweather.variable} template2-root`
         : `${inter.variable} ${merriweather.variable} template1-root`
@@ -231,7 +249,11 @@ export default async function LocaleFrontendLayout(props: LayoutProps) {
   return (
     <html lang={htmlLangForLocale(locale)} className={htmlClassName || undefined} style={htmlStyle}>
       <body className={bodyClassName || undefined} style={bodyStyle}>
-        {isTemplateShell && t1HeaderLabels && t1FooterLabels ? (
+        {isAmz && theme.amzSiteConfig ? (
+          <AmzChrome locale={locale} config={theme.amzSiteConfig}>
+            {children}
+          </AmzChrome>
+        ) : isTemplateShell && t1HeaderLabels && t1FooterLabels ? (
           <>
             <Template1Header
               locale={locale}

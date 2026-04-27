@@ -4,14 +4,14 @@ import { loggedInSuperAdminAccessFor } from '@/collections/shared/loggedInSuperA
 import { adminGroups } from '@/constants/adminGroups'
 
 const layoutKeyOptions: { label: string; value: string }[] = [
-  { label: '（默认标准）', value: '' },
-  { label: '标准（与历史一致）', value: 'default' },
-  { label: '宽版内容区', value: 'wide' },
-  { label: '联盟测评站（BBF 风格壳 + 首页）', value: 'affiliate_reviews' },
   { label: 'Template1（整站顶栏 + 主从栏 + 页脚）', value: 'template1' },
   {
     label: 'Template2（同结构 · 第二套主题；文案 t2LocaleJson）',
     value: 'template2',
+  },
+  {
+    label: 'amz-template-1（Amazon 联盟测评风 · 顶栏/底栏/主题变量）',
+    value: 'amz-template-1',
   },
 ]
 

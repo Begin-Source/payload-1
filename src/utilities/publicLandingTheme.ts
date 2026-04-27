@@ -6,6 +6,8 @@ import config from '@/payload.config'
 import type { PublicLanding, Site, SiteBlueprint } from '@/payload-types'
 import { getRequestHost } from '@/utilities/normalizeRequestHost'
 import { resolveSiteForLanding } from '@/utilities/resolveSiteForLanding'
+import type { AmzSiteConfig } from '@/amz-template-1/defaultSiteConfig'
+import { mergeAmzSiteConfigFromRaw } from '@/amz-template-1/mergeAmzSiteConfig'
 import { mergeTemplate1Layers, type Template1Theme } from '@/utilities/publicLandingTemplate1'
 
 export type LandingFontPreset = 'system' | 'serif' | 'noto_sans_sc'
@@ -48,6 +50,7 @@ export type SiteLayoutId =
   | 'affiliate_reviews'
   | 'template1'
   | 'template2'
+  | 'amz-template-1'
 
 const SITE_LAYOUT_IDS = new Set<SiteLayoutId>([
   'default',
@@ -55,6 +58,7 @@ const SITE_LAYOUT_IDS = new Set<SiteLayoutId>([
   'affiliate_reviews',
   'template1',
   'template2',
+  'amz-template-1',
 ])
 
 /** Template1/2 共用 `Template1*` 壳与 `theme.template1` 文案 merge（Template2 用 `t2LocaleJson`）。 */
@@ -62,6 +66,12 @@ export function isTemplateShellLayout(
   layout: string | null | undefined,
 ): layout is 'template1' | 'template2' {
   return layout === 'template1' || layout === 'template2'
+}
+
+export function isAmzTemplateLayout(
+  layout: string | null | undefined,
+): layout is 'amz-template-1' {
+  return layout === 'amz-template-1'
 }
 
 function normalizeSiteLayout(value: string | null | undefined): SiteLayoutId {
@@ -106,6 +116,8 @@ export type PublicSiteTheme = LandingTheme &
     footerResourceLinks: FooterResourceLink[]
     /** T1/T2 壳层文案（`template1`→ 设计 t1LocaleJson；`template2`→ t2LocaleJson）；结构同 Template1Theme。 */
     template1: Template1Theme
+    /** 仅 `amz-template-1`：设计 amzSiteConfigJson 与默认 deep merge 后的站点壳配置。 */
+    amzSiteConfig?: AmzSiteConfig
   }
 
 const BLOG_DEFAULTS: BlogChromeTheme = {
@@ -286,19 +298,34 @@ export function mergePublicSiteTheme(
   const blogChrome = mergeBlogChromeLayers(global, design)
   const sl = normalizeSiteLayout(firstNonEmpty(site?.siteLayout))
   const template1Theme =
-    sl === 'template2'
-      ? mergeTemplate1Layers(design?.t2LocaleJson, null)
-      : mergeTemplate1Layers(design?.t1LocaleJson, null)
+    sl === 'amz-template-1'
+      ? mergeTemplate1Layers(null, null)
+      : sl === 'template2'
+        ? mergeTemplate1Layers(design?.t2LocaleJson, null)
+        : mergeTemplate1Layers(design?.t1LocaleJson, null)
+  const amzSiteConfig =
+    sl === 'amz-template-1' ? mergeAmzSiteConfigFromRaw(design?.amzSiteConfigJson) : undefined
+  const landingForTheme =
+    sl === 'amz-template-1' && amzSiteConfig
+      ? {
+          ...landing,
+          browserTitle:
+            firstNonEmpty(amzSiteConfig.seo?.title, landing.browserTitle) ?? landing.browserTitle,
+          tagline:
+            firstNonEmpty(amzSiteConfig.seo?.description, landing.tagline) ?? landing.tagline,
+        }
+      : landing
   return {
-    ...landing,
+    ...landingForTheme,
     ...blogChrome,
     siteLayout: sl,
     reviewHubTaglineResolved:
-      firstNonEmpty(design?.designReviewHubTagline, landing.tagline) ?? '',
+      firstNonEmpty(design?.designReviewHubTagline, landingForTheme.tagline) ?? '',
     affiliateDisclosureResolved:
       firstNonEmpty(design?.designAffiliateDisclosureLine) ?? DEFAULT_AFFILIATE_DISCLOSURE,
     footerResourceLinks: footerResourceLinksFromDesign(design),
     template1: template1Theme,
+    amzSiteConfig,
   }
 }
 
@@ -323,18 +350,16 @@ const loadPublicSiteBundle = cache(
     })
 
     let blueprint: SiteBlueprint | null = null
-    const blueprintId = relationId(site?.blueprint)
-    if (blueprintId) {
-      try {
-        blueprint = (await payload.findByID({
-          collection: 'site-blueprints',
-          id: blueprintId,
-          depth: 0,
-          overrideAccess: true,
-        })) as SiteBlueprint
-      } catch {
-        blueprint = null
-      }
+    if (site?.id != null) {
+      const found = await payload.find({
+        collection: 'site-blueprints',
+        where: { site: { equals: site.id } },
+        limit: 1,
+        sort: '-updatedAt',
+        depth: 0,
+        overrideAccess: true,
+      })
+      blueprint = (found.docs[0] as SiteBlueprint | undefined) ?? null
     }
 
     return { site, globalDoc, blueprint }

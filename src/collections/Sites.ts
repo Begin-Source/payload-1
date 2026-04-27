@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { syncBlueprintsMirroredLayoutAfterSiteChange } from '@/collections/hooks/syncBlueprintMirroredLayout'
 import { fillSitesOptionalDbFields } from '@/collections/hooks/fillSitesOptionalDbFields'
 import { auditSitesMatrixChange } from '@/collections/hooks/sitesMatrixAudit'
 import { siteTrustPagesInstantiate } from '@/collections/hooks/siteTrustPagesInstantiate'
@@ -33,7 +34,11 @@ export const Sites: CollectionConfig = {
   access: loggedInSuperAdminAccessFor('sites'),
   hooks: {
     beforeChange: [fillSitesOptionalDbFields, enforceSitesMatrixQuota],
-    afterChange: [siteTrustPagesInstantiate, auditSitesMatrixChange],
+    afterChange: [
+      syncBlueprintsMirroredLayoutAfterSiteChange,
+      siteTrustPagesInstantiate,
+      auditSitesMatrixChange,
+    ],
   },
   fields: [
     {
@@ -81,31 +86,24 @@ export const Sites: CollectionConfig = {
       },
     },
     {
-      name: 'blueprint',
-      type: 'relationship',
-      relationTo: 'site-blueprints',
-      admin: {
-        description: 'Optional layout/template blueprint for this site.',
-      },
-    },
-    {
       name: 'siteLayout',
       type: 'select',
       label: '站点布局',
+      defaultValue: 'template1',
       options: [
-        { label: '（默认标准）', value: '' },
-        { label: '标准（与历史一致）', value: 'default' },
-        { label: '宽版内容区', value: 'wide' },
-        { label: '联盟测评站（BBF 风格壳 + 首页）', value: 'affiliate_reviews' },
         { label: 'Template1（整站顶栏 + 主从栏 + 页脚）', value: 'template1' },
         {
           label: 'Template2（同结构 · 第二套主题；文案 t2LocaleJson）',
           value: 'template2',
         },
+        {
+          label: 'amz-template-1（Amazon 联盟测评风 · 顶栏/底栏/主题变量）',
+          value: 'amz-template-1',
+        },
       ],
       admin: {
         description:
-          '站点级壳层。留空则按 `default`。各选项的说明与「预览链接」见侧栏「网站」→「站点布局」。落地页/博客/联盟测评的文案与配色在关联的「设计」中配置；Template1/2 导航/首页/页脚在「设计」的 t1LocaleJson / t2LocaleJson。',
+          'Template1 / Template2：文案在「设计」t1LocaleJson / t2LocaleJson。amz-template-1：壳层与配色见「设计」amzSiteConfigJson（与 amz-template-1 仓库 site.config 同形）。说明与预览链接见「站点布局」目录。',
       },
     },
     {
@@ -142,16 +140,12 @@ export const Sites: CollectionConfig = {
         },
         {
           name: 'domainWorkflowStatus',
-          type: 'select',
+          type: 'text',
           label: '域名流程状态',
           defaultValue: 'idle',
-          options: [
-            { label: '空闲', value: 'idle' },
-            { label: '运行中', value: 'running' },
-            { label: '已完成', value: 'done' },
-            { label: '错误', value: 'error' },
-          ],
           admin: {
+            description:
+              '推荐取值（小写英文）：idle 代办 · running 运行中 · done 已完成 · error 错误。API 与列表徽章按此约定；任意其他值在列表中按代办样式显示。',
             components: {
               Cell: './components/DomainWorkflowStatusCell#DomainWorkflowStatusCell',
             },

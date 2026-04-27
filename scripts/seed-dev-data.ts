@@ -1188,15 +1188,15 @@ async function main(): Promise<void> {
         site0Id: site0.id as number,
       })
       if (bp) {
-        for (const siteRow of [site0, site1]) {
-          const s = siteRow as {
-            id: number
-            blueprint?: number | { id: number } | null
-          }
-          if (s.blueprint == null) {
-            await d1NarrowUpdateSites(payload, s.id, [['blueprint_id', bp.id]])
-            console.info('[seed:dev] Linked blueprint → site id', s.id, '(D1 narrow)')
-          }
+        const bp1 = await d1SeedEnsureSiteBlueprint(payload, {
+          tenantId,
+          blueprintSlug: `${p.slug}-blueprint-site1`,
+          name: `${p.name} 默认模板（站点2）`,
+          description: '种子设计模板',
+          site0Id: site1.id as number,
+        })
+        if (bp1) {
+          console.info('[seed:dev] Site blueprint (D1 raw)', `${p.slug}-blueprint-site1`, 'id', bp1.id)
         }
         console.info('[seed:dev] Site blueprint (D1 raw)', blueprintSlug, 'id', bp.id)
       } else {
@@ -1229,33 +1229,29 @@ async function main(): Promise<void> {
         console.info('[seed:dev] Created site blueprint', blueprintSlug)
       }
 
-      const bpRow = (
-        await payload.find({
+      const bpSlug1 = `${p.slug}-blueprint-site1`
+      const bpFound1 = await payload.find({
+        collection: 'site-blueprints',
+        ...d0,
+        where: whereTenantAndSlug(tenantId, bpSlug1),
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (!bpFound1.docs[0]) {
+        await payload.create({
           collection: 'site-blueprints',
+          ...reqOpts,
           ...d0,
-          where: whereTenantAndSlug(tenantId, blueprintSlug),
-          limit: 1,
+          data: {
+            name: `${p.name} 默认模板（站点2）`,
+            slug: bpSlug1,
+            site: site1.id,
+            tenant: tenantId,
+            description: '种子设计模板',
+          },
           overrideAccess: true,
         })
-      ).docs[0] as { id: number } | undefined
-      if (bpRow) {
-        for (const siteRow of [site0, site1]) {
-          const s = siteRow as {
-            id: number
-            blueprint?: number | { id: number } | null
-          }
-          if (s.blueprint == null) {
-            await payload.update({
-              collection: 'sites',
-              id: s.id,
-              ...reqOpts,
-              ...d0,
-              data: { blueprint: bpRow.id },
-              overrideAccess: true,
-            })
-            console.info('[seed:dev] Linked blueprint → site id', s.id)
-          }
-        }
+        console.info('[seed:dev] Created site blueprint', bpSlug1)
       }
     }
 

@@ -2,6 +2,7 @@ import type { CollectionBeforeChangeHook, Field, FilterOptions } from 'payload'
 
 import type { Config } from '@/payload-types'
 import { combineTenantWhere, getTenantScopeForStats } from '@/utilities/tenantScope'
+import { hasRelationshipId } from '@/utilities/parseRelationshipId'
 
 /** 限制可选站点为当前用户租户范围内的 sites（超管为全部）。 */
 export const sitesRelationshipFilterOptions: FilterOptions = ({ req }) => {
@@ -13,14 +14,7 @@ export const sitesRelationshipFilterOptions: FilterOptions = ({ req }) => {
 }
 
 function dataHasSiteId(data: Record<string, unknown>): boolean {
-  const s = data.site
-  if (s == null || s === '') return false
-  if (typeof s === 'number') return Number.isFinite(s)
-  if (typeof s === 'object' && s !== null && 'id' in s) {
-    const id = (s as { id: unknown }).id
-    return typeof id === 'number' && Number.isFinite(id)
-  }
-  return false
+  return hasRelationshipId(data.site)
 }
 
 /**

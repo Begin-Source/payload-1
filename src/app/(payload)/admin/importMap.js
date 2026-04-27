@@ -2,6 +2,8 @@ import { TenantField as TenantField_1d0591e3cf4f332c83a86da13a0de59a } from '@pa
 import { AssignTenantFieldTrigger as AssignTenantFieldTrigger_1d0591e3cf4f332c83a86da13a0de59a } from '@payloadcms/plugin-multi-tenant/client'
 import { DomainWorkflowStatusCell as DomainWorkflowStatusCell_d02e5517766a3d127031406940d63f37 } from '../../../components/DomainWorkflowStatusCell'
 import { SiteListQuickAction as SiteListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
+import { MirroredSiteLayoutField as MirroredSiteLayoutField_042f80b8e90dfb3d2453b56f1142112d } from '../../../components/MirroredSiteLayoutField'
+import { DesignWorkflowStatusCell as DesignWorkflowStatusCell_22909da9cd5de942db4efe7475a52ed5 } from '../../../components/DesignWorkflowStatusCell'
 import { CsvImportExportListMenuItem as CsvImportExportListMenuItem_4c39b1e20c32c7d5b42c969ff894026e } from '../../../components/ArticleCsvImportExport'
 import { CsvImportExportPanel as CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e } from '../../../components/ArticleCsvImportExport'
 import { DesignListQuickAction as DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
@@ -65,6 +67,8 @@ export const importMap = {
   "@payloadcms/plugin-multi-tenant/client#AssignTenantFieldTrigger": AssignTenantFieldTrigger_1d0591e3cf4f332c83a86da13a0de59a,
   "./components/DomainWorkflowStatusCell#DomainWorkflowStatusCell": DomainWorkflowStatusCell_d02e5517766a3d127031406940d63f37,
   "./components/CollectionQuickActions#SiteListQuickAction": SiteListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
+  "./components/MirroredSiteLayoutField#MirroredSiteLayoutField": MirroredSiteLayoutField_042f80b8e90dfb3d2453b56f1142112d,
+  "./components/DesignWorkflowStatusCell#DesignWorkflowStatusCell": DesignWorkflowStatusCell_22909da9cd5de942db4efe7475a52ed5,
   "./components/ArticleCsvImportExport#CsvImportExportListMenuItem": CsvImportExportListMenuItem_4c39b1e20c32c7d5b42c969ff894026e,
   "./components/ArticleCsvImportExport#CsvImportExportPanel": CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e,
   "./components/CollectionQuickActions#DesignListQuickAction": DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,

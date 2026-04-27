@@ -371,13 +371,9 @@ export interface Site {
    */
   portfolio?: (number | null) | SitePortfolio;
   /**
-   * Optional layout/template blueprint for this site.
+   * Template1 / Template2：文案在「设计」t1LocaleJson / t2LocaleJson。amz-template-1：壳层与配色见「设计」amzSiteConfigJson（与 amz-template-1 仓库 site.config 同形）。说明与预览链接见「站点布局」目录。
    */
-  blueprint?: (number | null) | SiteBlueprint;
-  /**
-   * 站点级壳层。留空则按 `default`。各选项的说明与「预览链接」见侧栏「网站」→「站点布局」。落地页/博客/联盟测评的文案与配色在关联的「设计」中配置；Template1/2 导航/首页/页脚在「设计」的 t1LocaleJson / t2LocaleJson。
-   */
-  siteLayout?: ('' | 'default' | 'wide' | 'affiliate_reviews' | 'template1' | 'template2') | null;
+  siteLayout?: ('template1' | 'template2' | 'amz-template-1') | null;
   /**
    * Users who operate this site (optional; tenant scoping still applies).
    */
@@ -398,7 +394,10 @@ export interface Site {
     | number
     | boolean
     | null;
-  domainWorkflowStatus?: ('idle' | 'running' | 'done' | 'error') | null;
+  /**
+   * 推荐取值（小写英文）：idle 代办 · running 运行中 · done 已完成 · error 错误。API 与列表徽章按此约定；任意其他值在列表中按代办样式显示。
+   */
+  domainWorkflowStatus?: string | null;
   /**
    * available | unavailable | error（多由 API 写入）。
    */
@@ -430,6 +429,14 @@ export interface SiteBlueprint {
    * 新建必填；旧数据可暂为空后再补全。
    */
   site?: (number | null) | Site;
+  /**
+   * 只读，随关联「站点」的「站点布局」自动同步；用于在下方只展示当前壳层对应的文案区。
+   */
+  mirroredSiteLayout?: ('template1' | 'template2' | 'amz-template-1') | null;
+  /**
+   * 推荐取值（小写英文）：idle 代办 · running 运行中 · done 已完成 · error 错误。由 AMZ 设计生成等流程写入；卡死时可手工改回 idle（代办）。
+   */
+  designWorkflowStatus?: string | null;
   description?: string | null;
   /**
    * Arbitrary JSON for themes, sections, or generator defaults.
@@ -488,6 +495,18 @@ export interface SiteBlueprint {
   designAboutImage?: (number | null) | Media;
   designAboutCtaLabel?: string | null;
   designAboutCtaHref?: string | null;
+  /**
+   * 覆盖品牌、主题色、导航、首页 Hero、页脚等。结构同 siteConfig；未写部分使用内置默认。
+   */
+  amzSiteConfigJson?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   /**
    * JSON 对象：键与历史独立字段一致（如 t1NavAllReviewsEn、t1HomeTitleZh、t1NavUsePageTitleForAbout 等）。留空则用 public-landing 全局或代码默认。可粘贴 `scripts/seed-dev-data.ts` 中 `SEED_ALPHA_TEMPLATE1_DEMO` 结构作参考。
    */
@@ -578,7 +597,7 @@ export interface SiteLayout {
   /**
    * 需与编辑站点时选择的布局值一致；全库仅允许一条/键。
    */
-  layoutKey: '' | 'default' | 'wide' | 'affiliate_reviews' | 'template1' | 'template2';
+  layoutKey: 'template1' | 'template2' | 'amz-template-1';
   /**
    * 与侧栏「网站 → 站点」里「站点布局」选项展示一致；本集合仅作说明与预览链接，不替代站点上存储的布局值。
    */
@@ -2730,7 +2749,6 @@ export interface SitesSelect<T extends boolean = true> {
   primaryDomain?: T;
   status?: T;
   portfolio?: T;
-  blueprint?: T;
   siteLayout?: T;
   operators?: T;
   mainProduct?: T;
@@ -2754,6 +2772,8 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   site?: T;
+  mirroredSiteLayout?: T;
+  designWorkflowStatus?: T;
   description?: T;
   templateConfig?: T;
   designBrowserTitle?: T;
@@ -2784,6 +2804,7 @@ export interface SiteBlueprintsSelect<T extends boolean = true> {
   designAboutImage?: T;
   designAboutCtaLabel?: T;
   designAboutCtaHref?: T;
+  amzSiteConfigJson?: T;
   t1LocaleJson?: T;
   t2LocaleJson?: T;
   trustAssetsTemplate?: T;

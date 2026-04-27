@@ -54,6 +54,7 @@ export async function findSiteQuotaForSite(payload: Payload, siteId: number): Pr
 
 /** Rough per-job USD / credit estimates for pre-flight checks (not billing-grade). */
 const EST_OPENROUTER_USD: Partial<Record<string, number>> = {
+  amz_template_design: 0.06,
   brief_generate: 0.025,
   draft_skeleton: 0.015,
   draft_section: 0.01,

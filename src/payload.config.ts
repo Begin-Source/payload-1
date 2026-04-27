@@ -70,6 +70,7 @@ import {
   safeFetchOpenRouterModelOptions,
 } from './utilities/openRouterGenerationModels'
 import { lexicalEditorWithAi } from './utilities/lexicalEditorWithAi'
+import { syncBlueprintTenantFromSiteTenantFieldBeforeChange } from './collections/hooks/syncBlueprintMirroredLayout'
 
 /** Collections exposed via MCP (camelCase keys on API key docs must match these slugs). */
 const mcpCollectionSlugs = [
@@ -303,7 +304,13 @@ export default buildConfig({
         'site-portfolios': {},
         sites: {},
         'site-quotas': {},
-        'site-blueprints': {},
+        'site-blueprints': {
+          tenantFieldOverrides: {
+            hooks: {
+              beforeChange: [syncBlueprintTenantFromSiteTenantFieldBeforeChange],
+            },
+          },
+        },
         'affiliate-networks': {},
         offers: {},
         'click-events': {},
@@ -455,7 +462,7 @@ export default buildConfig({
         sites: {
           enabled: true,
           description:
-            'Affiliate / rank-and-rent sites (domain, status, blueprint). Super-admin API keys receive full MCP CRUD.',
+            'Affiliate / rank-and-rent sites (domain, status, layout). Design docs link via site-blueprints.site. Super-admin API keys receive full MCP CRUD.',
         },
         'affiliate-networks': {
           enabled: true,

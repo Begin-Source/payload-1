@@ -39,6 +39,12 @@ import * as migration_20260629_140000_repair_locked_docs_drop_site_t1_locales_id
 import * as migration_20260629_150000_repair_sites_drop_landing_template_id_and_t1_columns from './20260629_150000_repair_sites_drop_landing_template_id_and_t1_columns';
 import * as migration_20260630_120000_site_portfolios_seo_matrix from './20260630_120000_site_portfolios_seo_matrix';
 import * as migration_20260630_200000_sites_domain_ai_fields from './20260630_200000_sites_domain_ai_fields';
+import * as migration_20260701_120000_site_layout_only_template1_template2 from './20260701_120000_site_layout_only_template1_template2';
+import * as migration_20260701_130000_site_blueprints_mirrored_site_layout from './20260701_130000_site_blueprints_mirrored_site_layout';
+import * as migration_20260702_140000_site_blueprints_amz_site_config_json from './20260702_140000_site_blueprints_amz_site_config_json';
+import * as migration_20260703_120000_repair_site_blueprints_site_id_fk_sites from './20260703_120000_repair_site_blueprints_site_id_fk_sites';
+import * as migration_20260704_120000_drop_sites_blueprint_relation from './20260704_120000_drop_sites_blueprint_relation';
+import * as migration_20260705_120000_site_blueprints_design_workflow_status from './20260705_120000_site_blueprints_design_workflow_status';
 
 export const migrations = [
   {
@@ -245,5 +251,35 @@ export const migrations = [
     up: migration_20260630_200000_sites_domain_ai_fields.up,
     down: migration_20260630_200000_sites_domain_ai_fields.down,
     name: '20260630_200000_sites_domain_ai_fields',
+  },
+  {
+    up: migration_20260701_120000_site_layout_only_template1_template2.up,
+    down: migration_20260701_120000_site_layout_only_template1_template2.down,
+    name: '20260701_120000_site_layout_only_template1_template2',
+  },
+  {
+    up: migration_20260701_130000_site_blueprints_mirrored_site_layout.up,
+    down: migration_20260701_130000_site_blueprints_mirrored_site_layout.down,
+    name: '20260701_130000_site_blueprints_mirrored_site_layout',
+  },
+  {
+    up: migration_20260702_140000_site_blueprints_amz_site_config_json.up,
+    down: migration_20260702_140000_site_blueprints_amz_site_config_json.down,
+    name: '20260702_140000_site_blueprints_amz_site_config_json',
+  },
+  {
+    up: migration_20260703_120000_repair_site_blueprints_site_id_fk_sites.up,
+    down: migration_20260703_120000_repair_site_blueprints_site_id_fk_sites.down,
+    name: '20260703_120000_repair_site_blueprints_site_id_fk_sites',
+  },
+  {
+    up: migration_20260704_120000_drop_sites_blueprint_relation.up,
+    down: migration_20260704_120000_drop_sites_blueprint_relation.down,
+    name: '20260704_120000_drop_sites_blueprint_relation',
+  },
+  {
+    up: migration_20260705_120000_site_blueprints_design_workflow_status.up,
+    down: migration_20260705_120000_site_blueprints_design_workflow_status.down,
+    name: '20260705_120000_site_blueprints_design_workflow_status',
   },
 ];
