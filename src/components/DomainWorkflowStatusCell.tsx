@@ -33,9 +33,9 @@ const STYLE: Record<
     border: '1px solid var(--theme-warning-400, #d97706)',
   },
   done: {
-    background: 'var(--theme-success-50, rgba(34, 197, 94, 0.12))',
-    color: 'var(--theme-success-600, #15803d)',
-    border: '1px solid var(--theme-success-400, #22c55e)',
+    background: 'rgba(22, 163, 74, 0.16)',
+    color: '#166534',
+    border: '1px solid #22c55e',
   },
   error: {
     background: 'var(--theme-error-50, rgba(239, 68, 68, 0.12))',
