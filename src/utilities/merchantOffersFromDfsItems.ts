@@ -96,8 +96,12 @@ function resolvePriceMajor(item: Record<string, unknown>): number | undefined {
   return Number.isFinite(n) ? n : undefined
 }
 
-/** D1: max SQL statement ~100KB; keep merchantRaw well under to avoid insert failures. */
-export const MERCHANT_RAW_MAX_UTF8_BYTES = 48 * 1024
+/** D1: max SQL statement ~100KB for entire INSERT; merchantRaw must leave headroom for other columns + escaping. */
+export const MERCHANT_RAW_MAX_UTF8_BYTES = 28 * 1024
+
+const IMAGE_URL_MAX_LEN = 512
+const GALLERY_URL_MAX_LEN = 400
+const GALLERY_MAX_ITEMS = 4
 
 export function merchantRawUtf8Bytes(obj: unknown): number {
   return new TextEncoder().encode(JSON.stringify(obj)).length
@@ -107,14 +111,87 @@ function jsonUtf8Bytes(obj: unknown): number {
   return merchantRawUtf8Bytes(obj)
 }
 
+/** `/dp/B0ABCDEF123` or `/gp/product/B0ABCDEF123` on any amazon.* host */
+const AMAZON_ASIN_PATH_RE =
+  /\/(?:dp|gp\/product)\/([A-Z0-9]{10})(?:\/|$|[\/?&#])/i
+
+function tryCanonicalAmazonDpUrl(u: string): string | null {
+  const t = String(u ?? '').trim()
+  if (!t) return null
+  try {
+    const url = new URL(t)
+    if (!url.hostname.toLowerCase().includes('amazon.')) return null
+    const pathAndQuery = `${url.pathname}${url.search}`
+    const m = pathAndQuery.match(AMAZON_ASIN_PATH_RE) ?? url.pathname.match(/\/dp\/([A-Z0-9]{10})/i)
+    if (!m?.[1]) return null
+    const a = m[1].toUpperCase()
+    return /^[A-Z0-9]{10}$/.test(a) ? `https://www.amazon.com/dp/${a}` : null
+  } catch {
+    return null
+  }
+}
+
+function truncateStr(s: string, max: number): string {
+  if (s.length <= max) return s
+  return `${s.slice(0, Math.max(0, max - 1))}…`
+}
+
 /**
- * Second-line guard before DB insert: if something still exceeds the cap, strip bulky keys (keeps `image_url`).
+ * CDN / product URLs: normalize Amazon shopping links to short `/dp/{ASIN}`;
+ * otherwise cap `origin + pathname + search` (sponsored paths can be huge without a query).
+ */
+function shortenUrlForStorage(u: string, maxLen: number): string {
+  const canon = tryCanonicalAmazonDpUrl(u)
+  if (canon) return canon
+
+  const t = String(u ?? '').trim()
+  if (!t) return ''
+  try {
+    const url = new URL(t)
+    let base = `${url.origin}${url.pathname}${url.search}`
+    if (base.length > maxLen) base = truncateStr(base, maxLen)
+    return base
+  } catch {
+    return truncateStr(t, Math.min(maxLen, 320))
+  }
+}
+
+function shortAmazonProductUrl(asin: string): string {
+  const a = String(asin ?? '').trim().toUpperCase()
+  return a ? `https://www.amazon.com/dp/${a}` : ''
+}
+
+/**
+ * Second-line guard before DB insert: shrink gallery strings before deleting keys (keeps `image_url` longest).
  */
 export function clampMerchantRawDocument(raw: unknown): Record<string, unknown> {
   if (raw === null || raw === undefined) return {}
   if (typeof raw !== 'object' || Array.isArray(raw)) return {}
-  let o = { ...(raw as Record<string, unknown>) }
+  const o = { ...(raw as Record<string, unknown>) }
+
   while (jsonUtf8Bytes(o) > MERCHANT_RAW_MAX_UTF8_BYTES) {
+    if (typeof o.image_url === 'string' && o.image_url.length > IMAGE_URL_MAX_LEN) {
+      o.image_url = shortenUrlForStorage(o.image_url, IMAGE_URL_MAX_LEN)
+      continue
+    }
+    if (
+      Array.isArray(o.product_images_list) &&
+      (o.product_images_list as unknown[]).some((x) => String(x ?? '').length > 160)
+    ) {
+      o.product_images_list = (o.product_images_list as unknown[]).map((x) =>
+        shortenUrlForStorage(String(x ?? ''), 160),
+      )
+      continue
+    }
+    if (
+      Array.isArray(o.product_images_list) &&
+      (o.product_images_list as unknown[]).some((x) => String(x ?? '').length > 96)
+    ) {
+      o.product_images_list = (o.product_images_list as unknown[]).map((x) =>
+        truncateStr(String(x ?? ''), 96),
+      )
+      continue
+    }
     if (Array.isArray(o.features) && o.features.length) {
       o.features = (o.features as unknown[]).slice(0, Math.max(0, (o.features as unknown[]).length - 2))
       continue
@@ -122,7 +199,7 @@ export function clampMerchantRawDocument(raw: unknown): Record<string, unknown> 
     if (Array.isArray(o.product_images_list) && o.product_images_list.length) {
       o.product_images_list = (o.product_images_list as unknown[]).slice(
         0,
-        Math.max(1, (o.product_images_list as unknown[]).length - 2),
+        Math.max(1, (o.product_images_list as unknown[]).length - 1),
       )
       continue
     }
@@ -138,34 +215,11 @@ export function clampMerchantRawDocument(raw: unknown): Record<string, unknown> 
   return o
 }
 
-function truncateStr(s: string, max: number): string {
-  if (s.length <= max) return s
-  return `${s.slice(0, Math.max(0, max - 1))}…`
-}
-
-/** Drop tracking query strings; keep https host+path for CDN image URLs. */
-function shortenUrlForStorage(u: string, maxLen: number): string {
-  const t = String(u ?? '').trim()
-  if (!t) return ''
-  try {
-    const url = new URL(t)
-    const base = `${url.origin}${url.pathname}`
-    return base.length > maxLen ? `${base.slice(0, maxLen - 1)}…` : base
-  } catch {
-    return truncateStr(t, Math.min(maxLen, 800))
-  }
-}
-
-function shortAmazonProductUrl(asin: string): string {
-  const a = String(asin ?? '').trim().toUpperCase()
-  return a ? `https://www.amazon.com/dp/${a}` : ''
-}
-
 type DfsRankMeta = { votes: number; bought_past_month: number; match_ratio: number }
 
 /**
- * Slim copy of DFS item for `amazon_merchant_raw`: avoids D1 100KB statement limits from huge `url` query strings.
- * Preserves image_url and up to 8 extra gallery URLs (shortened, no query junk).
+ * Slim copy of DFS item for `amazon_merchant_raw`: avoids D1 100KB statement limits from huge URLs.
+ * Preserves primary `image_url` and up to four gallery URLs (shortened; deduped with main).
  */
 export function sanitizeMerchantRawForStorage(
   item: Record<string, unknown>,
@@ -175,26 +229,32 @@ export function sanitizeMerchantRawForStorage(
 
   const mainImg = String(item.image_url ?? '').trim()
   const gallery: string[] = []
-  if (mainImg) gallery.push(shortenUrlForStorage(mainImg, 1800))
+  if (mainImg) gallery.push(shortenUrlForStorage(mainImg, IMAGE_URL_MAX_LEN))
   const rawList = Array.isArray(item.product_images_list) ? item.product_images_list : []
-  for (let i = 0; i < Math.min(8, rawList.length); i++) {
+  for (let i = 0; i < rawList.length && gallery.length < GALLERY_MAX_ITEMS; i++) {
     const u = String(rawList[i] ?? '').trim()
-    if (u) gallery.push(shortenUrlForStorage(u, 1800))
+    if (!u) continue
+    const shortened = shortenUrlForStorage(u, GALLERY_URL_MAX_LEN)
+    if (!shortened || gallery.includes(shortened)) continue
+    gallery.push(shortened)
   }
-  const uniqueGallery = [...new Set(gallery)].slice(0, 10)
+  const uniqueGallery = [...new Set(gallery)].slice(0, GALLERY_MAX_ITEMS)
 
   const rating = item.rating
   const price = item.price
   const delivery = item.delivery_info
+
+  const productUrl =
+    asin ? shortAmazonProductUrl(asin) : shortenUrlForStorage(String(item.url ?? ''), 320)
 
   const out: Record<string, unknown> = {
     type: item.type,
     title: truncateStr(String(item.title ?? ''), 450),
     data_asin: item.data_asin ?? asin,
     asin: asin || undefined,
-    image_url: mainImg ? shortenUrlForStorage(mainImg, 1800) : undefined,
+    image_url: mainImg ? shortenUrlForStorage(mainImg, IMAGE_URL_MAX_LEN) : undefined,
     product_images_list: uniqueGallery.length > 1 ? uniqueGallery : uniqueGallery.length ? uniqueGallery : undefined,
-    url: shortAmazonProductUrl(asin) || shortenUrlForStorage(String(item.url ?? ''), 600),
+    url: productUrl || undefined,
     bought_past_month: item.bought_past_month,
     price_from: item.price_from,
     price_to: item.price_to,
@@ -253,8 +313,8 @@ export function sanitizeMerchantRawForStorage(
       : undefined
   if (jsonUtf8Bytes(lean) > MERCHANT_RAW_MAX_UTF8_BYTES && Array.isArray(lean.product_images_list)) {
     const imgs = lean.product_images_list as string[]
-    lean.product_images_list = imgs.slice(0, 3)
-    lean.image_url = imgs[0] ? shortenUrlForStorage(imgs[0], 1200) : lean.image_url
+    lean.product_images_list = imgs.slice(0, Math.min(3, GALLERY_MAX_ITEMS))
+    lean.image_url = imgs[0] ? shortenUrlForStorage(imgs[0], IMAGE_URL_MAX_LEN) : lean.image_url
   }
   let bytes = jsonUtf8Bytes(lean)
   while (bytes > MERCHANT_RAW_MAX_UTF8_BYTES && Array.isArray(lean.features) && (lean.features as string[]).length > 0) {
@@ -265,7 +325,7 @@ export function sanitizeMerchantRawForStorage(
     lean._storage_note = 'truncated_for_d1_row_size'
     delete lean.features
     delete lean.product_images_list
-    lean.image_url = mainImg ? shortenUrlForStorage(mainImg, 800) : lean.image_url
+    lean.image_url = mainImg ? shortenUrlForStorage(mainImg, IMAGE_URL_MAX_LEN) : lean.image_url
   }
   return lean
 }
