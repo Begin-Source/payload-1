@@ -44,6 +44,24 @@ function readFetchLimit(raw: unknown, fallback = 5): number {
 }
 
 /**
+ * Drizzle/SQLite errors are often `Failed query: insert…` + huge binds + SQLITE_/constraint at the **tail**.
+ * Storing only the first N chars hides the cause; prefer head + tail within maxLen for Admin textarea.
+ */
+function formatOfferCreateErrorForStorage(msg: string, maxLen = 3500): string {
+  if (msg.length <= maxLen) return msg
+  const headChars = 220
+  const tailChars = 1400
+  const omitted = Math.max(0, msg.length - headChars - tailChars)
+  const mid = `\n… [omitted ${omitted} chars; root cause often below] …\n`
+  return `${msg.slice(0, headChars)}${mid}${msg.slice(-tailChars)}`
+}
+
+function errorTailForHttp(msg: string, tailLen = 650): string {
+  if (msg.length <= tailLen) return msg
+  return msg.slice(-tailLen)
+}
+
+/**
  * DataForSEO Amazon Products postback (`postback_data: advanced`): creates/updates Payload offers for a category tag.
  *
  * Tag format: `payload:category:<id>:<batchUuid>` (see `formatMerchantSlotTag`).
@@ -273,12 +291,18 @@ export async function POST(request: Request): Promise<Response> {
       createdIds.push(doc.id as number)
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
+      const asin = String(patch.amazon?.asin ?? '').trim() || '—'
+      const logLine = `[dataforseo-merchant-offers] offer create failed · categoryId=${categoryId} batchUuid=${batchUuid} siteId=${siteId} tenantId=${tenantId} asin=${asin}`
+      payload.logger.error(logLine)
+      payload.logger.error(msg)
+
+      const forCategory = formatOfferCreateErrorForStorage(msg)
       await payload.update({
         collection: 'categories',
         id: categoryId,
         data: {
           merchantOfferFetchWorkflowStatus: 'error',
-          merchantOfferFetchWorkflowLog: `Offer create: ${msg.slice(0, 500)}`,
+          merchantOfferFetchWorkflowLog: `Offer create: ${forCategory}`,
           merchantOfferFetchLastSummary: stringifySummaryRecord({
             ...summary,
             reason: build.reason,
@@ -292,7 +316,14 @@ export async function POST(request: Request): Promise<Response> {
         overrideAccess: true,
       })
       return Response.json(
-        { ok: false, error: msg.slice(0, 200), created_partial: createdIds },
+        {
+          ok: false,
+          error: errorTailForHttp(msg),
+          error_detail: forCategory,
+          created_partial: createdIds,
+          categoryId,
+          batchUuid,
+        },
         { status: 500 },
       )
     }
