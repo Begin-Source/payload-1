@@ -37,6 +37,31 @@ export const Offers: CollectionConfig = {
       admin: { description: 'Sites allowed to promote this offer (optional).' },
     },
     {
+      name: 'categories',
+      type: 'relationship',
+      relationTo: 'categories',
+      hasMany: true,
+      admin: {
+        description: '用于 /products 与 /categories/[slug] 中按分类展示。',
+      },
+      filterOptions: ({ data }) => {
+        const raw = data?.sites
+        const ids = Array.isArray(raw)
+          ? raw.map((s) => (typeof s === 'number' ? s : (s as { id?: number }).id)).filter(Boolean)
+          : []
+        return ids.length ? { site: { in: ids } } : true
+      },
+    },
+    {
+      name: 'featuredOnHomeForSites',
+      type: 'relationship',
+      relationTo: 'sites',
+      hasMany: true,
+      admin: {
+        description: '勾选的站点会在首页 Featured 区展示该 offer。',
+      },
+    },
+    {
       name: 'status',
       type: 'select',
       required: true,

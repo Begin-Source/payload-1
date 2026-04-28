@@ -53,6 +53,8 @@ import * as migration_20260710_120000_site_blueprints_design_workflow_log from '
 import * as migration_20260711_120000_pages_site_pages_bundle_workflow from './20260711_120000_pages_site_pages_bundle_workflow';
 import * as migration_20260712_120000_pages_sanitize_empty_date_text from './20260712_120000_pages_sanitize_empty_date_text';
 import * as migration_20260712_130000_repair_pages_articles_site_id_fk_to_sites from './20260712_130000_repair_pages_articles_site_id_fk_to_sites';
+import * as migration_20260712_141000_categories_kind from './20260712_141000_categories_kind';
+import * as migration_20260712_150000_offers_rels_categories_and_featured_home from './20260712_150000_offers_rels_categories_and_featured_home';
 
 export const migrations = [
   {
@@ -329,5 +331,15 @@ export const migrations = [
     up: migration_20260712_130000_repair_pages_articles_site_id_fk_to_sites.up,
     down: migration_20260712_130000_repair_pages_articles_site_id_fk_to_sites.down,
     name: '20260712_130000_repair_pages_articles_site_id_fk_to_sites',
+  },
+  {
+    up: migration_20260712_141000_categories_kind.up,
+    down: migration_20260712_141000_categories_kind.down,
+    name: '20260712_141000_categories_kind',
+  },
+  {
+    up: migration_20260712_150000_offers_rels_categories_and_featured_home.up,
+    down: migration_20260712_150000_offers_rels_categories_and_featured_home.down,
+    name: '20260712_150000_offers_rels_categories_and_featured_home',
   },
 ];

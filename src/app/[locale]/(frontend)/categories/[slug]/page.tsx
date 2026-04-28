@@ -5,10 +5,12 @@ import React from 'react'
 
 import { AboutSidebar } from '@/components/blog/AboutSidebar'
 import { PostList } from '@/components/blog/PostList'
+import { AmzCategoryPage } from '@/components/amz-template-1/AmzCategoryPage'
 import { isAppLocale } from '@/i18n/config'
-import { getPublicSiteContext } from '@/utilities/publicLandingTheme'
+import { getPublicSiteContext, isAmzTemplateLayout } from '@/utilities/publicLandingTheme'
 import {
   getCategoryBySlugForSite,
+  getOffersForCategory,
   getPublishedArticlesForSiteAndCategory,
 } from '@/utilities/publicSiteQueries'
 
@@ -36,7 +38,22 @@ export default async function CategoryPage(props: Props) {
   if (!site) notFound()
   const category = await getCategoryBySlugForSite(site.id, slug)
   if (!category) notFound()
-  const articles = await getPublishedArticlesForSiteAndCategory(site.id, category.id, locale)
+  const [articles, offers] = await Promise.all([
+    getPublishedArticlesForSiteAndCategory(site.id, category.id, locale),
+    getOffersForCategory(site.id, category.id, 24),
+  ])
+
+  if (isAmzTemplateLayout(theme.siteLayout) && theme.amzSiteConfig) {
+    return (
+      <AmzCategoryPage
+        locale={locale}
+        config={theme.amzSiteConfig}
+        category={category}
+        articles={articles}
+        offers={offers}
+      />
+    )
+  }
 
   return (
     <div className="blogRow">

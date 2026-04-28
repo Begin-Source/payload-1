@@ -13,7 +13,11 @@ import {
   isAmzTemplateLayout,
   isTemplateShellLayout,
 } from '@/utilities/publicLandingTheme'
-import { getNavCategoriesForSite, getPublishedArticlesForSite } from '@/utilities/publicSiteQueries'
+import {
+  getFeaturedHomeOffersForSite,
+  getNavCategoriesForSite,
+  getPublishedArticlesForSite,
+} from '@/utilities/publicSiteQueries'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -44,13 +48,17 @@ export default async function HomePage(props: Props) {
   const articles = await getPublishedArticlesForSite(site.id, locale, 20)
 
   if (isAmzTemplateLayout(theme.siteLayout) && theme.amzSiteConfig) {
-    const categories = await getNavCategoriesForSite(site.id, 32)
+    const [categories, featuredOffers] = await Promise.all([
+      getNavCategoriesForSite(site.id, 32),
+      getFeaturedHomeOffersForSite(site.id, 12),
+    ])
     return (
       <AmzTemplateHomePage
         locale={locale}
         config={theme.amzSiteConfig}
         articles={articles}
         categories={categories}
+        featuredOffers={featuredOffers}
       />
     )
   }

@@ -643,6 +643,10 @@ export interface Category {
   name: string;
   slug: string;
   /**
+   * amz-template-1：Guides 顶部 chip 只用 kind=指南 的分类；Reviews/首页仍用全部分类。
+   */
+  kind?: ('article' | 'guide') | null;
+  /**
    * 新建必填；旧数据可暂为空后再补全。
    */
   site?: (number | null) | Site;
@@ -959,6 +963,10 @@ export interface Article {
   publishedAt?: string | null;
   excerpt?: string | null;
   /**
+   * 仅在 amz-template-1 文章详情底部展示联盟商品卡；仅显示 status=active 且 sites 为空或含本站点的 offers。
+   */
+  relatedOffers?: (number | Offer)[] | null;
+  /**
    * default：标准博客。commercial_hub：清单/Deal，信息密度高。product_comparison：X vs Y / 多品对比，与 Hub 同壳、表格更宽。editorial_review：长文信任向，主栏阅读。正文均用下方 body；联盟链接与披露仍按系统规则。
    */
   affiliatePageLayout?: ('default' | 'commercial_hub' | 'product_comparison' | 'editorial_review') | null;
@@ -1087,6 +1095,14 @@ export interface Offer {
    * Sites allowed to promote this offer (optional).
    */
   sites?: (number | Site)[] | null;
+  /**
+   * 用于 /products 与 /categories/[slug] 中按分类展示。
+   */
+  categories?: (number | Category)[] | null;
+  /**
+   * 勾选的站点会在首页 Featured 区展示该 offer。
+   */
+  featuredOnHomeForSites?: (number | Site)[] | null;
   status: 'draft' | 'active' | 'paused';
   externalId?: string | null;
   targetUrl?: string | null;
@@ -2877,6 +2893,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
   slug?: T;
+  kind?: T;
   site?: T;
   slotIndex?: T;
   categorySlotsWorkflowStatus?: T;
@@ -3054,6 +3071,7 @@ export interface ArticlesSelect<T extends boolean = true> {
   status?: T;
   publishedAt?: T;
   excerpt?: T;
+  relatedOffers?: T;
   affiliatePageLayout?: T;
   primaryKeyword?: T;
   secondaryKeywords?: T;
@@ -3198,6 +3216,8 @@ export interface OffersSelect<T extends boolean = true> {
   slug?: T;
   network?: T;
   sites?: T;
+  categories?: T;
+  featuredOnHomeForSites?: T;
   status?: T;
   externalId?: T;
   targetUrl?: T;

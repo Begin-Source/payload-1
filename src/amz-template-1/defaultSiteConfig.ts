@@ -178,10 +178,16 @@ export const defaultAmzSiteConfig = {
       items: homepageCategoryItems,
     },
 
-    // 特色产品区域
+    // 特色产品区域（来自 CMS Offers.featuredOnHomeForSites）
     featuredProducts: {
       title: "Featured Products",
       subtitle: "Featured products placeholder.",
+    },
+
+    /** 首页「最新评测」文章列表文案 */
+    latestReviews: {
+      title: "Latest reviews",
+      subtitle: "Fresh guides and recommendations from our team.",
     },
 
     // CTA 区域（邮件订阅）

@@ -3,7 +3,7 @@ import { cache } from 'react'
 import { getPayload, type Payload } from 'payload'
 
 import config from '@/payload.config'
-import type { Article, Author, Category, Media, Page } from '@/payload-types'
+import type { Article, Author, Category, Media, Offer, Page } from '@/payload-types'
 
 /**
  * Public article/page fetch: set `site: false` on articles, media, and categories — omitting
@@ -32,6 +32,7 @@ const categoryPublicSelect = {
   name: true,
   slug: true,
   description: true,
+  kind: true,
   site: false,
   tenant: false,
 } as const
@@ -60,6 +61,28 @@ const articlePublicSelect = {
   categories: categoryPublicSelect,
   tenant: true,
   site: false,
+} as const
+
+const offerPublicSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  targetUrl: true,
+  status: true,
+  amazon: true,
+  network: { id: true, name: true, slug: true },
+  sites: false,
+  categories: categoryPublicSelect,
+  featuredOnHomeForSites: false,
+  tenant: false,
+} as const
+
+/** Detail route: includes SEO meta + affiliate layout + embedded offers for AMZ article page */
+const articleDetailSelect = {
+  ...articlePublicSelect,
+  meta: true,
+  affiliatePageLayout: true,
+  relatedOffers: offerPublicSelect,
 } as const
 
 const pagePublicSelect = {
@@ -110,6 +133,25 @@ async function mergeAuthorHeadshots(payload: Payload, articles: Article[]): Prom
     }
   }
 }
+
+/** Guides page chips: Payload categories with kind=guide for this site */
+export const getGuideCategoriesForSite = cache(
+  async (siteId: number, limit = 24): Promise<Category[]> => {
+    const payload = await getPayload({ config: await config })
+    const res = await payload.find({
+      collection: 'categories',
+      where: {
+        and: [{ site: { equals: siteId } }, { kind: { equals: 'guide' } }],
+      },
+      limit,
+      sort: 'name',
+      depth: 0,
+      select: categoryPublicSelect,
+      overrideAccess: true,
+    })
+    return res.docs as Category[]
+  },
+)
 
 export const getNavCategoriesForSite = cache(
   async (siteId: number, limit = 8): Promise<Category[]> => {
@@ -195,6 +237,84 @@ export const getCategoryBySlugForSite = cache(
  * Related posts: same site + locale, exclude current. Prefer any shared category, then
  * backfill with latest published on the same site.
  */
+/**
+ * Active offers scoped to site (sites empty/absent => all sites).
+ * Optionally filter by a category relation (Offer.categories contains categoryId).
+ * Args: `(siteId, limit = 120, categoryId?)` so existing `getActiveOffersForSite(id, 120)` stays valid.
+ */
+export const getActiveOffersForSite = cache(
+  async (siteId: number, limit = 120, categoryId?: number | null): Promise<Offer[]> => {
+    const payload = await getPayload({ config: await config })
+    const andClauses = [
+      { status: { equals: 'active' as const } },
+      ...(categoryId != null && categoryId > 0
+        ? [{ categories: { contains: categoryId } }]
+        : []),
+    ]
+    const res = await payload.find({
+      collection: 'offers',
+      where: { and: andClauses },
+      sort: 'title',
+      limit: 500,
+      depth: 1,
+      select: offerPublicSelect,
+      overrideAccess: true,
+    })
+    const docs = res.docs as Offer[]
+    const cap = Math.min(limit, 200)
+    return docs
+      .filter((o) => {
+        const sites = o.sites
+        if (sites == null) return true
+        if (Array.isArray(sites) && sites.length === 0) return true
+        return sites.some((s) => (typeof s === 'number' ? s : (s as { id?: number })?.id) === siteId)
+      })
+      .slice(0, cap)
+  },
+)
+
+export const getOffersForCategory = cache(
+  async (siteId: number, categoryId: number, limit = 24): Promise<Offer[]> => {
+    return getActiveOffersForSite(siteId, limit, categoryId)
+  },
+)
+
+/** Featured Products on home: active + featuredOnHomeForSites contains this site */
+export const getFeaturedHomeOffersForSite = cache(
+  async (siteId: number, limit = 12): Promise<Offer[]> => {
+    const payload = await getPayload({ config: await config })
+    const res = await payload.find({
+      collection: 'offers',
+      where: {
+        and: [
+          { status: { equals: 'active' } },
+          { featuredOnHomeForSites: { contains: siteId } },
+        ],
+      },
+      sort: 'title',
+      limit: Math.min(limit, 48),
+      depth: 1,
+      select: offerPublicSelect,
+      overrideAccess: true,
+    })
+    return res.docs as Offer[]
+  },
+)
+
+export const getOffersByIds = cache(async (ids: number[]): Promise<Offer[]> => {
+  if (ids.length === 0) return []
+  const payload = await getPayload({ config: await config })
+  const res = await payload.find({
+    collection: 'offers',
+    where: { id: { in: ids } },
+    limit: ids.length,
+    depth: 1,
+    select: offerPublicSelect,
+    overrideAccess: true,
+  })
+  return res.docs as Offer[]
+})
+
 export const getRelatedArticlesForSite = cache(
   async (
     siteId: number,
@@ -269,8 +389,8 @@ export const getArticleBySlugForSite = cache(
         ],
       },
       limit: 1,
-      depth: 1,
-      select: articlePublicSelect,
+      depth: 2,
+      select: articleDetailSelect,
       overrideAccess: true,
     })
     const doc = (res.docs[0] as Article | undefined) ?? null

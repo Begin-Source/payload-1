@@ -131,20 +131,24 @@ export default async function LocaleFrontendLayout(props: LayoutProps) {
           : 8
   const categories = site ? await getNavCategoriesForSite(site.id, catLimit) : []
 
-  const bodyStyle: React.CSSProperties = {
-    backgroundColor: theme.blogContentBgColor,
-    color: theme.blogBodyColor,
-  }
+  // AMZ uses Tailwind `bg-background text-foreground` from amz-globals. Do not pass inline styles with
+  // empty bg/color — that would expose ./styles.css `html { background: #000 }` through a transparent body.
+  let bodyStyle: React.CSSProperties | undefined
   if (isAmz) {
-    bodyStyle.backgroundColor = ''
-    bodyStyle.color = ''
-  } else if (isTemplateShellLayout(theme.siteLayout)) {
-    bodyStyle.backgroundColor = theme.blogContentBgColor
-    bodyStyle.color = theme.blogBodyColor
-  } else if (theme.fontPreset === 'serif') {
-    bodyStyle.fontFamily = 'Georgia, "Times New Roman", serif'
-  } else if (theme.fontPreset === 'system') {
-    bodyStyle.fontFamily = 'system-ui, sans-serif'
+    bodyStyle = undefined
+  } else {
+    bodyStyle = {
+      backgroundColor: theme.blogContentBgColor,
+      color: theme.blogBodyColor,
+    }
+    if (isTemplateShellLayout(theme.siteLayout)) {
+      bodyStyle.backgroundColor = theme.blogContentBgColor
+      bodyStyle.color = theme.blogBodyColor
+    } else if (theme.fontPreset === 'serif') {
+      bodyStyle.fontFamily = 'Georgia, "Times New Roman", serif'
+    } else if (theme.fontPreset === 'system') {
+      bodyStyle.fontFamily = 'system-ui, sans-serif'
+    }
   }
 
   const htmlStyle = (

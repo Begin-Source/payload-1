@@ -1,5 +1,4 @@
-import Link from 'next/link'
-
+import { AmzLink } from '@/amz-template-1/AmzLink'
 import type { AmzSiteConfig } from '@/amz-template-1/defaultSiteConfig'
 import { amzNavHref } from '@/amz-template-1/amzNavHref'
 import { FooterLinkSection } from '@/amz-template-1/components/footer-link-section'
@@ -49,21 +48,21 @@ export function AmzSiteFooter({ locale, config }: { locale: AppLocale; config: A
           <FooterLinkSection title="Products">
             <ul className="space-y-2">
               <li>
-                <Link
+                <AmzLink
                   href={amzNavHref(locale, '/products')}
                   className="text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   All Products
-                </Link>
+                </AmzLink>
               </li>
               {productCategoryLinks.map((category) => (
                 <li key={category.href}>
-                  <Link
+                  <AmzLink
                     href={category.href}
                     className="text-sm text-muted-foreground transition-colors hover:text-primary"
                   >
                     {category.name}
-                  </Link>
+                  </AmzLink>
                 </li>
               ))}
             </ul>
@@ -72,21 +71,21 @@ export function AmzSiteFooter({ locale, config }: { locale: AppLocale; config: A
           <FooterLinkSection title="Reviews">
             <ul className="space-y-2">
               <li>
-                <Link
+                <AmzLink
                   href={amzNavHref(locale, '/reviews')}
                   className="text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   All Reviews
-                </Link>
+                </AmzLink>
               </li>
               {reviewCategoryLinks.map((category) => (
                 <li key={category.href}>
-                  <Link
+                  <AmzLink
                     href={category.href}
                     className="text-sm text-muted-foreground transition-colors hover:text-primary"
                   >
                     {category.name}
-                  </Link>
+                  </AmzLink>
                 </li>
               ))}
             </ul>
@@ -96,12 +95,12 @@ export function AmzSiteFooter({ locale, config }: { locale: AppLocale; config: A
             <ul className="space-y-2">
               {guideLinks.map((guide) => (
                 <li key={guide.href}>
-                  <Link
+                  <AmzLink
                     href={guide.href}
                     className="text-sm text-muted-foreground transition-colors hover:text-primary"
                   >
                     {guide.name}
-                  </Link>
+                  </AmzLink>
                 </li>
               ))}
             </ul>
@@ -111,22 +110,22 @@ export function AmzSiteFooter({ locale, config }: { locale: AppLocale; config: A
             <ul className="space-y-2">
               {config.footer.resources.map((resource) => (
                 <li key={resource.href}>
-                  <Link
+                  <AmzLink
                     href={amzNavHref(locale, resource.href)}
                     className="text-sm text-muted-foreground transition-colors hover:text-primary"
                   >
                     {resource.name}
-                  </Link>
+                  </AmzLink>
                 </li>
               ))}
               {config.footer.legal.map((item) => (
                 <li key={item.href}>
-                  <Link
+                  <AmzLink
                     href={amzNavHref(locale, item.href)}
                     className="text-sm text-muted-foreground transition-colors hover:text-primary"
                   >
                     {item.name}
-                  </Link>
+                  </AmzLink>
                 </li>
               ))}
             </ul>

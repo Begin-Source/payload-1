@@ -40,6 +40,20 @@ export const Categories: CollectionConfig = {
       required: true,
       index: true,
     },
+    {
+      name: 'kind',
+      type: 'select',
+      defaultValue: 'article',
+      index: true,
+      options: [
+        { label: '通用 / 文章', value: 'article' },
+        { label: '指南 (Guides)', value: 'guide' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description: 'amz-template-1：Guides 顶部 chip 只用 kind=指南 的分类；Reviews/首页仍用全部分类。',
+      },
+    },
     siteScopedSiteField,
     {
       name: 'slotIndex',

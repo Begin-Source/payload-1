@@ -120,6 +120,11 @@
   }
 }
 
+/* Match page surface to theme; avoid global ./styles.css fallback `html { background: #000 }` when overscrolling */
+html.amz-template-1-root {
+  background-color: var(--background);
+}
+
 @layer components {
   .prose {
     @apply text-foreground leading-8;

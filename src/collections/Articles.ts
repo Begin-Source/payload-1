@@ -51,6 +51,37 @@ export const Articles: CollectionConfig = {
   fields: [
     ...postLikeFields,
     {
+      name: 'relatedOffers',
+      type: 'relationship',
+      relationTo: 'offers',
+      hasMany: true,
+      label: 'Featured products (AMZ)',
+      admin: {
+        position: 'sidebar',
+        description:
+          '仅在 amz-template-1 文章详情底部展示联盟商品卡；仅显示 status=active 且 sites 为空或含本站点的 offers。',
+      },
+      filterOptions: ({ data }) => {
+        const raw = data?.site as { id?: number } | number | null | undefined
+        const siteId =
+          raw != null && typeof raw === 'object' && 'id' in raw
+            ? Number((raw as { id: number }).id)
+            : typeof raw === 'number'
+              ? raw
+              : undefined
+        const active = { status: { equals: 'active' as const } }
+        if (siteId == null || !Number.isFinite(siteId)) return active
+        return {
+          and: [
+            active,
+            {
+              or: [{ sites: { exists: false } }, { sites: { contains: siteId } }],
+            },
+          ],
+        }
+      },
+    },
+    {
       name: 'affiliatePageLayout',
       type: 'select',
       defaultValue: 'default',

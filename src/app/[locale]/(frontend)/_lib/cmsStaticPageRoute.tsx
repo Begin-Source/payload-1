@@ -2,9 +2,10 @@ import { headers } from 'next/headers.js'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { AmzStaticPage } from '@/components/amz-template-1/AmzStaticPage'
 import { hreflangXDefaultUrl, isAppLocale, type AppLocale } from '@/i18n/config'
 import { getPublicBaseUrlFromHeaders, seoMetaForDocument } from '@/utilities/seoDocumentMeta'
-import { getPublicSiteContext } from '@/utilities/publicLandingTheme'
+import { getPublicSiteContext, isAmzTemplateLayout } from '@/utilities/publicLandingTheme'
 import { getPageBySlugForSite } from '@/utilities/publicSiteQueries'
 import { lexicalStateToHtml } from '@/utilities/lexicalToHtml'
 
@@ -60,11 +61,15 @@ export async function CmsStaticPageArticle(input: { locale: string; cmsSlug: str
   if (!isAppLocale(input.locale)) notFound()
   const locale = input.locale as AppLocale
   const headersList = await headers()
-  const { site } = await getPublicSiteContext(headersList)
+  const { site, theme } = await getPublicSiteContext(headersList)
   if (!site) notFound()
   const page = await getPageBySlugForSite(site.id, input.cmsSlug, locale)
   if (!page) notFound()
   const html = lexicalStateToHtml(page.body)
+
+  if (theme.amzSiteConfig && isAmzTemplateLayout(theme.siteLayout)) {
+    return <AmzStaticPage title={page.title} html={html} />
+  }
 
   return (
     <article className="blogArticle">

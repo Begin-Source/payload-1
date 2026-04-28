@@ -1,11 +1,12 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Search, Menu, X } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
+import { appendAmzSite } from '@/amz-template-1/appendAmzSite'
+import { AmzLink } from '@/amz-template-1/AmzLink'
 import type { AmzSiteConfig } from '@/amz-template-1/defaultSiteConfig'
 import { amzNavHref } from '@/amz-template-1/amzNavHref'
 import { Button } from '@/amz-template-1/components/ui/button'
@@ -14,6 +15,7 @@ import type { AppLocale } from '@/i18n/config'
 
 export function AmzSiteHeader({ locale, config }: { locale: AppLocale; config: AmzSiteConfig }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -22,7 +24,8 @@ export function AmzSiteHeader({ locale, config }: { locale: AppLocale; config: A
     e.preventDefault()
     if (searchQuery.trim()) {
       const base = amzNavHref(locale, '/search')
-      router.push(`${base}?q=${encodeURIComponent(searchQuery.trim())}`)
+      const url = `${base}?q=${encodeURIComponent(searchQuery.trim())}`
+      router.push(appendAmzSite(url, searchParams?.get('site')))
       setSearchOpen(false)
       setSearchQuery('')
     }
@@ -82,25 +85,25 @@ export function AmzSiteHeader({ locale, config }: { locale: AppLocale; config: A
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center">
           <div className="flex flex-1 flex-shrink-0 lg:flex-1">
-            <Link href={amzNavHref(locale, '/')} className="flex items-center gap-2">
+            <AmzLink href={amzNavHref(locale, '/')} className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                 {renderLogo()}
               </div>
               <div className="hidden sm:block">
                 <span className="text-lg font-bold text-foreground">{config.brand.name}</span>
               </div>
-            </Link>
+            </AmzLink>
           </div>
 
           <nav className="hidden flex-shrink-0 items-center gap-1 lg:flex">
             {config.navigation.main.map((item) => (
-              <Link
+              <AmzLink
                 key={item.href}
                 href={amzNavHref(locale, item.href)}
                 className="px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary"
               >
                 {item.label}
-              </Link>
+              </AmzLink>
             ))}
           </nav>
 
@@ -146,14 +149,14 @@ export function AmzSiteHeader({ locale, config }: { locale: AppLocale; config: A
           <div className="animate-in slide-in-from-top-2 border-t border-border py-4 duration-200 lg:hidden">
             <nav className="flex flex-col gap-4">
               {config.navigation.main.map((item) => (
-                <Link
+                <AmzLink
                   key={item.href}
                   href={amzNavHref(locale, item.href)}
                   className="font-semibold text-foreground transition-colors hover:text-primary"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
-                </Link>
+                </AmzLink>
               ))}
             </nav>
           </div>

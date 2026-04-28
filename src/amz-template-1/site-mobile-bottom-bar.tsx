@@ -1,9 +1,9 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import Link from 'next/link'
 import { ExternalLink } from 'lucide-react'
 
+import { AmzLink } from '@/amz-template-1/AmzLink'
 import { amzNavHref } from '@/amz-template-1/amzNavHref'
 import { cn } from '@/amz-template-1/lib/utils'
 import type { AppLocale } from '@/i18n/config'
@@ -29,13 +29,13 @@ export function AmzSiteMobileBottomBar({ locale }: { locale: AppLocale }) {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-[#FF9900] pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.12)] lg:hidden">
-      <Link
+      <AmzLink
         href={amzNavHref(locale, '/reviews')}
         className="flex min-h-14 w-full items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-[#FF9900]/90"
       >
         Product Reviews
         <ExternalLink className="h-4 w-4 shrink-0" />
-      </Link>
+      </AmzLink>
     </div>
   )
 }

@@ -15,9 +15,9 @@ export function amzNavHref(locale: AppLocale, href: string): string {
 
   const map: Record<string, string> = {
     '/': '/',
-    '/products': '/',
-    '/reviews': '/',
-    '/guides': '/',
+    '/products': '/products',
+    '/reviews': '/reviews',
+    '/guides': '/guides',
     '/about': '/about',
     '/contact': '/contact',
     '/privacy': '/privacy',

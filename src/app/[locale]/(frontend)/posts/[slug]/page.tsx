@@ -9,6 +9,7 @@ import { ArticleLayoutAffiliateHub } from '@/components/blog/ArticleLayoutAffili
 import { ArticleRelated } from '@/components/blog/ArticleRelated'
 import { blogPostingJsonLdString } from '@/components/blog/blogPostingJsonLd'
 import { categoryIdsFromArticle, firstCategoryFromArticle } from '@/components/blog/articleHelpers'
+import { AmzArticlePage } from '@/components/amz-template-1/AmzArticlePage'
 import { Template1ArticlePage } from '@/components/template1/Template1ArticlePage'
 import type { Media } from '@/payload-types'
 import type { AppLocale } from '@/i18n/config'
@@ -16,7 +17,11 @@ import { hreflangXDefaultUrl, isAppLocale } from '@/i18n/config'
 import { lexicalStateToHtml } from '@/utilities/lexicalToHtml'
 import { estimateReadingTimeMinutesFromHtml } from '@/utilities/readingTime'
 import { getPublicBaseUrlFromHeaders, seoMetaForDocument } from '@/utilities/seoDocumentMeta'
-import { getPublicSiteContext, isTemplateShellLayout } from '@/utilities/publicLandingTheme'
+import {
+  getPublicSiteContext,
+  isAmzTemplateLayout,
+  isTemplateShellLayout,
+} from '@/utilities/publicLandingTheme'
 import { getArticleBySlugForSite, getRelatedArticlesForSite } from '@/utilities/publicSiteQueries'
 
 type Props = { params: Promise<{ locale: string; slug: string }> }
@@ -115,6 +120,21 @@ export default async function PostPage(props: Props) {
   const layout = article.affiliatePageLayout ?? 'default'
 
   const isTemplateShell = isTemplateShellLayout(theme.siteLayout)
+  const isAmz = isAmzTemplateLayout(theme.siteLayout)
+
+  const amzArticle =
+    isAmz && theme.amzSiteConfig ? (
+      <AmzArticlePage
+        article={article}
+        html={html}
+        locale={locale}
+        readMinutes={readMinutes}
+        readTimeLabel={readTimeLabel[locale]}
+        related={related}
+        titleAlt={titleAlt}
+        config={theme.amzSiteConfig}
+      />
+    ) : null
 
   const defaultArticle = (
     <article
@@ -150,7 +170,9 @@ export default async function PostPage(props: Props) {
         dangerouslySetInnerHTML={{ __html: jsonLd }}
         suppressHydrationWarning
       />
-      {isTemplateShell ? (
+      {amzArticle != null ? (
+        amzArticle
+      ) : isTemplateShell ? (
         <Template1ArticlePage
           article={article}
           html={html}

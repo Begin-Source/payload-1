@@ -1,8 +1,9 @@
 import { headers as getHeaders } from 'next/headers.js'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { AmzSearchPage } from '@/components/amz-template-1/AmzSearchPage'
 import { isAppLocale } from '@/i18n/config'
-import { getPublicSiteContext } from '@/utilities/publicLandingTheme'
+import { getPublicSiteContext, isAmzTemplateLayout } from '@/utilities/publicLandingTheme'
 import { getPublishedArticlesForSite } from '@/utilities/publicSiteQueries'
 
 type Props = {
@@ -19,7 +20,7 @@ export default async function SearchPage(props: Props) {
   const q = (Array.isArray(rawQ) ? rawQ[0] : rawQ)?.trim() ?? ''
 
   const headers = await getHeaders()
-  const { site } = await getPublicSiteContext(headers)
+  const { site, theme } = await getPublicSiteContext(headers)
 
   if (!site) {
     return (
@@ -35,6 +36,12 @@ export default async function SearchPage(props: Props) {
     ql.length > 0
       ? articles.filter((a) => (a.title ?? '').toLowerCase().includes(ql))
       : []
+
+  if (isAmzTemplateLayout(theme.siteLayout) && theme.amzSiteConfig) {
+    return (
+      <AmzSearchPage locale={locale} config={theme.amzSiteConfig} q={q} articles={filtered} />
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-10">
