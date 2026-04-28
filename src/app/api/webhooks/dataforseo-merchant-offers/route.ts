@@ -138,6 +138,38 @@ export async function POST(request: Request): Promise<Response> {
     })
   }
 
+  let siteRow: Awaited<ReturnType<typeof payload.findByID>>
+  try {
+    siteRow = await payload.findByID({
+      collection: 'sites',
+      id: siteId,
+      depth: 0,
+      overrideAccess: true,
+    })
+  } catch {
+    siteRow = null
+  }
+  if (!siteRow) {
+    return Response.json({ ok: false, error: 'Site not found for category' }, { status: 404 })
+  }
+
+  const tenantId = parseRelationshipId((siteRow as { tenant?: unknown }).tenant)
+  if (tenantId == null) {
+    await payload.update({
+      collection: 'categories',
+      id: categoryId,
+      data: {
+        merchantOfferFetchWorkflowStatus: 'error',
+        merchantOfferFetchWorkflowLog: `Offer create: Site has no assigned tenant (site ${siteId})`,
+      },
+      overrideAccess: true,
+    })
+    return Response.json(
+      { ok: false, error: 'Site has no assigned tenant', siteId },
+      { status: 400 },
+    )
+  }
+
   const existing = await payload.find({
     collection: 'offers',
     where: {
@@ -216,6 +248,7 @@ export async function POST(request: Request): Promise<Response> {
       const doc = await payload.create({
         collection: 'offers',
         data: {
+          tenant: tenantId,
           title: patch.title,
           slug: patch.slug ?? undefined,
           status: patch.status,
