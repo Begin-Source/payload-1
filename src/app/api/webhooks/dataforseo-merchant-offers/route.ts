@@ -3,7 +3,13 @@ import { gunzipSync } from 'node:zlib'
 import { getPayload } from 'payload'
 
 import { normalizeDataForSeoMerchantPostback } from '@/utilities/dataForSeoMerchantPostback'
-import { buildMerchantOffersFromRawItems } from '@/utilities/merchantOffersFromDfsItems'
+import {
+  type MerchantOfferCreatePatch,
+  buildMerchantOffersFromRawItems,
+  clampMerchantRawDocument,
+  MERCHANT_RAW_MAX_UTF8_BYTES,
+  merchantRawUtf8Bytes,
+} from '@/utilities/merchantOffersFromDfsItems'
 import { parseMerchantSlotTag } from '@/utilities/merchantSlotTag'
 import { parseRelationshipId } from '@/utilities/parseRelationshipId'
 import {
@@ -263,6 +269,29 @@ export async function POST(request: Request): Promise<Response> {
 
   for (const patch of build.create_items) {
     try {
+      const amazonPayload = {
+        ...(patch.amazon ?? {}),
+      } as NonNullable<MerchantOfferCreatePatch['amazon']>
+
+      if (
+        amazonPayload.merchantRaw != null &&
+        typeof amazonPayload.merchantRaw === 'object' &&
+        !Array.isArray(amazonPayload.merchantRaw)
+      ) {
+        const rawBytes = merchantRawUtf8Bytes(amazonPayload.merchantRaw)
+        if (rawBytes > MERCHANT_RAW_MAX_UTF8_BYTES) {
+          payload.logger.warn(
+            `[dataforseo-merchant-offers] merchantRaw ${rawBytes}B > ${MERCHANT_RAW_MAX_UTF8_BYTES}B; clamping`,
+          )
+        }
+        amazonPayload.merchantRaw = clampMerchantRawDocument(amazonPayload.merchantRaw)
+        if (merchantRawUtf8Bytes(amazonPayload.merchantRaw) > MERCHANT_RAW_MAX_UTF8_BYTES) {
+          payload.logger.error(
+            `[dataforseo-merchant-offers] merchantRaw still oversized after clamp (${merchantRawUtf8Bytes(amazonPayload.merchantRaw)}B)`,
+          )
+        }
+      }
+
       const doc = await payload.create({
         collection: 'offers',
         data: {
@@ -277,7 +306,7 @@ export async function POST(request: Request): Promise<Response> {
             patch.amazon?.asin ?
               `https://www.amazon.com/dp/${String(patch.amazon.asin)}`
             : undefined,
-          amazon: patch.amazon ?? {},
+          amazon: amazonPayload,
           merchantSlot: {
             merchantSlotWorkflowStatus: 'done',
             merchantBatchId: batchUuid,
