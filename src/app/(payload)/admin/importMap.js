@@ -8,6 +8,7 @@ import { CsvImportExportListMenuItem as CsvImportExportListMenuItem_4c39b1e20c32
 import { CsvImportExportPanel as CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e } from '../../../components/ArticleCsvImportExport'
 import { DesignListQuickAction as DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { CategorySlotsWorkflowStatusCell as CategorySlotsWorkflowStatusCell_6f5ace4c14c56b8b9e05676fcf152c70 } from '../../../components/CategorySlotsWorkflowStatusCell'
+import { CategoryMerchantOfferFetchWorkflowCell as CategoryMerchantOfferFetchWorkflowCell_25ec9ba2b1d876be826e2b8772c1e33e } from '../../../components/CategoryMerchantOfferFetchWorkflowCell'
 import { CategoryListQuickAction as CategoryListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { ComposeField as ComposeField_c25bd927cd468b8e16d7bdb2cc282659 } from '@ai-stack/payloadcms/fields'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -46,6 +47,8 @@ import { PageListQuickAction as PageListQuickAction_175e6fb4b4770cdb50ab070ca375
 import { MediaListQuickAction as MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { KeywordListQuickAction as KeywordListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { ArticleListQuickAction as ArticleListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
+import { OfferMerchantSlotWorkflowCell as OfferMerchantSlotWorkflowCell_3017b4d5a1ecd449f5b866cdadc8cd93 } from '../../../components/OfferMerchantSlotWorkflowCell'
+import { OfferListQuickAction as OfferListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3 } from '../../../components/CollectionQuickActions'
 import { WatchTenantCollection as WatchTenantCollection_1d0591e3cf4f332c83a86da13a0de59a } from '@payloadcms/plugin-multi-tenant/client'
 import { SelectField as SelectField_c25bd927cd468b8e16d7bdb2cc282659 } from '@ai-stack/payloadcms/fields'
 import { PromptEditorField as PromptEditorField_c25bd927cd468b8e16d7bdb2cc282659 } from '@ai-stack/payloadcms/fields'
@@ -75,6 +78,7 @@ export const importMap = {
   "./components/ArticleCsvImportExport#CsvImportExportPanel": CsvImportExportPanel_4c39b1e20c32c7d5b42c969ff894026e,
   "./components/CollectionQuickActions#DesignListQuickAction": DesignListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "./components/CategorySlotsWorkflowStatusCell#CategorySlotsWorkflowStatusCell": CategorySlotsWorkflowStatusCell_6f5ace4c14c56b8b9e05676fcf152c70,
+  "./components/CategoryMerchantOfferFetchWorkflowCell#CategoryMerchantOfferFetchWorkflowCell": CategoryMerchantOfferFetchWorkflowCell_25ec9ba2b1d876be826e2b8772c1e33e,
   "./components/CollectionQuickActions#CategoryListQuickAction": CategoryListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "@ai-stack/payloadcms/fields#ComposeField": ComposeField_c25bd927cd468b8e16d7bdb2cc282659,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -113,6 +117,8 @@ export const importMap = {
   "./components/CollectionQuickActions#MediaListQuickAction": MediaListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "./components/CollectionQuickActions#KeywordListQuickAction": KeywordListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "./components/CollectionQuickActions#ArticleListQuickAction": ArticleListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
+  "./components/OfferMerchantSlotWorkflowCell#OfferMerchantSlotWorkflowCell": OfferMerchantSlotWorkflowCell_3017b4d5a1ecd449f5b866cdadc8cd93,
+  "./components/CollectionQuickActions#OfferListQuickAction": OfferListQuickAction_175e6fb4b4770cdb50ab070ca3750cb3,
   "@payloadcms/plugin-multi-tenant/client#WatchTenantCollection": WatchTenantCollection_1d0591e3cf4f332c83a86da13a0de59a,
   "@ai-stack/payloadcms/fields#SelectField": SelectField_c25bd927cd468b8e16d7bdb2cc282659,
   "@ai-stack/payloadcms/fields#PromptEditorField": PromptEditorField_c25bd927cd468b8e16d7bdb2cc282659,

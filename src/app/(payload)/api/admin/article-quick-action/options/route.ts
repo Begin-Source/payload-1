@@ -23,6 +23,9 @@ type CategoryOption = {
   name: string
   slug: string
   description: string | null
+  /** 1–5 槽位分类；空为手工分类 */
+  slotIndex?: number | null
+  kind?: 'article' | 'guide' | null
 }
 
 function tenantIdFromRelation(
@@ -95,12 +98,17 @@ export async function GET(request: Request): Promise<Response> {
       ...(where ? { where } : {}),
     })
 
-    const categories: CategoryOption[] = result.docs.map((doc) => ({
-      id: doc.id,
-      name: doc.name,
-      slug: doc.slug,
-      description: doc.description ?? null,
-    }))
+    const categories: CategoryOption[] = result.docs.map((doc) => {
+      const row = doc as typeof doc & { slotIndex?: number | null; kind?: 'article' | 'guide' | null }
+      return {
+        id: doc.id,
+        name: doc.name,
+        slug: doc.slug,
+        description: doc.description ?? null,
+        slotIndex: row.slotIndex ?? null,
+        kind: row.kind ?? null,
+      }
+    })
 
     return Response.json({ categories })
   }

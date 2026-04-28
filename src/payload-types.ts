@@ -658,6 +658,17 @@ export interface Category {
    * 由「快捷操作 · 生成分类槽位」直接写入本分类（idle / running / done / error）。同站点下各分类通常一致。
    */
   categorySlotsWorkflowStatus?: string | null;
+  /**
+   * DataForSEO Merchant → Offers（idle / running / done / error）。快捷操作写入。
+   */
+  merchantOfferFetchWorkflowStatus?: string | null;
+  merchantOfferFetchWorkflowLog?: string | null;
+  merchantOfferFetchDfTaskTag?: string | null;
+  merchantOfferFetchLastBatchId?: string | null;
+  /**
+   * JSON 字符串（调试用）。使用 textarea 避免 Drizzle SQLite JSON 列在 relational map 时出现 decode 错位导致 Admin 空白。
+   */
+  merchantOfferFetchLastSummary?: string | null;
   description?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -1090,6 +1101,9 @@ export interface Offer {
   tenant?: (number | null) | Tenant;
   title: string;
   slug?: string | null;
+  /**
+   * 必选。请先在本站「联盟」集合至少新建一条联盟，再在此处选择。
+   */
   network: number | AffiliateNetwork;
   /**
    * Sites allowed to promote this offer (optional).
@@ -1115,6 +1129,9 @@ export interface Offer {
     reviewCount?: number | null;
     imageUrl?: string | null;
     primeEligible?: boolean | null;
+    /**
+     * 存 ISO 8601 字符串。使用 text 而非 date，避免库内非 ISO 值在列表 find 时被 Drizzle 解码为 Date 并 toISOString() 抛错。
+     */
     merchantLastSyncedAt?: string | null;
     merchantRaw?:
       | {
@@ -1126,10 +1143,32 @@ export interface Offer {
       | boolean
       | null;
   };
+  /**
+   * DataForSEO Merchant 类目拉品批次与槽位来源追溯。
+   */
+  merchantSlot?: {
+    merchantSlotWorkflowStatus?: ('idle' | 'running' | 'done' | 'error') | null;
+    merchantSlotWorkflowLog?: string | null;
+    /**
+     * ISO 8601 字符串。text 避免非 ISO 入库值在 Admin 列表 SSR 时触发 Invalid time value。
+     */
+    merchantSlotWorkflowUpdatedAt?: string | null;
+    /**
+     * 本条类目槽位流水线的来源分类 ID；避免与顶层 categories 关系重复 JOIN categories。可选。
+     */
+    merchantSlotSourceCategory?: number | null;
+    merchantBatchId?: string | null;
+    /**
+     * 最后一次快捷操作请求的摘要 JSON 字符串（调试用）；使用 textarea 可避免 Drizzle 对 JSON TEXT 模式的自动 decode 在映射错位时 SSR 报错。
+     */
+    merchantSlotLastPayload?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * 联盟（Affiliate networks）可被 Offer.network 必选引用 — 录入 Offer 前请至少在此处创建一条。
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "affiliate-networks".
  */
@@ -2897,6 +2936,11 @@ export interface CategoriesSelect<T extends boolean = true> {
   site?: T;
   slotIndex?: T;
   categorySlotsWorkflowStatus?: T;
+  merchantOfferFetchWorkflowStatus?: T;
+  merchantOfferFetchWorkflowLog?: T;
+  merchantOfferFetchDfTaskTag?: T;
+  merchantOfferFetchLastBatchId?: T;
+  merchantOfferFetchLastSummary?: T;
   description?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -3234,6 +3278,16 @@ export interface OffersSelect<T extends boolean = true> {
         primeEligible?: T;
         merchantLastSyncedAt?: T;
         merchantRaw?: T;
+      };
+  merchantSlot?:
+    | T
+    | {
+        merchantSlotWorkflowStatus?: T;
+        merchantSlotWorkflowLog?: T;
+        merchantSlotWorkflowUpdatedAt?: T;
+        merchantSlotSourceCategory?: T;
+        merchantBatchId?: T;
+        merchantSlotLastPayload?: T;
       };
   updatedAt?: T;
   createdAt?: T;

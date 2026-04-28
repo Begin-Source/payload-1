@@ -10,6 +10,8 @@ export const AffiliateNetworks: CollectionConfig = {
     group: adminGroups.business,
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'status', 'updatedAt'],
+    description:
+      '联盟（Affiliate networks）可被 Offer.network 必选引用 — 录入 Offer 前请至少在此处创建一条。',
   },
   access: loggedInSuperAdminAccessFor('affiliate-networks'),
   fields: [

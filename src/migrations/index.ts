@@ -55,6 +55,8 @@ import * as migration_20260712_120000_pages_sanitize_empty_date_text from './202
 import * as migration_20260712_130000_repair_pages_articles_site_id_fk_to_sites from './20260712_130000_repair_pages_articles_site_id_fk_to_sites';
 import * as migration_20260712_141000_categories_kind from './20260712_141000_categories_kind';
 import * as migration_20260712_150000_offers_rels_categories_and_featured_home from './20260712_150000_offers_rels_categories_and_featured_home';
+import * as migration_20260713_120000_offers_categories_merchant_slot_workflow from './20260713_120000_offers_categories_merchant_slot_workflow';
+import * as migration_20260714_120000_sanitize_invalid_merchant_json_text from './20260714_120000_sanitize_invalid_merchant_json_text';
 
 export const migrations = [
   {
@@ -341,5 +343,15 @@ export const migrations = [
     up: migration_20260712_150000_offers_rels_categories_and_featured_home.up,
     down: migration_20260712_150000_offers_rels_categories_and_featured_home.down,
     name: '20260712_150000_offers_rels_categories_and_featured_home',
+  },
+  {
+    up: migration_20260713_120000_offers_categories_merchant_slot_workflow.up,
+    down: migration_20260713_120000_offers_categories_merchant_slot_workflow.down,
+    name: '20260713_120000_offers_categories_merchant_slot_workflow',
+  },
+  {
+    up: migration_20260714_120000_sanitize_invalid_merchant_json_text.up,
+    down: migration_20260714_120000_sanitize_invalid_merchant_json_text.down,
+    name: '20260714_120000_sanitize_invalid_merchant_json_text',
   },
 ];

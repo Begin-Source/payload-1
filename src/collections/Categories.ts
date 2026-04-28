@@ -13,7 +13,14 @@ export const Categories: CollectionConfig = {
   admin: {
     group: adminGroups.website,
     useAsTitle: 'name',
-    defaultColumns: ['name', 'slug', 'site', 'categorySlotsWorkflowStatus', 'updatedAt'],
+    defaultColumns: [
+      'name',
+      'slug',
+      'site',
+      'categorySlotsWorkflowStatus',
+      'merchantOfferFetchWorkflowStatus',
+      'updatedAt',
+    ],
     components: {
       beforeListTable: ['./components/ArticleCsvImportExport#CsvImportExportPanel'],
       listMenuItems: ['./components/ArticleCsvImportExport#CsvImportExportListMenuItem'],
@@ -82,6 +89,62 @@ export const Categories: CollectionConfig = {
         components: {
           Cell: './components/CategorySlotsWorkflowStatusCell#CategorySlotsWorkflowStatusCell',
         },
+      },
+    },
+    {
+      name: 'merchantOfferFetchWorkflowStatus',
+      type: 'text',
+      label: '拉品槽位流程',
+      defaultValue: 'idle',
+      admin: {
+        readOnly: true,
+        description:
+          'DataForSEO Merchant → Offers（idle / running / done / error）。快捷操作写入。',
+        listView: {
+          label: 'Merchant 拉品',
+        },
+        components: {
+          Cell: './components/CategoryMerchantOfferFetchWorkflowCell#CategoryMerchantOfferFetchWorkflowCell',
+        },
+      },
+    },
+    {
+      name: 'merchantOfferFetchWorkflowLog',
+      type: 'textarea',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        rows: 4,
+      },
+    },
+    {
+      name: 'merchantOfferFetchDfTaskTag',
+      type: 'text',
+      label: '最近一次 DFS tag',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'merchantOfferFetchLastBatchId',
+      type: 'text',
+      label: '最近一次批次 ID',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'merchantOfferFetchLastSummary',
+      type: 'textarea',
+      label: '拉品摘要 JSON',
+      admin: {
+        readOnly: true,
+        rows: 8,
+        position: 'sidebar',
+        description:
+          'JSON 字符串（调试用）。使用 textarea 避免 Drizzle SQLite JSON 列在 relational map 时出现 decode 错位导致 Admin 空白。',
       },
     },
     {

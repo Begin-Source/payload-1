@@ -1,6 +1,7 @@
 'use client'
 
 import { CategorySlotsQuickActionModal } from '@/components/CategorySlotsQuickActionModal'
+import { OfferMerchantSlotQuickActionModal } from '@/components/OfferMerchantSlotQuickActionModal'
 import { TrustPagesBundleQuickActionModal } from '@/components/TrustPagesBundleQuickActionModal'
 import { Button } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
@@ -1582,6 +1583,10 @@ export function CategoryListQuickAction(): React.ReactElement {
 
 export function KeywordListQuickAction(): React.ReactElement {
   return <WorkflowQuickActionModal kind="keywords" />
+}
+
+export function OfferListQuickAction(): React.ReactElement {
+  return <OfferMerchantSlotQuickActionModal />
 }
 
 export function DesignListQuickAction(): React.ReactElement {
