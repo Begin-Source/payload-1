@@ -1142,6 +1142,18 @@ export interface Offer {
       | number
       | boolean
       | null;
+    /**
+     * DataForSEO 原始条目快照（入库前缩短 URL / 裁剪大块字段，受单条 INSERT 体量限制；极端情况会标记 _snapshot_truncated）。
+     */
+    dfsSnapshot?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
   };
   /**
    * DataForSEO Merchant 类目拉品批次与槽位来源追溯。
@@ -3278,6 +3290,7 @@ export interface OffersSelect<T extends boolean = true> {
         primeEligible?: T;
         merchantLastSyncedAt?: T;
         merchantRaw?: T;
+        dfsSnapshot?: T;
       };
   merchantSlot?:
     | T

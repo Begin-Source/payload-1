@@ -6,7 +6,9 @@ import { normalizeDataForSeoMerchantPostback } from '@/utilities/dataForSeoMerch
 import {
   type MerchantOfferCreatePatch,
   buildMerchantOffersFromRawItems,
+  clampDfsSnapshotDocument,
   clampMerchantRawDocument,
+  DFS_SNAPSHOT_MAX_UTF8_BYTES,
   MERCHANT_RAW_MAX_UTF8_BYTES,
   merchantRawUtf8Bytes,
 } from '@/utilities/merchantOffersFromDfsItems'
@@ -288,6 +290,25 @@ export async function POST(request: Request): Promise<Response> {
         if (merchantRawUtf8Bytes(amazonPayload.merchantRaw) > MERCHANT_RAW_MAX_UTF8_BYTES) {
           payload.logger.error(
             `[dataforseo-merchant-offers] merchantRaw still oversized after clamp (${merchantRawUtf8Bytes(amazonPayload.merchantRaw)}B)`,
+          )
+        }
+      }
+
+      if (
+        amazonPayload.dfsSnapshot != null &&
+        typeof amazonPayload.dfsSnapshot === 'object' &&
+        !Array.isArray(amazonPayload.dfsSnapshot)
+      ) {
+        const snapBytes = merchantRawUtf8Bytes(amazonPayload.dfsSnapshot)
+        if (snapBytes > DFS_SNAPSHOT_MAX_UTF8_BYTES) {
+          payload.logger.warn(
+            `[dataforseo-merchant-offers] dfsSnapshot ${snapBytes}B > ${DFS_SNAPSHOT_MAX_UTF8_BYTES}B; clamping`,
+          )
+        }
+        amazonPayload.dfsSnapshot = clampDfsSnapshotDocument(amazonPayload.dfsSnapshot)
+        if (merchantRawUtf8Bytes(amazonPayload.dfsSnapshot) > DFS_SNAPSHOT_MAX_UTF8_BYTES) {
+          payload.logger.error(
+            `[dataforseo-merchant-offers] dfsSnapshot still oversized after clamp (${merchantRawUtf8Bytes(amazonPayload.dfsSnapshot)}B)`,
           )
         }
       }

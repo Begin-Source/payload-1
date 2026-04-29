@@ -58,6 +58,7 @@ import * as migration_20260712_150000_offers_rels_categories_and_featured_home f
 import * as migration_20260713_120000_offers_categories_merchant_slot_workflow from './20260713_120000_offers_categories_merchant_slot_workflow';
 import * as migration_20260714_120000_sanitize_invalid_merchant_json_text from './20260714_120000_sanitize_invalid_merchant_json_text';
 import * as migration_20260715_120000_offers_rename_merchant_batch_id from './20260715_120000_offers_rename_merchant_batch_id';
+import * as migration_20260716_120000_offers_amazon_dfs_snapshot from './20260716_120000_offers_amazon_dfs_snapshot';
 
 export const migrations = [
   {
@@ -359,5 +360,10 @@ export const migrations = [
     up: migration_20260715_120000_offers_rename_merchant_batch_id.up,
     down: migration_20260715_120000_offers_rename_merchant_batch_id.down,
     name: '20260715_120000_offers_rename_merchant_batch_id',
+  },
+  {
+    up: migration_20260716_120000_offers_amazon_dfs_snapshot.up,
+    down: migration_20260716_120000_offers_amazon_dfs_snapshot.down,
+    name: '20260716_120000_offers_amazon_dfs_snapshot',
   },
 ];

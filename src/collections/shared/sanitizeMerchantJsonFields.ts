@@ -23,7 +23,7 @@ function looseJsonFromStored(value: unknown): unknown | null {
   }
 }
 
-/** Offers: `amazon.merchantRaw` (json column). slotLastPayload is textarea — leave as string. */
+/** Offers: `amazon.merchantRaw` / `amazon.dfsSnapshot` (json columns). slotLastPayload is textarea — leave as string. */
 export const sanitizeOffersMerchantJsonFields: CollectionAfterReadHook = ({ doc }) => {
   if (!doc || typeof doc !== 'object') return doc
   const d = doc as Record<string, unknown>
@@ -33,6 +33,10 @@ export const sanitizeOffersMerchantJsonFields: CollectionAfterReadHook = ({ doc 
     if ('merchantRaw' in a && a.merchantRaw != null) {
       const v = looseJsonFromStored(a.merchantRaw)
       a.merchantRaw = v ?? null
+    }
+    if ('dfsSnapshot' in a && a.dfsSnapshot != null) {
+      const v = looseJsonFromStored(a.dfsSnapshot)
+      a.dfsSnapshot = v ?? null
     }
   }
   return doc

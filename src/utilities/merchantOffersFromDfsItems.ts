@@ -33,6 +33,8 @@ export type MerchantOfferCreatePatch = {
     reviewCount?: number | null
     imageUrl?: string | null
     merchantRaw?: unknown
+    /** Near-full DFS raw item (byte-capped); stored as `amazon_dfs_snapshot`. */
+    dfsSnapshot?: unknown
     merchantLastSyncedAt?: string
   }
 }
@@ -152,6 +154,106 @@ function shortenUrlForStorage(u: string, maxLen: number): string {
   } catch {
     return truncateStr(t, Math.min(maxLen, 320))
   }
+}
+
+/** Near-full DFS item for `amazon_dfs_snapshot`; separate cap from slim `merchantRaw`. */
+export const DFS_SNAPSHOT_MAX_UTF8_BYTES = 36 * 1024
+
+function cloneDfsItem(item: Record<string, unknown>): Record<string, unknown> {
+  try {
+    return JSON.parse(JSON.stringify(item)) as Record<string, unknown>
+  } catch {
+    return { ...item }
+  }
+}
+
+function snapshotUtf8Bytes(obj: unknown): number {
+  return new TextEncoder().encode(JSON.stringify(obj)).length
+}
+
+/**
+ * Preserve as much DFS payload as fits per-offer snapshot; shortens URLs then drops bulky keys.
+ */
+export function buildDfsSnapshotForStorage(item: Record<string, unknown>): Record<string, unknown> {
+  const o = cloneDfsItem(item)
+
+  const shortenUrlsFirstPass = (): void => {
+    for (const key of ['url', 'landing_url', 'image_url']) {
+      const v = o[key]
+      if (typeof v === 'string')
+        (o as Record<string, unknown>)[key] = shortenUrlForStorage(
+          v,
+          key === 'image_url' ? IMAGE_URL_MAX_LEN : 600,
+        )
+    }
+    if (Array.isArray(o.product_images_list)) {
+      o.product_images_list = (o.product_images_list as unknown[])
+        .slice(0, 16)
+        .map((x) => shortenUrlForStorage(String(x ?? ''), 400))
+    }
+    if (typeof o.description === 'string' && o.description.length > 6000) {
+      o.description = truncateStr(o.description, 6000)
+    }
+  }
+
+  shortenUrlsFirstPass()
+
+  while (snapshotUtf8Bytes(o) > DFS_SNAPSHOT_MAX_UTF8_BYTES) {
+    ;(o as Record<string, unknown>)._snapshot_truncated = true
+    if (Array.isArray(o.product_information) && (o.product_information as unknown[]).length) {
+      o.product_information = (o.product_information as unknown[]).slice(
+        0,
+        Math.max(0, (o.product_information as unknown[]).length - 2),
+      )
+      continue
+    }
+    delete o.product_information
+    if (typeof o.description === 'string' && o.description.length > 800) {
+      o.description = truncateStr(o.description, 800)
+      continue
+    }
+    delete o.description
+    if (Array.isArray(o.product_images_list) && (o.product_images_list as unknown[]).length > 2) {
+      o.product_images_list = (o.product_images_list as unknown[]).slice(0, 2)
+      shortenUrlsFirstPass()
+      continue
+    }
+    delete o.product_images_list
+    if (typeof o.title === 'string') o.title = truncateStr(o.title, 180)
+    if (snapshotUtf8Bytes(o) <= DFS_SNAPSHOT_MAX_UTF8_BYTES) break
+    ;(o as Record<string, unknown>)._snapshot_truncated = true
+    break
+  }
+
+  if (snapshotUtf8Bytes(o) > DFS_SNAPSHOT_MAX_UTF8_BYTES) {
+    return clampDfsSnapshotDocument(o)
+  }
+  return o
+}
+
+/** Second-line guard before insert if snapshot still exceeds cap (should be rare). */
+export function clampDfsSnapshotDocument(raw: unknown): Record<string, unknown> {
+  if (raw === null || raw === undefined) return {}
+  if (typeof raw !== 'object' || Array.isArray(raw)) return {}
+  const rec = raw as Record<string, unknown>
+  const o = { ...rec }
+
+  while (snapshotUtf8Bytes(o) > DFS_SNAPSHOT_MAX_UTF8_BYTES) {
+    ;(o as Record<string, unknown>)._snapshot_truncated = true
+    delete o.product_information
+    delete o.description
+    delete o.product_images_list
+    if (typeof o.title === 'string') o.title = truncateStr(o.title, 80)
+    if (snapshotUtf8Bytes(o) <= DFS_SNAPSHOT_MAX_UTF8_BYTES) break
+    return {
+      asin: o.asin,
+      data_asin: o.data_asin,
+      title: typeof o.title === 'string' ? truncateStr(o.title, 120) : o.title,
+      type: o.type,
+      _snapshot_truncated: true,
+    }
+  }
+  return o
 }
 
 /**
@@ -358,6 +460,7 @@ export function buildMerchantOffersFromRawItems(
         priceCents: priceMajor !== undefined ? moneyToCents(priceMajor) : undefined,
         imageUrl: primaryImage || undefined,
         merchantRaw: sanitizeMerchantRawForStorage(item),
+        dfsSnapshot: buildDfsSnapshotForStorage(item),
         merchantLastSyncedAt: now,
       },
     })
