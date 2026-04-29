@@ -159,6 +159,91 @@ function shortenUrlForStorage(u: string, maxLen: number): string {
 /** Near-full DFS item for `amazon_dfs_snapshot`; separate cap from slim `merchantRaw`. */
 export const DFS_SNAPSHOT_MAX_UTF8_BYTES = 36 * 1024
 
+/** DFS Merchant Amazon raw item: bullets / specs — normalize early so shedding can shrink these before `product_information`. */
+const DFS_SNAPSHOT_SELLING_POINT_KEYS = [
+  'features',
+  'functions',
+  'bullet_points',
+  'feature_bullets',
+  'feature_bullets_flat',
+  'about_this_item',
+  'product_benefits',
+] as const
+
+/** Max UTF-8-aware character cap per bullet line after normalization (string length proxy). */
+const DFS_SNAPSHOT_STRING_PER_LINE_MAX = 720
+
+/** Initial max rows per selling-point array (shedding pops more later). */
+const DFS_SNAPSHOT_SELLING_ARRAY_MAX_ITEMS = 56
+
+function dfsSnapshotCoerceLine(v: unknown): string {
+  if (v === null || v === undefined) return ''
+  if (typeof v === 'string') return v.trim()
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+  try {
+    return JSON.stringify(v)
+  } catch {
+    return String(v)
+  }
+}
+
+/**
+ * Trim bullet arrays / string lists DFS uses for features & similar fields (aliases above).
+ */
+function normalizeDfsSellingPointArrays(o: Record<string, unknown>): void {
+  for (const key of DFS_SNAPSHOT_SELLING_POINT_KEYS) {
+    const v = o[key]
+    if (!Array.isArray(v) || v.length === 0) continue
+    const lines = v
+      .map((x) => truncateStr(dfsSnapshotCoerceLine(x), DFS_SNAPSHOT_STRING_PER_LINE_MAX))
+      .filter((s) => s.length > 0)
+    o[key] = lines.slice(0, DFS_SNAPSHOT_SELLING_ARRAY_MAX_ITEMS)
+  }
+}
+
+/**
+ * One step toward byte budget by shrinking selling-point arrays before touching `product_information`.
+ * Returns true if the document was modified.
+ */
+function shrinkDfsSellingPointArraysStep(o: Record<string, unknown>): boolean {
+  for (const key of DFS_SNAPSHOT_SELLING_POINT_KEYS) {
+    const v = o[key]
+    if (!Array.isArray(v) || v.length === 0) continue
+    if (v.length > 10) {
+      o[key] = v.slice(0, Math.max(0, v.length - 5))
+      return true
+    }
+  }
+  for (const key of DFS_SNAPSHOT_SELLING_POINT_KEYS) {
+    const v = o[key]
+    if (!Array.isArray(v) || v.length <= 1) continue
+    o[key] = v.slice(0, v.length - 2)
+    return true
+  }
+  for (const key of DFS_SNAPSHOT_SELLING_POINT_KEYS) {
+    const v = o[key]
+    if (!Array.isArray(v)) continue
+    let changed = false
+    const next = v.map((x) => {
+      const s = dfsSnapshotCoerceLine(x)
+      if (s.length <= 160) return s
+      changed = true
+      return truncateStr(s, Math.max(120, Math.floor(s.length * 0.62)))
+    })
+    if (changed) {
+      o[key] = next
+      return true
+    }
+  }
+  for (const key of DFS_SNAPSHOT_SELLING_POINT_KEYS) {
+    if (Array.isArray(o[key]) && (o[key] as unknown[]).length > 0) {
+      delete o[key]
+      return true
+    }
+  }
+  return false
+}
+
 function cloneDfsItem(item: Record<string, unknown>): Record<string, unknown> {
   try {
     return JSON.parse(JSON.stringify(item)) as Record<string, unknown>
@@ -197,9 +282,11 @@ export function buildDfsSnapshotForStorage(item: Record<string, unknown>): Recor
   }
 
   shortenUrlsFirstPass()
+  normalizeDfsSellingPointArrays(o)
 
   while (snapshotUtf8Bytes(o) > DFS_SNAPSHOT_MAX_UTF8_BYTES) {
     ;(o as Record<string, unknown>)._snapshot_truncated = true
+    if (shrinkDfsSellingPointArraysStep(o)) continue
     if (Array.isArray(o.product_information) && (o.product_information as unknown[]).length) {
       o.product_information = (o.product_information as unknown[]).slice(
         0,
@@ -243,6 +330,9 @@ export function clampDfsSnapshotDocument(raw: unknown): Record<string, unknown> 
     delete o.product_information
     delete o.description
     delete o.product_images_list
+    for (const key of DFS_SNAPSHOT_SELLING_POINT_KEYS) {
+      delete o[key]
+    }
     if (typeof o.title === 'string') o.title = truncateStr(o.title, 80)
     if (snapshotUtf8Bytes(o) <= DFS_SNAPSHOT_MAX_UTF8_BYTES) break
     return {
