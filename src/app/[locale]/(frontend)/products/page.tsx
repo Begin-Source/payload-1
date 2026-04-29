@@ -5,11 +5,15 @@ import React from 'react'
 import { AmzProductsPage } from '@/components/amz-template-1/AmzProductsPage'
 import { isAppLocale } from '@/i18n/config'
 import { getPublicSiteContext, isAmzTemplateLayout } from '@/utilities/publicLandingTheme'
+import { buildProductCountBySlug } from '@/utilities/amzOfferCategoryCounts'
 import {
   getActiveOffersForSite,
   getCategoryBySlugForSite,
   getNavCategoriesForSite,
 } from '@/utilities/publicSiteQueries'
+
+/** Offer fetch limit for per-category counts on `/products` (avoid oversized payloads). */
+const PRODUCT_INDEX_COUNT_OFFER_LIMIT = 400
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -34,10 +38,13 @@ export default async function ProductsPage(props: Props) {
   const categoryDoc = slug ? await getCategoryBySlugForSite(site.id, slug) : null
   const categoryId = categoryDoc?.id
 
-  const [offers, categories] = await Promise.all([
+  const [offers, offersForCounts, categories] = await Promise.all([
     getActiveOffersForSite(site.id, 120, categoryId),
+    getActiveOffersForSite(site.id, PRODUCT_INDEX_COUNT_OFFER_LIMIT),
     getNavCategoriesForSite(site.id, 48),
   ])
+
+  const productCountBySlug = buildProductCountBySlug(categories, offersForCounts)
 
   return (
     <AmzProductsPage
@@ -46,6 +53,7 @@ export default async function ProductsPage(props: Props) {
       offers={offers}
       categories={categories}
       activeCategorySlug={slug || null}
+      productCountBySlug={productCountBySlug}
     />
   )
 }

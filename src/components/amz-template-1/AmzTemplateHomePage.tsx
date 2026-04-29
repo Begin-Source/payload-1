@@ -1,15 +1,14 @@
 import React from 'react'
 
 import { AmzLink } from '@/amz-template-1/AmzLink'
-import { cn } from '@/amz-template-1/lib/utils'
 
 import type { AmzSiteConfig } from '@/amz-template-1/defaultSiteConfig'
 import { firstCategoryFromArticle } from '@/components/blog/articleHelpers'
 import type { AppLocale } from '@/i18n/config'
 import type { Article, Category, Media, Offer } from '@/payload-types'
 
+import { AmzCategoryBrowseGrid } from './AmzCategoryBrowseGrid'
 import { buildAmzCategoryCards } from './categoryCards'
-import { CategoryCardIcon } from './CategoryCardIcon'
 import { AmzOfferCard } from './AmzOfferCard'
 import { AmzTemplateHomeHero } from './AmzTemplateHomeHero'
 
@@ -58,56 +57,12 @@ export function AmzTemplateHomePage(props: AmzTemplateHomePageProps) {
 
       <div className="container mx-auto px-4 py-10">
         {categoryCards.length > 0 ? (
-          <section className="mb-12">
-            <header className="mx-auto max-w-3xl text-center">
-              <h2 className="text-balance text-2xl font-semibold text-foreground md:text-3xl">{catTitle}</h2>
-              <p className="mt-2 text-balance text-muted-foreground">{catSubtitle}</p>
-            </header>
-            <ul className="mt-8 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-5 lg:gap-3">
-              {categoryCards.map((card) => {
-                const href = `/${locale}/categories/${encodeURIComponent(card.slug)}`
-                const single = categoryCards.length === 1
-                return (
-                  <li key={card.slug} className={cn('min-w-0', single && 'col-span-full flex justify-center')}>
-                    <AmzLink
-                      href={href}
-                      className={cn(
-                        'group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md',
-                        // single-card 预览时，其宽度模拟 5 列布局下每张卡的实际宽度，避免占满半屏给人「太大」错觉。
-                        single && 'max-w-xs sm:max-w-[200px] lg:max-w-[200px]',
-                      )}
-                    >
-                      <div className="relative flex aspect-[4/3] w-full items-center justify-center bg-muted sm:aspect-video">
-                        {card.coverImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={card.coverImage}
-                            alt=""
-                            className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
-                          />
-                        ) : (
-                          <CategoryCardIcon
-                            name={card.icon}
-                            className="h-11 w-11 text-muted-foreground/80 sm:h-12 sm:w-12"
-                          />
-                        )}
-                      </div>
-                      <div className="flex flex-1 flex-col items-center px-2 py-3 text-center sm:px-3">
-                        <span className="text-balance text-sm font-semibold leading-snug text-foreground underline-offset-2 group-hover:underline sm:text-base">
-                          {card.title}
-                        </span>
-                        {card.description ? (
-                          <p className="mt-1.5 line-clamp-3 text-xs leading-snug text-muted-foreground sm:text-sm">
-                            {card.description}
-                          </p>
-                        ) : null}
-                      </div>
-                    </AmzLink>
-                  </li>
-                )
-              })}
-            </ul>
-          </section>
+          <AmzCategoryBrowseGrid
+            cards={categoryCards}
+            hrefForSlug={(slug) => `/${locale}/categories/${encodeURIComponent(slug)}`}
+            sectionTitle={catTitle}
+            sectionSubtitle={catSubtitle}
+          />
         ) : null}
 
         {featuredOffers.length > 0 ? (
