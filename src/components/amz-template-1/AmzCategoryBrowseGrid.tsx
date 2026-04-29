@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 
 import { AmzLink } from '@/amz-template-1/AmzLink'
