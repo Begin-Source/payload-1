@@ -100,8 +100,6 @@ function resolvePriceMajor(item: Record<string, unknown>): number | undefined {
 export const MERCHANT_RAW_MAX_UTF8_BYTES = 28 * 1024
 
 const IMAGE_URL_MAX_LEN = 512
-const GALLERY_URL_MAX_LEN = 400
-const GALLERY_MAX_ITEMS = 4
 
 export function merchantRawUtf8Bytes(obj: unknown): number {
   return new TextEncoder().encode(JSON.stringify(obj)).length
@@ -156,13 +154,8 @@ function shortenUrlForStorage(u: string, maxLen: number): string {
   }
 }
 
-function shortAmazonProductUrl(asin: string): string {
-  const a = String(asin ?? '').trim().toUpperCase()
-  return a ? `https://www.amazon.com/dp/${a}` : ''
-}
-
 /**
- * Second-line guard before DB insert: shrink gallery strings before deleting keys (keeps `image_url` longest).
+ * Second-line guard before DB insert: trim `features` / `title` / `price` before dropping `image_url`.
  */
 export function clampMerchantRawDocument(raw: unknown): Record<string, unknown> {
   if (raw === null || raw === undefined) return {}
@@ -174,123 +167,53 @@ export function clampMerchantRawDocument(raw: unknown): Record<string, unknown> 
       o.image_url = shortenUrlForStorage(o.image_url, IMAGE_URL_MAX_LEN)
       continue
     }
-    if (
-      Array.isArray(o.product_images_list) &&
-      (o.product_images_list as unknown[]).some((x) => String(x ?? '').length > 160)
-    ) {
-      o.product_images_list = (o.product_images_list as unknown[]).map((x) =>
-        shortenUrlForStorage(String(x ?? ''), 160),
-      )
-      continue
-    }
-    if (
-      Array.isArray(o.product_images_list) &&
-      (o.product_images_list as unknown[]).some((x) => String(x ?? '').length > 96)
-    ) {
-      o.product_images_list = (o.product_images_list as unknown[]).map((x) =>
-        truncateStr(String(x ?? ''), 96),
-      )
-      continue
-    }
     if (Array.isArray(o.features) && o.features.length) {
       o.features = (o.features as unknown[]).slice(0, Math.max(0, (o.features as unknown[]).length - 2))
       continue
     }
-    if (Array.isArray(o.product_images_list) && o.product_images_list.length) {
-      o.product_images_list = (o.product_images_list as unknown[]).slice(
-        0,
-        Math.max(1, (o.product_images_list as unknown[]).length - 1),
-      )
+    if (typeof o.title === 'string' && o.title.length > 160) {
+      o.title = truncateStr(o.title, 160)
+      continue
+    }
+    if (o.price != null && typeof o.price === 'object' && !Array.isArray(o.price)) {
+      delete o.price
       continue
     }
     delete o.features
-    delete o.product_images_list
     if (typeof o.title === 'string')
       o.title = truncateStr(o.title, 80)
     if (jsonUtf8Bytes(o) <= MERCHANT_RAW_MAX_UTF8_BYTES) break
-    delete o.delivery_info
+    delete o.image_url
     o._clamped_for_d1 = true
     break
   }
   return o
 }
 
-type DfsRankMeta = { votes: number; bought_past_month: number; match_ratio: number }
-
 /**
- * Slim copy of DFS item for `amazon_merchant_raw`: avoids D1 100KB statement limits from huge URLs.
- * Preserves primary `image_url` and up to four gallery URLs (shortened; deduped with main).
+ * Whitelist for `amazon_merchant_raw`: title, ASIN, main `image_url`, `features`, `price` snapshot.
  */
-export function sanitizeMerchantRawForStorage(
-  item: Record<string, unknown>,
-  dfsRank: DfsRankMeta,
-): Record<string, unknown> {
+export function sanitizeMerchantRawForStorage(item: Record<string, unknown>): Record<string, unknown> {
   const asin = String(item.asin ?? item.data_asin ?? '').trim()
 
   const mainImg = String(item.image_url ?? '').trim()
-  const gallery: string[] = []
-  if (mainImg) gallery.push(shortenUrlForStorage(mainImg, IMAGE_URL_MAX_LEN))
-  const rawList = Array.isArray(item.product_images_list) ? item.product_images_list : []
-  for (let i = 0; i < rawList.length && gallery.length < GALLERY_MAX_ITEMS; i++) {
-    const u = String(rawList[i] ?? '').trim()
-    if (!u) continue
-    const shortened = shortenUrlForStorage(u, GALLERY_URL_MAX_LEN)
-    if (!shortened || gallery.includes(shortened)) continue
-    gallery.push(shortened)
+  const priceSrc = item.price as Record<string, unknown> | undefined
+
+  const price: Record<string, unknown> = {}
+  if (priceSrc && typeof priceSrc === 'object') {
+    if (priceSrc.current !== undefined) price.current = priceSrc.current
+    if (priceSrc.display_price !== undefined) price.display_price = priceSrc.display_price
   }
-  const uniqueGallery = [...new Set(gallery)].slice(0, GALLERY_MAX_ITEMS)
-
-  const rating = item.rating
-  const price = item.price
-  const delivery = item.delivery_info
-
-  const productUrl =
-    asin ? shortAmazonProductUrl(asin) : shortenUrlForStorage(String(item.url ?? ''), 320)
+  const cur = item.currency
+  if (cur !== undefined && cur !== null && String(cur).trim() !== '')
+    price.currency = cur
 
   const out: Record<string, unknown> = {
-    type: item.type,
     title: truncateStr(String(item.title ?? ''), 450),
-    data_asin: item.data_asin ?? asin,
     asin: asin || undefined,
     image_url: mainImg ? shortenUrlForStorage(mainImg, IMAGE_URL_MAX_LEN) : undefined,
-    product_images_list: uniqueGallery.length > 1 ? uniqueGallery : uniqueGallery.length ? uniqueGallery : undefined,
-    url: productUrl || undefined,
-    bought_past_month: item.bought_past_month,
-    price_from: item.price_from,
-    price_to: item.price_to,
-    currency: item.currency,
-    rank_group: item.rank_group,
-    rank_absolute: item.rank_absolute,
-    is_amazon_choice: item.is_amazon_choice,
-    is_best_seller: item.is_best_seller,
-    rating:
-      rating && typeof rating === 'object'
-        ? {
-            type: (rating as { type?: string }).type,
-            value: (rating as { value?: number }).value,
-            votes_count: (rating as { votes_count?: number }).votes_count,
-            rating_max: (rating as { rating_max?: number }).rating_max,
-          }
-        : rating,
-    price:
-      price && typeof price === 'object'
-        ? {
-            current: (price as { current?: unknown }).current,
-            display_price: (price as { display_price?: unknown }).display_price,
-          }
-        : price,
-    delivery_info:
-      delivery && typeof delivery === 'object'
-        ? {
-            delivery_message: truncateStr(
-              String((delivery as { delivery_message?: string }).delivery_message ?? ''),
-              400,
-            ),
-            delivery_price: (delivery as { delivery_price?: unknown }).delivery_price,
-          }
-        : undefined,
     features: toFeatures(item).map((f) => truncateStr(f, 280)).slice(0, 12),
-    dfs_rank: dfsRank,
+    price: Object.keys(price).length ? price : undefined,
   }
 
   for (const k of Object.keys(out)) {
@@ -302,20 +225,6 @@ export function sanitizeMerchantRawForStorage(
   const lean: Record<string, unknown> = { ...out }
   lean.features = (lean.features as string[])?.slice(0, 4) ?? []
   lean.title = truncateStr(String(lean.title ?? ''), 200)
-  lean.delivery_info =
-    lean.delivery_info && typeof lean.delivery_info === 'object'
-      ? {
-          delivery_message: truncateStr(
-            String((lean.delivery_info as { delivery_message?: string }).delivery_message ?? ''),
-            120,
-          ),
-        }
-      : undefined
-  if (jsonUtf8Bytes(lean) > MERCHANT_RAW_MAX_UTF8_BYTES && Array.isArray(lean.product_images_list)) {
-    const imgs = lean.product_images_list as string[]
-    lean.product_images_list = imgs.slice(0, Math.min(3, GALLERY_MAX_ITEMS))
-    lean.image_url = imgs[0] ? shortenUrlForStorage(imgs[0], IMAGE_URL_MAX_LEN) : lean.image_url
-  }
   let bytes = jsonUtf8Bytes(lean)
   while (bytes > MERCHANT_RAW_MAX_UTF8_BYTES && Array.isArray(lean.features) && (lean.features as string[]).length > 0) {
     ;(lean.features as string[]).pop()
@@ -324,7 +233,6 @@ export function sanitizeMerchantRawForStorage(
   if (bytes > MERCHANT_RAW_MAX_UTF8_BYTES) {
     lean._storage_note = 'truncated_for_d1_row_size'
     delete lean.features
-    delete lean.product_images_list
     lean.image_url = mainImg ? shortenUrlForStorage(mainImg, IMAGE_URL_MAX_LEN) : lean.image_url
   }
   return lean
@@ -449,11 +357,7 @@ export function buildMerchantOffersFromRawItems(
           entry.votes > 0 ? Math.round(entry.votes) : undefined,
         priceCents: priceMajor !== undefined ? moneyToCents(priceMajor) : undefined,
         imageUrl: primaryImage || undefined,
-        merchantRaw: sanitizeMerchantRawForStorage(item, {
-          votes: entry.votes,
-          bought_past_month: entry.bought,
-          match_ratio: entry.matchRatio,
-        }),
+        merchantRaw: sanitizeMerchantRawForStorage(item),
         merchantLastSyncedAt: now,
       },
     })
