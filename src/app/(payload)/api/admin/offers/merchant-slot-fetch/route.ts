@@ -73,11 +73,11 @@ async function markOffersMerchantSlotRunningForCategory(
       id: doc.id,
       data: {
         merchantSlot: {
-          merchantSlotWorkflowStatus: 'running',
-          merchantSlotWorkflowUpdatedAt: now,
-          merchantSlotWorkflowLog: `DFS dispatched · batch ${batchUuid}`,
-          merchantBatchId: batchUuid,
-          merchantSlotSourceCategory: categoryId,
+          workflowStatus: 'running',
+          workflowUpdatedAt: now,
+          workflowLog: `DFS dispatched · batch ${batchUuid}`,
+          batchId: batchUuid,
+          sourceCategoryId: categoryId,
         },
       },
       overrideAccess: true,

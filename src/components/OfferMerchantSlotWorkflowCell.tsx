@@ -19,7 +19,7 @@ export function OfferMerchantSlotWorkflowCell(
   const row = props.rowData as Record<string, unknown> | undefined
   const fromCell = props.cellData
   const nested = row?.merchantSlot as Record<string, unknown> | undefined
-  const fromRow = nested?.merchantSlotWorkflowStatus ?? row?.merchantSlotWorkflowStatus
+  const fromRow = nested?.workflowStatus ?? row?.workflowStatus
   const status = normalizeWorkflowStatus(
     fromCell !== undefined && fromCell !== null ? fromCell : fromRow,
   )

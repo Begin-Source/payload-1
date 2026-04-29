@@ -14,7 +14,7 @@ export const Offers: CollectionConfig = {
       'title',
       'network',
       'status',
-      'merchantSlot.merchantSlotWorkflowStatus',
+      'merchantSlot.workflowStatus',
       'updatedAt',
     ],
     components: {
@@ -141,7 +141,7 @@ export const Offers: CollectionConfig = {
       },
       fields: [
         {
-          name: 'merchantSlotWorkflowStatus',
+          name: 'workflowStatus',
           type: 'select',
           defaultValue: 'idle',
           options: [
@@ -159,7 +159,7 @@ export const Offers: CollectionConfig = {
           },
         },
         {
-          name: 'merchantSlotWorkflowLog',
+          name: 'workflowLog',
           type: 'textarea',
           admin: {
             readOnly: true,
@@ -167,7 +167,7 @@ export const Offers: CollectionConfig = {
           },
         },
         {
-          name: 'merchantSlotWorkflowUpdatedAt',
+          name: 'workflowUpdatedAt',
           type: 'text',
           label: '槽位流程最后更新',
           admin: {
@@ -177,11 +177,9 @@ export const Offers: CollectionConfig = {
           },
         },
         {
-          name: 'merchantSlotSourceCategory',
+          name: 'sourceCategoryId',
           type: 'number',
           label: '来源分类 ID（槽位）',
-          /** Reuses migration column from former relationship FK. */
-          dbName: 'merchant_slot_source_category_id',
           admin: {
             readOnly: true,
             description:
@@ -189,14 +187,14 @@ export const Offers: CollectionConfig = {
           },
         },
         {
-          name: 'merchantBatchId',
+          name: 'batchId',
           type: 'text',
           admin: {
             readOnly: true,
           },
         },
         {
-          name: 'merchantSlotLastPayload',
+          name: 'lastPayload',
           type: 'textarea',
           admin: {
             readOnly: true,

@@ -1147,21 +1147,21 @@ export interface Offer {
    * DataForSEO Merchant 类目拉品批次与槽位来源追溯。
    */
   merchantSlot?: {
-    merchantSlotWorkflowStatus?: ('idle' | 'running' | 'done' | 'error') | null;
-    merchantSlotWorkflowLog?: string | null;
+    workflowStatus?: ('idle' | 'running' | 'done' | 'error') | null;
+    workflowLog?: string | null;
     /**
      * ISO 8601 字符串。text 避免非 ISO 入库值在 Admin 列表 SSR 时触发 Invalid time value。
      */
-    merchantSlotWorkflowUpdatedAt?: string | null;
+    workflowUpdatedAt?: string | null;
     /**
      * 本条类目槽位流水线的来源分类 ID；避免与顶层 categories 关系重复 JOIN categories。可选。
      */
-    merchantSlotSourceCategory?: number | null;
-    merchantBatchId?: string | null;
+    sourceCategoryId?: number | null;
+    batchId?: string | null;
     /**
      * 最后一次快捷操作请求的摘要 JSON 字符串（调试用）；使用 textarea 可避免 Drizzle 对 JSON TEXT 模式的自动 decode 在映射错位时 SSR 报错。
      */
-    merchantSlotLastPayload?: string | null;
+    lastPayload?: string | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -3282,12 +3282,12 @@ export interface OffersSelect<T extends boolean = true> {
   merchantSlot?:
     | T
     | {
-        merchantSlotWorkflowStatus?: T;
-        merchantSlotWorkflowLog?: T;
-        merchantSlotWorkflowUpdatedAt?: T;
-        merchantSlotSourceCategory?: T;
-        merchantBatchId?: T;
-        merchantSlotLastPayload?: T;
+        workflowStatus?: T;
+        workflowLog?: T;
+        workflowUpdatedAt?: T;
+        sourceCategoryId?: T;
+        batchId?: T;
+        lastPayload?: T;
       };
   updatedAt?: T;
   createdAt?: T;
